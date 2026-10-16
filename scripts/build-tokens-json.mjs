@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const css = readFileSync(root + 'css/tokens.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+const css = readFileSync(root + 'css/tokens.css', 'utf8').replace(/\r\n/g, '\n').replace(/\/\*[\s\S]*?\*\//g, '');
 
 function block(selector) {
   const start = css.indexOf(selector);
