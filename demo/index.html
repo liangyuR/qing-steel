@@ -1,0 +1,1179 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>青钢设计语言</title>
+<meta name="description" content="青钢 QING / STEEL：面向工业视觉软件的 Material 3 风格设计语言样张。">
+<script>try { var t = localStorage.getItem('qs-demo-theme'); if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/components.css">
+<!-- 字体非阻塞加载：离线或被拦截时直接使用 tokens.css 中的系统字体回退栈 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+/* 仅样张页面自身的版式；组件样式全部来自 ../css/components.css */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--on-surface);
+  font: 400 14px/1.6 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+h1, h2, h3, h4 { margin: 0; font-weight: 700; text-wrap: balance; line-height: 1.3; }
+p { margin: 0; }
+a { color: var(--primary); }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: var(--r-xs); }
+button { font: inherit; color: inherit; }
+
+/* ===== 样张页面骨架 ===== */
+.spec-top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: var(--surface-low);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px;
+  box-shadow: 0 1px 0 var(--outline-variant);
+}
+.spec-top-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.spec-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .02em; }
+.spec-brand .mark { width: 28px; height: 28px; border-radius: 9px; background: var(--primary); color: var(--on-primary); display: grid; place-items: center; }
+.spec-brand .mark .qs-ic { width: 16px; height: 16px; stroke-width: 2.4; }
+.spec-top .spacer { flex: 1; }
+.spec-nav { display: flex; gap: 2px; flex-wrap: wrap; }
+.spec-nav a { color: var(--on-surface-variant); text-decoration: none; font-size: 13px; padding: 6px 10px; border-radius: var(--r-full); }
+.spec-nav a:hover { background: var(--state-hover); color: var(--on-surface); }
+
+.page {
+  max-width: 1280px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 80px;
+  display: grid; gap: 56px;
+}
+.sec { display: grid; gap: 20px; min-width: 0; scroll-margin-top: 80px; }
+.sec-head { display: grid; gap: 6px; }
+.eyebrow { font: 500 12px/1 var(--font-mono); letter-spacing: .12em; color: var(--primary); text-transform: uppercase; }
+.sec-head h2 { font-size: 24px; }
+.sec-head p { color: var(--on-surface-variant); max-width: 68ch; }
+.sub { display: grid; gap: 12px; min-width: 0; }
+.sub > h3 { font-size: 15px; font-weight: 500; color: var(--on-surface-variant); display: flex; align-items: center; gap: 8px; }
+.sub > h3::after { content: ""; flex: 1; height: 1px; background: var(--outline-variant); }
+.note { color: var(--on-surface-variant); font-size: 13px; }
+.board { background: var(--surface-low); border-radius: var(--r-xl); padding: 24px; min-width: 0; }
+.board.dense { padding: 16px; border-radius: var(--r-lg); }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.cols { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); }
+kbd.tok { font: 500 12px/1 var(--font-mono); background: var(--surface-high); padding: 3px 7px; border-radius: 6px; color: var(--on-surface); }
+
+/* ===== A. 开篇 ===== */
+.hero { display: grid; gap: 28px; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .hero { grid-template-columns: 1fr; } }
+.hero-name { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.hero-name h1 { font-size: clamp(40px, 7vw, 72px); letter-spacing: .04em; line-height: 1; }
+.hero-name .latin { font: 500 16px/1 var(--font-mono); color: var(--primary); letter-spacing: .14em; }
+.hero-claim { font-size: clamp(18px, 2.4vw, 24px); font-weight: 500; margin-top: 16px; line-height: 1.5; max-width: 26em; }
+.hero-sub { color: var(--on-surface-variant); margin-top: 12px; max-width: 60ch; }
+.hero-art { background: var(--surface-low); border-radius: var(--r-xl); padding: 20px; display: grid; gap: 14px; }
+.hero-art .qs-verdict { min-height: 128px; }
+.principles { display: grid; gap: 10px; counter-reset: p; }
+.principle { display: grid; grid-template-columns: 40px 1fr; gap: 14px; background: var(--surface-low); border-radius: var(--r-lg); padding: 16px 18px; align-items: start; }
+.principle .pn { font: 500 13px/1 var(--font-mono); color: var(--primary); background: var(--primary-container); color: var(--on-primary-container); width: 40px; height: 40px; border-radius: var(--r-full); display: grid; place-items: center; }
+.principle b { display: block; font-weight: 700; margin-bottom: 2px; }
+.principle span { color: var(--on-surface-variant); }
+
+/* ===== B. Tokens ===== */
+.palette-pair { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.palette { background: var(--surface); color: var(--on-surface); border-radius: var(--r-xl); padding: 20px; display: grid; gap: 16px; border: 1px solid var(--outline-variant); min-width: 0; }
+.palette h4 { font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: space-between; }
+.palette h4 .qs-num { color: var(--on-surface-variant); font-weight: 400; font-size: 12px; }
+.sw-group { display: grid; gap: 8px; }
+.sw-group-title { font-size: 11px; letter-spacing: .08em; color: var(--on-surface-variant); text-transform: uppercase; font-family: var(--font-mono); }
+.sw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.sw { display: grid; gap: 4px; min-width: 0; }
+.sw .tile { height: 44px; border-radius: var(--r-md); border: 1px solid var(--outline-variant); display: flex; align-items: flex-end; padding: 6px 8px; font: 500 11px/1 var(--font-mono); }
+.sw .name { font-size: 11px; color: var(--on-surface); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sw .hex { font: 400 11px/1 var(--font-mono); color: var(--on-surface-variant); }
+.sw-cams { display: flex; gap: 6px; flex-wrap: wrap; }
+.sw-cams i { width: 28px; height: 28px; border-radius: var(--r-full); display: inline-grid; place-items: center; font: 500 11px/1 var(--font-mono); font-style: normal; color: var(--surface-lowest); }
+.layers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.layers div { height: 56px; border-radius: var(--r-md); display: flex; align-items: flex-end; padding: 6px 8px; font: 400 10px/1.2 var(--font-mono); color: var(--on-surface-variant); }
+
+.shape-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+.shape { display: grid; gap: 6px; justify-items: center; }
+.shape i { display: block; width: 72px; height: 48px; background: var(--primary-container); border: 2px solid var(--primary); }
+.shape span { font: 400 12px/1 var(--font-mono); color: var(--on-surface-variant); }
+.shape small { font-size: 11px; color: var(--on-surface-variant); }
+.type-scale { display: grid; gap: 6px; }
+.type-scale .tr { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--outline-variant); min-width: 0; }
+.type-scale .tr:last-child { border-bottom: 0; }
+.type-scale .tl { font: 400 12px/1.4 var(--font-mono); color: var(--on-surface-variant); }
+.type-scale .tx { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 560px) { .type-scale .tr { grid-template-columns: 1fr; gap: 4px; } }
+.space-row { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; }
+.space { display: grid; gap: 6px; justify-items: center; }
+.space i { display: block; background: var(--tertiary-container); border-radius: 3px; }
+.space span { font: 400 11px/1 var(--font-mono); color: var(--on-surface-variant); }
+
+
+/* ===== D. Mock 画布 ===== */
+.mock-wrap { position: relative; border-radius: var(--r-xl); background: var(--surface-dim); padding: 12px; min-width: 0; }
+.mock-tools { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.mock-tools .cap { font-size: 13px; color: var(--on-surface-variant); flex: 1; min-width: 160px; }
+.mock-scroll { overflow-x: auto; overflow-y: hidden; border-radius: var(--r-lg); }
+.mock-stage { width: 1440px; height: 880px; transform-origin: 0 0; }
+.mock { width: 1440px; height: 880px; display: flex; background: var(--surface); color: var(--on-surface); border-radius: var(--r-lg); overflow: hidden; font-size: 14px; box-shadow: inset 0 0 0 1px var(--outline-variant); }
+.mock .qs-nav { min-height: 100%; }
+.mock-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.mock-body { flex: 1; min-height: 0; padding: 0 var(--page-pad) var(--page-pad); display: grid; gap: var(--panel-gap); }
+.online-body { grid-template-columns: minmax(0, 1fr) 420px; grid-template-rows: auto 1fr; }
+.online-body .cycle-card { grid-column: 1 / -1; display: flex; align-items: center; gap: 20px; }
+.online-body .cycle-card .qs-kv { margin-left: auto; }
+.work-card { display: flex; flex-direction: column; min-height: 0; }
+.work-card .svgbox { flex: 1; min-height: 0; background: var(--surface-lowest); border-radius: var(--r-lg); display: grid; place-items: center; padding: 8px; }
+.work-card .svgbox svg { width: 100%; height: 100%; max-height: 430px; display: block; }
+.work-card .svgbox rect.sel { transition: x var(--dur-medium) var(--ease-spatial), y var(--dur-medium) var(--ease-spatial), width var(--dur-medium) var(--ease-spatial), height var(--dur-medium) var(--ease-spatial); }
+.work-card .svgbox .defect-mark { transition: opacity var(--dur-medium) var(--ease-standard); }
+.work-card .svgbox .defect-mark.hide { opacity: 0; }
+.work-card .svgbox .glue-fill { opacity: 0; transition: opacity var(--dur-medium) var(--ease-standard); }
+.work-card .svgbox .glue-fill.show { opacity: 1; }
+.work-card .svgbox .seg-b-label { transition: fill var(--dur-medium) var(--ease-standard); }
+
+
+/* 动效小节 */
+.motion-tokens { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
+@media (max-width: 760px) { .motion-tokens { grid-template-columns: 1fr; } }
+.dur-list { display: grid; gap: 10px; }
+.dur-list .dr { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: center; font-size: 13px; }
+.dur-list .dr .tl { font: 400 12px/1.4 var(--font-mono); color: var(--on-surface-variant); }
+.dur-list .dr i { display: block; height: 10px; border-radius: var(--r-full); background: var(--primary-container); }
+.dur-list .dr small { color: var(--on-surface-variant); font-size: 12px; }
+.ease-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .ease-grid { grid-template-columns: 1fr; } }
+.ease { background: var(--surface-mid); border-radius: var(--r-md); padding: 12px; display: grid; gap: 8px; min-width: 0; }
+.ease h4 { font-size: 13px; font-weight: 500; }
+.ease .fn { font: 400 11px/1.4 var(--font-mono); color: var(--on-surface-variant); overflow-wrap: anywhere; }
+.ease svg { width: 100%; height: auto; display: block; }
+.ease .track { position: relative; height: 16px; border-radius: var(--r-full); background: var(--surface-highest); }
+.ease .track i { position: absolute; left: 2px; top: 2px; width: 12px; height: 12px; border-radius: var(--r-full); background: var(--primary); transition: transform var(--dur-long) var(--ease-standard); }
+.ease[data-ease="spatial"] .track i { transition-timing-function: var(--ease-spatial); }
+.ease[data-ease="decel"] .track i { transition-timing-function: var(--ease-decel); }
+.ease .use { font-size: 12px; color: var(--on-surface-variant); }
+.motion-table th:nth-child(1) { width: 20%; }
+.odo-demo { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.odo-demo .val { font: 600 28px/36px var(--font-mono); font-variant-numeric: tabular-nums; }
+.odo-demo .val small { font: 400 14px/1 var(--font-mono); color: var(--on-surface-variant); margin-left: 6px; }
+.work-card .qs-thumbs { margin-top: 12px; }
+.right-col { display: grid; grid-template-rows: auto 1fr auto; gap: var(--panel-gap); min-height: 0; }
+.right-col .qs-card { min-height: 0; }
+.plc-row { display: flex; align-items: center; gap: 12px; }
+.plc-row .steps { display: flex; gap: 6px; }
+.plc-row .steps i { width: 10px; height: 10px; border-radius: var(--r-full); background: var(--outline-variant); }
+.plc-row .steps i.done { background: var(--ok); }
+.plc-row .steps i.cur { background: var(--primary); }
+
+.home-body { grid-template-rows: auto 1fr; align-content: start; }
+.ready-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--panel-gap); }
+.ready { display: grid; gap: 10px; }
+.ready .top { display: flex; align-items: center; gap: 10px; }
+.ready .top .icw { width: 36px; height: 36px; border-radius: var(--r-md); background: var(--surface-high); display: grid; place-items: center; color: var(--primary); }
+.ready .top h3 { font-size: 14px; }
+.ready .top small { display: block; font-size: 12px; color: var(--on-surface-variant); }
+.ready .top .qs-badge { margin-left: auto; }
+.ready .lines { display: grid; gap: 4px; font-size: 13px; }
+.ready .lines div { display: flex; justify-content: space-between; gap: 10px; }
+.ready .lines span:first-child { color: var(--on-surface-variant); }
+.ready .acts { display: flex; gap: 8px; margin-top: 2px; }
+.flows { display: grid; gap: 10px; align-content: start; }
+.flows-head { display: flex; align-items: center; gap: 10px; }
+.flows-head h2 { font-size: 15px; }
+.flows-head .sp { flex: 1; }
+.flow { display: grid; grid-template-columns: 220px 1fr auto; gap: 20px; align-items: center; padding: 14px 18px; border-radius: var(--r-lg); background: var(--surface-low); }
+.flow.hi { background: var(--surface-mid); }
+.flow .who { display: flex; gap: 12px; align-items: center; }
+.flow .who .icw { width: 40px; height: 40px; border-radius: var(--r-md); display: grid; place-items: center; background: var(--secondary-container); color: var(--on-secondary-container); flex: none; }
+.flow .who b { display: block; font-size: 14px; }
+.flow .who small { font-size: 12px; color: var(--on-surface-variant); }
+.flow .chain { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.flow .chain .stp { height: 28px; padding: 0 10px; border-radius: var(--r-full); background: var(--surface-high); color: var(--on-surface-variant); font-size: 12px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.flow .chain .stp .n { font: 500 11px/1 var(--font-mono); }
+.flow .chain .stp.done { background: var(--secondary-container); color: var(--on-secondary-container); }
+.flow .chain .stp.now { background: var(--primary-container); color: var(--on-primary-container); font-weight: 500; }
+.flow .chain .arr { width: 10px; height: 10px; color: var(--outline); }
+.flow .acts { display: flex; gap: 8px; }
+
+/* ===== E. 落地 ===== */
+.map-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.map-table th, .map-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--outline-variant); vertical-align: top; }
+.map-table th { font-weight: 500; color: var(--on-surface-variant); font-size: 12px; }
+.map-table code { font: 400 12px/1.4 var(--font-mono); color: var(--on-surface); }
+.map-table .old code { color: var(--on-surface-variant); }
+.tbl-scroll { overflow-x: auto; }
+.risk { display: grid; grid-template-columns: auto 1fr; gap: 14px; background: var(--warn-container); color: var(--on-warn-container); border-radius: var(--r-lg); padding: 16px 18px; align-items: start; }
+.risk .qs-ic { width: 22px; height: 22px; margin-top: 2px; }
+.risk b { display: block; margin-bottom: 4px; }
+pre.code { margin: 0; background: var(--surface-lowest); color: var(--on-surface); border-radius: var(--r-md); padding: 14px 16px; font: 400 12.5px/1.6 var(--font-mono); overflow-x: auto; }
+.list { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; color: var(--on-surface-variant); }
+.list b { color: var(--on-surface); font-weight: 500; }
+.footer-note { color: var(--on-surface-variant); font-size: 12px; text-align: center; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="1"/><path d="M18.944 12.33a1 1 0 0 0 0-.66 7.5 7.5 0 0 0-13.888 0 1 1 0 0 0 0 .66 7.5 7.5 0 0 0 13.888 0"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M6 14l1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></symbol>
+    <symbol id="i-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M22 12h-4"/><path d="M6 12H2"/><path d="M12 6V2"/><path d="M12 22v-4"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></symbol>
+    <symbol id="i-scroll" viewBox="0 0 24 24"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-chevrons-left" viewBox="0 0 24 24"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M6 4.5v15l13-7.5z"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/></symbol>
+    <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+    <symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 3v18"/><path d="M3 7.5h4"/><path d="M3 12h18"/><path d="M3 16.5h4"/><path d="M17 3v18"/><path d="M17 7.5h4"/><path d="M17 16.5h4"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></symbol>
+    <symbol id="i-factory" viewBox="0 0 24 24"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/></symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+    <symbol id="i-bead" viewBox="0 0 24 24"><path d="M18 5H9a5 5 0 0 0-5 5v0a5 5 0 0 0 5 5h9"/><circle cx="19" cy="5" r="1.4"/><circle cx="19" cy="15" r="1.4"/><path d="M6 20h12"/></symbol>
+    <symbol id="i-git" viewBox="0 0 24 24"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9"/><path d="M12 12v3"/></symbol>
+    <symbol id="i-bug" viewBox="0 0 24 24"><path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></symbol>
+    <symbol id="i-maximize" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
+  </defs>
+</svg>
+
+<header class="spec-top">
+  <div class="spec-top-inner">
+    <div class="spec-brand"><span class="mark"><svg class="qs-ic"><use href="#i-bead"/></svg></span>青钢 · 风格样张</div>
+    <nav class="spec-nav" aria-label="章节">
+      <a href="#a">主张</a><a href="#b">Tokens</a><a href="#c">组件</a><a href="#d">屏幕</a><a href="#e">使用</a>
+    </nav>
+    <span class="spacer"></span>
+    <div class="qs-seg sm" role="group" aria-label="主题" id="themeSeg">
+      <button type="button" data-theme-val="" aria-pressed="true"><svg class="qs-ic"><use href="#i-monitor"/></svg>跟随系统</button>
+      <button type="button" data-theme-val="dark" aria-pressed="false"><svg class="qs-ic"><use href="#i-moon"/></svg>深色</button>
+      <button type="button" data-theme-val="light" aria-pressed="false"><svg class="qs-ic"><use href="#i-sun"/></svg>浅色</button>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+
+<!-- ================= A ================= -->
+<section class="sec" id="a">
+  <div class="hero">
+    <div>
+      <div class="eyebrow">工业视觉软件 · 设计语言</div>
+      <div class="hero-name" style="margin-top:12px">
+        <h1>青钢</h1>
+        <span class="latin">QING / STEEL</span>
+      </div>
+      <p class="hero-claim">青釉一样圆润的壳，钢尺一样精确的芯。</p>
+      <p class="hero-sub">把 Material 3 的色调分层、胶囊形状和柔和状态层，装进一个以等宽数字、明确单位和一眼可辨的 OK/NG 为核心的工业界面。圆润负责让人愿意长时间看，精确负责让人敢于相信它。</p>
+    </div>
+    <div class="hero-art" aria-label="风格速览">
+      <div class="row" style="gap:8px">
+        <span class="qs-badge ok"><span class="dot"></span>PLC 已连接 <span class="qs-num">13</span></span>
+        <span class="qs-badge ok"><span class="dot"></span>采集 <span class="qs-num">1/1</span> 就绪</span>
+        <span class="qs-chip frame active"><span class="cam" style="background:var(--cam-3)"></span>k3</span>
+        <span class="qs-chip tertiary">候选 v2 · 修订 19</span>
+      </div>
+      <div class="qs-verdict ng">
+        <div class="big">NG</div>
+        <div class="t">短边 B · 断胶</div>
+        <div class="d">s <span class="qs-num">444.5–447.5</span> mm，长度 <span class="qs-num">3.0</span> mm（允许 ≤<span class="qs-num">0.5</span>）</div>
+      </div>
+      <div class="row" style="gap:8px">
+        <button class="qs-btn" type="button"><svg class="qs-ic"><use href="#i-play"/></svg>开始检测</button>
+        <button class="qs-btn tonal" type="button"><svg class="qs-ic"><use href="#i-rotate"/></svg>复位</button>
+        <button class="qs-btn outlined" type="button">导出报告</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="principles">
+    <div class="principle"><span class="pn">01</span><div><b>分层靠明度，不靠边框。</b><span>五级 surface 容器用亮度差区分层级，1px 边框只留给输入框和表格线。细边框网格是长时间注视下最先让眼睛疲劳的东西，也是“通用后台模板”感的来源。</span></div></div>
+    <div class="principle"><span class="pn">02</span><div><b>两种形状，两种含义。</b><span>能按的东西是胶囊（按钮、Chip、分段、导航指示器），装数据的东西是圆角矩形（卡片 16，面板 28）。形状本身告诉操作员哪里能点，不必依赖颜色或悬停。</span></div></div>
+    <div class="principle"><span class="pn">03</span><div><b>数字是仪表读数，不是正文。</b><span>所有测量值用等宽 tabular 数字，单位紧随其后，同列右对齐。0.79 与 3.0 的差别必须在两米外一眼读出，这是工业侧最不能让步的地方。</span></div></div>
+    <div class="principle"><span class="pn">04</span><div><b>语义色独立于品牌色，NG 实色、OK 容器色。</b><span>判定永远用绿 / 红 / 琥珀 / 紫四色，不与青色主色争抢注意力。NG 用实色填充、OK 用柔和容器色，因为产线上要找的是坏件，不是好件。</span></div></div>
+    <div class="principle"><span class="pn">05</span><div><b>动效回答两个问题：什么变了，从哪来到哪去。</b><span>导航胶囊从旧项滑到新项、分段底色滑向新选项、cycle 连接线从左向右填满、NG 从下方滑入并顶一下、缺陷描述从行内展开——每个动画都对应一次状态或位置的变化，操作员不用重新找目光落点。没有变化就没有动画：不做入场表演、不做装饰循环（唯一例外是当前阶段的呼吸点）；时长只有 120 / 240 / 400 ms 三档，超过 400 ms 就是在让操作员等。</span></div></div>
+  </div>
+</section>
+
+<!-- ================= B ================= -->
+<section class="sec" id="b">
+  <div class="sec-head">
+    <div class="eyebrow">B · Tokens</div>
+    <h2>颜色角色、形状、字号与间距</h2>
+    <p>种子色 <kbd class="tok">#0F819E</kbd>（青），按 M3 tonal 规则推导 primary / secondary / tertiary 及其 container；中性色向青偏 4° 色相，避免发灰。四个语义色各自独立推导，深浅两套都满足 WCAG AA 对比度。</p>
+  </div>
+
+  <div class="palette-pair">
+    <div class="palette qs-scheme-dark" data-scheme="dark">
+      <h4>深色（默认，车间）<span class="qs-num">color-scheme: dark</span></h4>
+    </div>
+    <div class="palette qs-scheme-light" data-scheme="light">
+      <h4>浅色（办公室 / 调试）<span class="qs-num">color-scheme: light</span></h4>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="sub">
+      <h3>形状刻度</h3>
+      <div class="board dense">
+        <div class="shape-row">
+          <div class="shape"><i style="border-radius:var(--r-xs)"></i><span>xs 4</span><small>表格单元、工具提示</small></div>
+          <div class="shape"><i style="border-radius:var(--r-sm)"></i><span>sm 8</span><small>缩略图、代码块</small></div>
+          <div class="shape"><i style="border-radius:var(--r-md)"></i><span>md 12</span><small>输入框、列表项</small></div>
+          <div class="shape"><i style="border-radius:var(--r-lg)"></i><span>lg 16</span><small>卡片、FAB</small></div>
+          <div class="shape"><i style="border-radius:var(--r-xl)"></i><span>xl 28</span><small>面板、判定大卡</small></div>
+          <div class="shape"><i style="border-radius:var(--r-full)"></i><span>full</span><small>按钮、Chip、导航指示器</small></div>
+        </div>
+      </div>
+    </div>
+    <div class="sub">
+      <h3>间距（4 px 基准）</h3>
+      <div class="board dense">
+        <div class="space-row">
+          <div class="space"><i style="width:4px;height:4px"></i><span>4</span></div>
+          <div class="space"><i style="width:8px;height:8px"></i><span>8</span></div>
+          <div class="space"><i style="width:12px;height:12px"></i><span>12</span></div>
+          <div class="space"><i style="width:16px;height:16px"></i><span>16</span></div>
+          <div class="space"><i style="width:20px;height:20px"></i><span>20</span></div>
+          <div class="space"><i style="width:24px;height:24px"></i><span>24</span></div>
+          <div class="space"><i style="width:32px;height:32px"></i><span>32</span></div>
+        </div>
+        <p class="note" style="margin-top:12px">页面内边距 20，面板间距 16，卡片内边距 16，列表项高 44，控件高 36，顶栏 60。密度与现版本一致，圆角不换取留白。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>字体与字号刻度</h3>
+    <div class="board dense">
+      <div class="type-scale">
+        <div class="tr"><span class="tl">display 32 / 40</span><span class="tx" style="font-size:32px;line-height:40px;font-weight:700">在线检测</span></div>
+        <div class="tr"><span class="tl">headline 24 / 32</span><span class="tx" style="font-size:24px;line-height:32px;font-weight:700">配方 ROBOT-DEMO v1</span></div>
+        <div class="tr"><span class="tl">title 18 / 26</span><span class="tx" style="font-size:18px;line-height:26px;font-weight:700">整件判定与分段测量</span></div>
+        <div class="tr"><span class="tl">body 14 / 22</span><span class="tx">胶宽阈值按配方逐段设置，单位 mm；连续超差长度超过允许值即判 NG。</span></div>
+        <div class="tr"><span class="tl">label 12 / 16</span><span class="tx" style="font-size:12px;line-height:16px;color:var(--on-surface-variant)">当前工件 · 候选 v2 · 修订 19</span></div>
+        <div class="tr"><span class="tl">data-lg 28 mono</span><span class="tx qs-num" style="font-size:28px;line-height:36px;font-weight:600">0.79 – 0.79 <span style="font-size:14px;font-weight:400;color:var(--on-surface-variant)">mm</span></span></div>
+        <div class="tr"><span class="tl">data 14 mono</span><span class="tx qs-num">SN 915171863 · 2026-10-09 13:24:46 · 连续超差 0.0 mm</span></div>
+      </div>
+      <p class="note" style="margin-top:12px">中文：<span class="qs-num">"Noto Sans SC"</span>；数字 / 代码：<span class="qs-num">"IBM Plex Mono"</span>，字形直、零带点、1/l/I 可辨，自带仪表气质而不像终端。回退栈：<span class="qs-num">"IBM Plex Mono", "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, "Noto Sans Mono", monospace</span>。所有数字 <span class="qs-num">font-variant-numeric: tabular-nums</span>。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= C ================= -->
+<section class="sec" id="c">
+  <div class="sec-head">
+    <div class="eyebrow">C · 组件</div>
+    <h2>组件</h2>
+    <p>组件全部从 B 节 token 派生，不出现单主题字面色。每个组件都可以在右上角切换主题后复查。</p>
+  </div>
+
+  <div class="sub">
+    <h3>导航栏：展开态 / rail 态 <span class="note" style="font-weight:400">（点底部折叠按钮可切换，点菜单项可切换选中）</span></h3>
+    <div class="board" style="padding:0;overflow:hidden;background:var(--surface-dim)">
+      <div style="display:flex;gap:24px;flex-wrap:wrap;padding:20px;align-items:stretch">
+        <div style="min-height:620px;display:flex;border-radius:var(--r-lg);overflow:hidden" data-nav="online" data-collapsed="false"></div>
+        <div style="min-height:620px;display:flex;border-radius:var(--r-lg);overflow:hidden" data-nav="recipe" data-collapsed="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>顶栏</h3>
+    <div class="board" style="padding:0;overflow:hidden">
+      <div class="qs-top" style="background:var(--surface-low)">
+        <h1>在线检测</h1>
+        <span class="crumb"><svg class="qs-ic"><use href="#i-chevron-right"/></svg>生产</span>
+        <span class="spacer"></span>
+        <span class="qs-badge off"><svg class="qs-ic" style="width:14px;height:14px"><use href="#i-factory"/></svg>现场模式</span>
+        <span class="qs-badge ok"><span class="dot"></span>PLC 已连接</span>
+        <span class="qs-chip outlined"><svg class="qs-ic"><use href="#i-flask"/></svg>ROBOT-DEMO v1</span>
+        <button class="qs-btn icon" type="button" aria-label="搜索"><svg class="qs-ic"><use href="#i-search"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="sub">
+      <h3>按钮</h3>
+      <div class="board dense">
+        <div class="row">
+          <button class="qs-btn" type="button"><svg class="qs-ic"><use href="#i-play"/></svg>开始检测</button>
+          <button class="qs-btn tonal" type="button"><svg class="qs-ic"><use href="#i-rotate"/></svg>复位 cycle</button>
+          <button class="qs-btn outlined" type="button"><svg class="qs-ic"><use href="#i-download"/></svg>导出</button>
+          <button class="qs-btn text" type="button">查看历史</button>
+          <button class="qs-btn danger" type="button"><svg class="qs-ic"><use href="#i-stop"/></svg>急停采集</button>
+          <button class="qs-btn danger-tonal" type="button"><svg class="qs-ic"><use href="#i-trash"/></svg>删除候选</button>
+          <button class="qs-btn" type="button" disabled>已回写</button>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="qs-fab" type="button"><svg class="qs-ic"><use href="#i-plus"/></svg>新建配方</button>
+          <button class="qs-btn sm tonal" type="button">小号 tonal</button>
+          <button class="qs-btn sm outlined" type="button">小号 outlined</button>
+          <button class="qs-btn icon" type="button" aria-label="设置"><svg class="qs-ic"><use href="#i-settings"/></svg></button>
+        </div>
+        <p class="note" style="margin-top:12px">filled 只给页面主操作（一屏至多一个），tonal 是默认按钮，outlined 用于次要且需要边界的操作，danger 实色只给不可逆动作。</p>
+      </div>
+    </div>
+    <div class="sub">
+      <h3>Chip</h3>
+      <div class="board dense">
+        <div class="row" style="gap:8px">
+          <button class="qs-chip action selected" type="button"><svg class="qs-ic"><use href="#i-check"/></svg>仅 NG</button>
+          <button class="qs-chip action outlined" type="button">今日</button>
+          <button class="qs-chip action outlined" type="button">ROBOT-DEMO</button>
+          <button class="qs-chip action outlined" type="button">相机 1<svg class="qs-ic"><use href="#i-chevron-down"/></svg></button>
+        </div>
+        <div class="row" style="gap:8px;margin-top:10px">
+          <span class="qs-chip ok"><svg class="qs-ic"><use href="#i-check"/></svg>OK</span>
+          <span class="qs-chip ng"><svg class="qs-ic"><use href="#i-x"/></svg>NG</span>
+          <span class="qs-chip warn"><svg class="qs-ic"><use href="#i-alert"/></svg>接近阈值</span>
+          <span class="qs-chip fault"><svg class="qs-ic"><use href="#i-zap"/></svg>故障</span>
+          <span class="qs-chip tertiary">离线模式</span>
+        </div>
+        <div class="row" style="gap:8px;margin-top:10px">
+          <span class="qs-chip frame"><span class="cam" style="background:var(--cam-1)"></span>k1</span>
+          <span class="qs-chip frame"><span class="cam" style="background:var(--cam-2)"></span>k2</span>
+          <span class="qs-chip frame active"><span class="cam" style="background:var(--cam-3)"></span>k3</span>
+          <span class="qs-chip frame"><span class="cam" style="background:var(--cam-4)"></span>k4</span>
+          <span class="qs-chip outlined qs-num">4/4</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="sub">
+      <h3>分段按钮</h3>
+      <div class="board dense">
+        <div class="row">
+          <div class="qs-seg" role="group" aria-label="视图" data-seg>
+            <button type="button" aria-pressed="false"><svg class="qs-ic chk"><use href="#i-check"/></svg><svg class="qs-ic"><use href="#i-image"/></svg>原图</button>
+            <button type="button" aria-pressed="true"><svg class="qs-ic chk"><use href="#i-check"/></svg><svg class="qs-ic"><use href="#i-box"/></svg>整件</button>
+            <button type="button" aria-pressed="false"><svg class="qs-ic chk"><use href="#i-check"/></svg><svg class="qs-ic"><use href="#i-film"/></svg>单帧</button>
+          </div>
+          <div class="qs-seg sm" role="group" aria-label="主题示例" data-seg>
+            <button type="button" aria-pressed="true">全部</button>
+            <button type="button" aria-pressed="false">OK</button>
+            <button type="button" aria-pressed="false">NG</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sub">
+      <h3>输入框与下拉</h3>
+      <div class="board dense">
+        <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
+          <div class="qs-field"><label for="f-sn">工件 SN</label><div class="qs-input"><svg class="qs-ic"><use href="#i-search"/></svg><input id="f-sn" value="915171863" class="qs-num"></div></div>
+          <div class="qs-field"><label for="f-th">允许断胶长度</label><div class="qs-input num"><input id="f-th" value="0.5"><span class="unit">mm</span></div></div>
+          <div class="qs-field"><label for="f-rc">配方</label><div class="qs-input"><select id="f-rc"><option>ROBOT-DEMO v1 · 已发布</option><option>ROBOT-DEMO 候选 v2 · 修订 19</option></select></div></div>
+          <div class="qs-field"><label for="f-cam">相机</label><div class="qs-input"><select id="f-cam"><option>相机 1 · 2592×1944</option><option>相机 2</option></select></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="sub">
+      <h3>状态徽章</h3>
+      <div class="board dense">
+        <div class="row" style="gap:8px">
+          <span class="qs-badge ok"><span class="dot"></span>PLC 已连接 <span class="qs-num">192.168.1.13</span></span>
+          <span class="qs-badge ok"><span class="dot"></span>采集 <span class="qs-num">1/1</span> 就绪</span>
+          <span class="qs-badge off"><svg class="qs-ic" style="width:14px;height:14px"><use href="#i-folder"/></svg>离线模式</span>
+          <span class="qs-badge warn"><span class="dot"></span>心跳 <span class="qs-num">420 ms</span></span>
+          <span class="qs-badge ng"><span class="dot"></span>PLC 断开</span>
+          <span class="qs-badge fault"><span class="dot"></span>引擎故障</span>
+          <span class="qs-badge"><svg class="qs-ic" style="width:14px;height:14px"><use href="#i-cpu"/></svg>引擎 · 就绪</span>
+        </div>
+      </div>
+    </div>
+    <div class="sub">
+      <h3>cycle 阶段进度</h3>
+      <div class="board dense" style="display:grid;gap:14px">
+        <div class="row" style="gap:16px"><div data-cycle="4" id="cyc-demo" style="flex:1;min-width:0"></div><button class="qs-btn sm tonal" type="button" data-cycle-adv="cyc-demo"><svg class="qs-ic"><use href="#i-play"/></svg>演示推进</button></div>
+        <div data-cycle="7"></div>
+        <p class="note">已完成阶段用 secondary-container，当前阶段用 primary 实色并带呼吸点，“故障”与主链路脱开一段距离，只有进入时才染成紫色。推进时连接线从左向右填满、新阶段底色过渡、✓ 从 0 缩放出现。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="sub">
+      <h3>判定大卡：两态 <span class="note" style="font-weight:400">（点按钮互换两张卡的判定）</span></h3>
+      <div class="board dense" style="display:grid;gap:12px">
+        <div class="qs-verdict ok" data-verdict="ok" id="v-demo-a"></div>
+        <div class="qs-verdict ng" data-verdict="ng" id="v-demo-b"></div>
+        <div class="row"><button class="qs-btn sm tonal" type="button" data-verdict-toggle="v-demo-a v-demo-b"><svg class="qs-ic"><use href="#i-rotate"/></svg>切换判定</button><span class="note">文字先上滑淡出，底色交叉过渡，新文字从下方滑入；变成 NG 的那张卡做一次 1.02 的强调回落，只一次。</span></div>
+      </div>
+    </div>
+    <div class="sub">
+      <h3>测量段列表 <span class="note" style="font-weight:400">（切换短边 B 的判定看展开）</span></h3>
+      <div class="board dense" style="display:grid;gap:12px"><div data-segs id="segs-demo"></div><div class="row"><button class="qs-btn sm tonal" type="button" data-seg-toggle="segs-demo"><svg class="qs-ic"><use href="#i-rotate"/></svg>切换短边 B</button><span class="note">缺陷描述用 grid-template-rows 0fr → 1fr 展开，数值变化的字符位纵向滚动。</span></div></div>
+    </div>
+  </div>
+
+  <div class="sub" id="motion">
+    <h3>动效</h3>
+    <div class="board dense motion-tokens">
+      <div class="dur-list">
+        <div class="sw-group-title">时长</div>
+        <div class="dr"><span class="tl">--dur-short 120</span><div><i style="width:30%"></i><small>状态层、勾选出现、文字淡出</small></div></div>
+        <div class="dr"><span class="tl">--dur-medium 240</span><div><i style="width:60%"></i><small>位置移动、底色过渡、展开收起</small></div></div>
+        <div class="dr"><span class="tl">--dur-long 400</span><div><i style="width:100%"></i><small>仅一处：NG 出现的一次强调；也是单个动画的上限</small></div></div>
+        <div class="dr"><span class="tl">--dur-breath 1600</span><div><i style="width:100%;background:var(--surface-highest)"></i><small>唯一的循环：当前阶段呼吸点，opacity 1 → .55</small></div></div>
+        <div class="odo-demo" style="margin-top:8px">
+          <div><div class="sw-group-title">数值更新</div><div class="val"><span class="qs-odo" id="odo-demo"></span><small>mm</small></div></div>
+          <button class="qs-btn sm tonal" type="button" id="odo-next"><svg class="qs-ic"><use href="#i-rotate"/></svg>模拟新读数</button>
+        </div>
+      </div>
+      <div>
+        <div class="row" style="justify-content:space-between;margin-bottom:10px"><span class="sw-group-title">缓动曲线</span><button class="qs-btn sm outlined" type="button" id="ease-play"><svg class="qs-ic"><use href="#i-play"/></svg>播放 400 ms</button></div>
+        <div class="ease-grid">
+          <div class="ease" data-ease="spatial"><h4>spatial · 轻微回弹</h4><div class="fn"></div><svg viewBox="0 -24 100 124" aria-hidden="true"></svg><div class="track"><i></i></div><div class="use">位置与形状：导航胶囊、分段底色、选框、按钮回弹</div></div>
+          <div class="ease" data-ease="standard"><h4>standard · 无回弹</h4><div class="fn"></div><svg viewBox="0 -24 100 124" aria-hidden="true"></svg><div class="track"><i></i></div><div class="use">颜色、透明度、宽度、展开收起、主题切换</div></div>
+          <div class="ease" data-ease="decel"><h4>emphasized-decelerate</h4><div class="fn"></div><svg viewBox="0 -24 100 124" aria-hidden="true"></svg><div class="track"><i></i></div><div class="use">进入类：文字滑入、连接线填充、数值滚动</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="board dense tbl-scroll">
+      <table class="map-table motion-table">
+        <thead><tr><th>触发条件</th><th>动画</th><th>时长 / 曲线</th></tr></thead>
+        <tbody>
+          <tr><td>导航选中项变化</td><td>胶囊指示器从旧项平移到新项；rail 态下从中心收缩为 44×28 再展开</td><td><code>medium / spatial</code></td></tr>
+          <tr><td>导航展开 ⇄ 收起</td><td>文字先淡出 → 宽度 220 ⇄ 72 → 文字淡入；文字 nowrap，只裁不挤</td><td><code>short / standard → medium / standard → short / standard</code></td></tr>
+          <tr><td>分段按钮选中</td><td>选中底色滑到新项并伸缩；勾选从 0 缩放出现</td><td><code>medium / spatial</code>，勾选 <code>short / spatial</code></td></tr>
+          <tr><td>按钮 / Chip / 导航项按下</td><td>scale .97 + 圆角从 full 收到 12，松手回弹；状态层叠色保留</td><td>按下 <code>short / standard</code>，回弹 <code>medium / spatial</code></td></tr>
+          <tr><td>cycle 阶段推进</td><td>连接线从左向右填满 → 新阶段底色过渡、宽度微增 → 上一阶段 ✓ 缩放出现</td><td><code>medium / decel</code>、<code>medium / standard</code>、<code>short / spatial</code></td></tr>
+          <tr><td>整件判定变化</td><td>文字上滑淡出 → 底色交叉过渡 → 新文字从下方依次滑入；变为 NG 时整卡 1.02 回落一次</td><td><code>short / standard</code> → <code>medium / standard</code> → <code>medium / decel</code>；强调 <code>long / spatial</code>，不循环</td></tr>
+          <tr><td>分段列表某段变 NG / 恢复</td><td>行底色过渡；缺陷描述 0fr → 1fr 展开，文字稍后淡入</td><td><code>medium / standard</code></td></tr>
+          <tr><td>帧缩略图选择</td><td>缩略图描边过渡；总览图选框平移、伸缩到新帧</td><td><code>medium / standard</code>、<code>medium / spatial</code>；hover 抬起 2px <code>short / standard</code></td></tr>
+          <tr><td>测量值更新</td><td>只有变化的字符位纵向滚动，未变的不动；相同值不触发</td><td><code>medium / decel</code></td></tr>
+          <tr><td>主题切换</td><td>View Transition 整页交叉淡入；不支持时直接切换</td><td><code>medium / standard</code></td></tr>
+          <tr><td>当前阶段（持续）</td><td>呼吸点 opacity 1 → .55；同屏唯一循环动画</td><td><code>breath / standard</code></td></tr>
+          <tr><td>prefers-reduced-motion</td><td>全部过渡与动画置为 0；导航折叠不做分步，数值直接替换</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= D ================= -->
+<section class="sec" id="d">
+  <div class="sec-head">
+    <div class="eyebrow">D · 屏幕</div>
+    <h2>两个完整屏幕（1440 × 880）</h2>
+    <p>默认按容器宽度缩放整页查看；切到 1:1 后在容器内横向滚动看细节。导航栏可点击折叠。</p>
+  </div>
+
+  <div class="sub">
+    <h3>1 · 在线检测</h3>
+    <div class="mock-wrap">
+      <div class="mock-tools">
+        <span class="cap">生产 / 在线检测 — 当前 cycle 处于“判定”，短边 B 断胶，整件 NG，等待回写 PLC。</span>
+        <button class="qs-btn sm tonal" type="button" data-cycle-adv="cyc-mock"><svg class="qs-ic"><use href="#i-play"/></svg>演示：推进 cycle</button>
+        <button class="qs-btn sm tonal" type="button" data-verdict-toggle="v-mock"><svg class="qs-ic"><use href="#i-rotate"/></svg>演示：切换判定</button>
+        <div class="qs-seg sm" role="group" aria-label="缩放" data-zoom>
+          <button type="button" aria-pressed="true" data-z="fit">适应宽度</button>
+          <button type="button" aria-pressed="false" data-z="1">1 : 1</button>
+        </div>
+      </div>
+      <div class="mock-scroll">
+        <div class="mock-stage">
+          <div class="mock">
+            <div data-nav="online" data-collapsed="false" style="display:contents"></div>
+            <div class="mock-main">
+              <header class="qs-top">
+                <h1>在线检测</h1>
+                <span class="crumb"><svg class="qs-ic"><use href="#i-chevron-right"/></svg>生产</span>
+                <span class="spacer"></span>
+                <span class="qs-badge off"><svg class="qs-ic" style="width:14px;height:14px"><use href="#i-factory"/></svg>现场模式</span>
+                <span class="qs-badge ok"><span class="dot"></span>PLC 已连接 <span class="qs-num">13</span></span>
+                <span class="qs-badge ok"><span class="dot"></span>采集 <span class="qs-num">1/1</span> 就绪</span>
+                <button class="qs-btn tonal" type="button"><svg class="qs-ic"><use href="#i-rotate"/></svg>复位</button>
+                <button class="qs-btn danger-tonal" type="button"><svg class="qs-ic"><use href="#i-stop"/></svg>停止</button>
+              </header>
+              <div class="mock-body online-body">
+                <div class="qs-card cycle-card">
+                  <div data-cycle="4" id="cyc-mock" data-odo-link="odo-elapsed"></div>
+                  <div class="qs-kv">
+                    <div><small>工件 SN</small><b>915171863</b></div>
+                    <div><small>触发时间</small><b>13:24:46</b></div>
+                    <div><small>配方</small><b>ROBOT-DEMO v1</b></div>
+                    <div><small>帧</small><b>4 / 4</b></div>
+                    <div><small>耗时</small><b><span class="qs-odo" id="odo-elapsed" data-val="1.84 s">1.84 s</span></b></div>
+                  </div>
+                </div>
+
+                <div class="qs-card work-card" id="work-mock">
+                  <div class="hd">
+                    <h3>工件总览</h3>
+                    <span class="meta">胶路总长 <span class="qs-num">1 128</span> mm · 5 段 · 阈值 <span class="qs-num">0.5</span> mm</span>
+                    <span class="sp"></span>
+                    <div class="qs-seg sm" role="group" aria-label="视图" data-seg>
+                      <button type="button" aria-pressed="false"><svg class="qs-ic chk"><use href="#i-check"/></svg>原图</button>
+                      <button type="button" aria-pressed="true"><svg class="qs-ic chk"><use href="#i-check"/></svg>整件</button>
+                      <button type="button" aria-pressed="false"><svg class="qs-ic chk"><use href="#i-check"/></svg>单帧</button>
+                    </div>
+                  </div>
+                  <div class="svgbox">
+                    <svg viewBox="0 0 640 400" role="img" aria-label="工件总览：U 形胶路与四个帧框">
+                      <!-- 工件轮廓 -->
+                      <path d="M600 60 H170 A110 110 0 0 0 60 170 V250 A110 110 0 0 0 170 360 H600 Z" fill="var(--surface-mid)" stroke="var(--outline-variant)" stroke-width="1.5"/>
+                      <!-- 帧框 -->
+                      <g fill="none" stroke-width="1.5" stroke-dasharray="6 5">
+                        <rect x="296" y="36" width="300" height="104" rx="10" stroke="var(--cam-1)"/>
+                        <rect x="40" y="36" width="248" height="156" rx="10" stroke="var(--cam-2)"/>
+                        <rect x="40" y="208" width="248" height="156" rx="10" stroke="var(--cam-3)"/>
+                        <rect x="296" y="280" width="300" height="104" rx="10" stroke="var(--cam-4)"/>
+                      </g>
+                      <rect class="sel" x="40" y="208" width="248" height="156" rx="10" fill="none" stroke="var(--primary)" stroke-width="2.5"/>
+                      <!-- 帧标签 -->
+                      <g font-family="IBM Plex Mono, Menlo, Consolas, monospace" font-size="12" font-weight="500">
+                        <rect x="560" y="44" width="28" height="18" rx="9" fill="var(--cam-1)"/><text x="574" y="57" text-anchor="middle" fill="var(--surface-lowest)">k1</text>
+                        <rect x="48" y="44" width="28" height="18" rx="9" fill="var(--cam-2)"/><text x="62" y="57" text-anchor="middle" fill="var(--surface-lowest)">k2</text>
+                        <rect x="48" y="216" width="28" height="18" rx="9" fill="var(--cam-3)"/><text x="62" y="229" text-anchor="middle" fill="var(--surface-lowest)">k3</text>
+                        <rect x="560" y="358" width="28" height="18" rx="9" fill="var(--cam-4)"/><text x="574" y="371" text-anchor="middle" fill="var(--surface-lowest)">k4</text>
+                      </g>
+                      <!-- 胶路 -->
+                      <g fill="none" stroke-linecap="round" stroke-width="9">
+                        <path d="M520 110 H170" stroke="var(--glue)"/>
+                        <path d="M170 110 A60 60 0 0 0 110 170" stroke="var(--glue)"/>
+                        <path d="M110 182 V250" stroke="var(--glue)"/>
+                        <path d="M110 250 A60 60 0 0 0 170 310" stroke="var(--glue)"/>
+                        <path d="M170 310 H520" stroke="var(--glue)"/>
+                      </g>
+                      <!-- 断胶：实际缺口 + 红色标记（判定切到 OK 时整组淡出，胶路补齐） -->
+                      <path class="glue-fill" d="M110 170 V182" stroke="var(--glue)" stroke-width="9" stroke-linecap="butt" fill="none"/>
+                      <g class="defect-mark">
+                        <path d="M110 170 V182" stroke="var(--ng)" stroke-width="9" stroke-linecap="butt" fill="none" stroke-dasharray="3 3"/>
+                        <circle cx="110" cy="176" r="16" fill="none" stroke="var(--ng)" stroke-width="2"/>
+                        <path d="M126 176 H160" stroke="var(--ng)" stroke-width="1.5"/>
+                        <g font-family="IBM Plex Mono, Menlo, Consolas, monospace" font-size="11">
+                          <rect x="160" y="160" width="124" height="32" rx="8" fill="var(--ng)"/>
+                          <text x="168" y="173" fill="var(--on-ng)" font-weight="600">断胶 3.0 mm</text>
+                          <text x="168" y="186" fill="var(--on-ng)">s 444.5 – 447.5</text>
+                        </g>
+                      </g>
+                      <!-- 段名 -->
+                      <g font-family="Noto Sans SC, sans-serif" font-size="12" fill="var(--on-surface-variant)">
+                        <text x="345" y="96" text-anchor="middle">长边 A</text>
+                        <text x="128" y="134" text-anchor="start">R 角 1</text>
+                        <text class="seg-b-label" x="92" y="222" text-anchor="end" fill="var(--ng)" font-weight="700">短边 B</text>
+                        <text x="128" y="292" text-anchor="start">R 角 2</text>
+                        <text x="345" y="336" text-anchor="middle">长边 C</text>
+                      </g>
+                      <!-- 起止 -->
+                      <g font-family="IBM Plex Mono, Menlo, Consolas, monospace" font-size="11" fill="var(--on-surface-variant)">
+                        <circle cx="520" cy="110" r="5" fill="var(--surface-lowest)" stroke="var(--glue)" stroke-width="2"/>
+                        <text x="534" y="114">s = 0</text>
+                        <circle cx="520" cy="310" r="5" fill="var(--glue)"/>
+                        <text x="534" y="314">s = 1128 mm</text>
+                      </g>
+                      <!-- 刻度：胶宽读数 -->
+                      <g font-family="IBM Plex Mono, Menlo, Consolas, monospace" font-size="10" fill="var(--on-surface-variant)">
+                        <text x="345" y="128" text-anchor="middle">0.79 mm</text>
+                        <text x="345" y="300" text-anchor="middle">0.80 mm</text>
+                      </g>
+                    </svg>
+                  </div>
+                  <div class="qs-thumbs" data-thumbs></div>
+                </div>
+
+                <div class="right-col">
+                  <div class="qs-verdict ng" data-verdict="ng" data-foot="short" id="v-mock" data-link-segs="segs-mock" data-link-work="work-mock"></div>
+                  <div class="qs-card">
+                    <div class="hd"><h3>分段测量</h3><span class="meta">单位 mm</span><span class="sp"></span><button class="qs-btn text sm" type="button">查看单帧<svg class="qs-ic"><use href="#i-arrow-right"/></svg></button></div>
+                    <div data-segs id="segs-mock"></div>
+                  </div>
+                  <div class="qs-card lv2 plc-row">
+                    <svg class="qs-ic" style="color:var(--primary)"><use href="#i-plug"/></svg>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-weight:500">回写 PLC 13</div>
+                      <div class="note">结果 NG · SN <span class="qs-num">915171863</span> · 等待握手</div>
+                    </div>
+                    <div class="steps" aria-label="回写进度"><i class="done"></i><i class="done"></i><i class="cur"></i><i></i></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>2 · 总览</h3>
+    <div class="mock-wrap">
+      <div class="mock-tools">
+        <span class="cap">总览 — 设备就绪状态与五条工作流入口，每条工作流带步骤链和一个主操作。</span>
+        <div class="qs-seg sm" role="group" aria-label="缩放" data-zoom>
+          <button type="button" aria-pressed="true" data-z="fit">适应宽度</button>
+          <button type="button" aria-pressed="false" data-z="1">1 : 1</button>
+        </div>
+      </div>
+      <div class="mock-scroll">
+        <div class="mock-stage">
+          <div class="mock">
+            <div data-nav="home" data-collapsed="false" style="display:contents"></div>
+            <div class="mock-main">
+              <header class="qs-top">
+                <h1>总览</h1>
+                <span class="crumb">2026-10-09 · 周五</span>
+                <span class="spacer"></span>
+                <span class="qs-badge off"><svg class="qs-ic" style="width:14px;height:14px"><use href="#i-factory"/></svg>现场模式</span>
+                <span class="qs-badge"><svg class="qs-ic" style="width:14px;height:14px"><use href="#i-cpu"/></svg>引擎 · 就绪</span>
+                <button class="qs-btn" type="button"><svg class="qs-ic"><use href="#i-play"/></svg>进入在线检测</button>
+              </header>
+              <div class="mock-body home-body">
+                <div class="ready-grid">
+                  <div class="qs-card ready">
+                    <div class="top"><span class="icw"><svg class="qs-ic"><use href="#i-camera"/></svg></span><div><h3>采集设备</h3><small>相机与触发</small></div><span class="qs-badge ok"><span class="dot"></span><span class="qs-num">1/1</span> 就绪</span></div>
+                    <div class="lines">
+                      <div><span>相机 1</span><span class="qs-num">2592 × 1944 · 已连接</span></div>
+                      <div><span>今日触发</span><span class="qs-num">1 284 次 · 丢帧 0</span></div>
+                      <div><span>飞拍标定</span><span>2026-09-28 · 重投影 <span class="qs-num">0.21 px</span></span></div>
+                    </div>
+                    <div class="acts"><button class="qs-btn sm tonal" type="button">相机与采集</button><button class="qs-btn sm text" type="button">查看标定</button></div>
+                  </div>
+                  <div class="qs-card ready">
+                    <div class="top"><span class="icw"><svg class="qs-ic"><use href="#i-plug"/></svg></span><div><h3>PLC 通讯</h3><small>Siemens S7 · 示例地址</small></div><span class="qs-badge ok"><span class="dot"></span>已连接</span></div>
+                    <div class="lines">
+                      <div><span>地址</span><span class="qs-num">192.168.1.13 : 102</span></div>
+                      <div><span>心跳</span><span class="qs-num">42 ms · 丢包 0</span></div>
+                      <div><span>最近回写</span><span class="qs-num">13:24:48 · NG · 915171863</span></div>
+                    </div>
+                    <div class="acts"><button class="qs-btn sm tonal" type="button">PLC 通讯</button><button class="qs-btn sm text" type="button">通讯日志</button></div>
+                  </div>
+                  <div class="qs-card ready">
+                    <div class="top"><span class="icw"><svg class="qs-ic"><use href="#i-flask"/></svg></span><div><h3>配方版本</h3><small>当前生产配方</small></div><span class="qs-chip tertiary" style="margin-left:auto">候选 v2 · 修订 19</span></div>
+                    <div class="lines">
+                      <div><span>已发布</span><span class="qs-num">ROBOT-DEMO v1</span></div>
+                      <div><span>帧 / 段</span><span class="qs-num">4 帧 · 5 段 · 阈值 0.5 mm</span></div>
+                      <div><span>今日判定</span><span class="qs-num">OK 1 263 · NG 21（1.6%）</span></div>
+                    </div>
+                    <div class="acts"><button class="qs-btn sm tonal" type="button">打开配方</button><button class="qs-btn sm text" type="button">对比候选 v2</button></div>
+                  </div>
+                </div>
+
+                <div class="flows">
+                  <div class="flows-head"><h2>工作流</h2><span class="note">按角色选择入口，步骤链显示当前站点所处位置</span><span class="sp"></span>
+                    <div class="qs-seg sm" role="group" aria-label="角色" data-seg>
+                      <button type="button" aria-pressed="true">全部</button><button type="button" aria-pressed="false">操作员</button><button type="button" aria-pressed="false">调试工程师</button>
+                    </div>
+                  </div>
+                  <div class="flow">
+                    <div class="who"><span class="icw"><svg class="qs-ic"><use href="#i-wrench"/></svg></span><div><b>首次建站</b><small>新工位从零到可生产</small></div></div>
+                    <div class="chain"><span class="stp done"><span class="n">1</span>相机接入</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp done"><span class="n">2</span>飞拍标定</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp done"><span class="n">3</span>PLC 地址</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp done"><span class="n">4</span>建立配方</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp done"><span class="n">5</span>试产验证</span></div>
+                    <div class="acts"><span class="qs-chip ok"><svg class="qs-ic"><use href="#i-check"/></svg>已完成</span></div>
+                  </div>
+                  <div class="flow hi">
+                    <div class="who"><span class="icw" style="background:var(--primary-container);color:var(--on-primary-container)"><svg class="qs-ic"><use href="#i-scan"/></svg></span><div><b>日常生产</b><small>操作员 · 每班</small></div></div>
+                    <div class="chain"><span class="stp done"><span class="n">1</span>确认配方 v1</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp now"><span class="n">2</span>在线检测</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp"><span class="n">3</span>监看判定</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp"><span class="n">4</span>班末查看历史</span></div>
+                    <div class="acts"><button class="qs-btn" type="button"><svg class="qs-ic"><use href="#i-play"/></svg>进入在线检测</button></div>
+                  </div>
+                  <div class="flow">
+                    <div class="who"><span class="icw"><svg class="qs-ic"><use href="#i-bug"/></svg></span><div><b>缺陷排查</b><small>NG 21 件待复核</small></div></div>
+                    <div class="chain"><span class="stp"><span class="n">1</span>历史记录</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp"><span class="n">2</span>定位 NG 帧</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp"><span class="n">3</span>离线复检</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp"><span class="n">4</span>调整阈值</span></div>
+                    <div class="acts"><button class="qs-btn tonal" type="button">打开历史记录</button></div>
+                  </div>
+                  <div class="flow">
+                    <div class="who"><span class="icw"><svg class="qs-ic"><use href="#i-git"/></svg></span><div><b>配置变更</b><small>候选 v2 · 修订 19 待验证</small></div></div>
+                    <div class="chain"><span class="stp done"><span class="n">1</span>编辑候选</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp now"><span class="n">2</span>离线验证</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp"><span class="n">3</span>发布修订</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp"><span class="n">4</span>同步 PLC</span></div>
+                    <div class="acts"><button class="qs-btn tonal" type="button">离线验证 v2</button></div>
+                  </div>
+                  <div class="flow">
+                    <div class="who"><span class="icw"><svg class="qs-ic"><use href="#i-route"/></svg></span><div><b>随动准备</b><small>机器人轨迹变更后</small></div></div>
+                    <div class="chain"><span class="stp"><span class="n">1</span>相机标定</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp"><span class="n">2</span>机器人示教</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp"><span class="n">3</span>飞拍对齐</span><svg class="qs-ic arr"><use href="#i-chevron-right"/></svg><span class="stp"><span class="n">4</span>回归验证</span></div>
+                    <div class="acts"><button class="qs-btn outlined" type="button">查看标定</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= E ================= -->
+<section class="sec" id="e">
+  <div class="sec-head">
+    <div class="eyebrow">E · 使用</div>
+    <h2>接入到项目</h2>
+    <p>tokens.css 只放变量，components.css 只放 <kbd class="tok">qs-*</kbd> 组件，qs-motion.js 只负责 CSS 做不到的位移与时序。三者都不依赖框架，可以直接接进 React / Vue / Tauri 等任意前端。</p>
+  </div>
+
+  <div class="cols">
+    <div class="sub">
+      <h3>引入</h3>
+      <div class="board dense" style="display:grid;gap:12px">
+        <pre class="code">&lt;link rel="stylesheet" href="css/tokens.css"&gt;
+&lt;link rel="stylesheet" href="css/components.css"&gt;
+&lt;script src="js/qs-motion.js" defer&gt;&lt;/script&gt;
+
+&lt;!-- 可选：联网时加载字体，离线自动回退到系统字体 --&gt;
+&lt;link rel="stylesheet" media="print" onload="this.media='all'"
+  href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap"&gt;</pre>
+        <p class="note">工控机通常不联网：生产环境建议把 Noto Sans SC 与 IBM Plex Mono 随应用打包（如 <span class="qs-num">@fontsource/noto-sans-sc</span>、<span class="qs-num">@fontsource/ibm-plex-mono</span>），字体栈名称保持不变即可。</p>
+      </div>
+    </div>
+    <div class="sub">
+      <h3>主题三态</h3>
+      <div class="board dense" style="display:grid;gap:12px">
+        <pre class="code">&lt;html&gt;                     &lt;!-- 跟随系统，未声明时为深色 --&gt;
+&lt;html data-theme="dark"&gt;   &lt;!-- 强制深色 --&gt;
+&lt;html data-theme="light"&gt;  &lt;!-- 强制浅色 --&gt;
+
+QingSteel.restoreTheme('my-app-theme');
+QingSteel.setTheme('light', { storageKey: 'my-app-theme' });</pre>
+        <p class="note">局部预览另一主题时给容器加 <span class="qs-num">.qs-scheme-dark</span> / <span class="qs-num">.qs-scheme-light</span>，本页 B 节的两块色板就是这样并排显示的。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="sub">
+      <h3>交互约定</h3>
+      <div class="board dense">
+        <ol class="list">
+          <li><b>选中态写在属性上。</b>分段按钮用 <span class="qs-num">aria-pressed="true"</span>，导航项用 <span class="qs-num">aria-current="page"</span>；不加载脚本时也能显示静态选中态。</li>
+          <li><b>指示器由脚本定位。</b><span class="qs-num">QingSteel.bindSeg(el)</span> / <span class="qs-num">bindNav(el)</span> 绑定点击并让胶囊滑动；字体加载与窗口缩放后自动重算。</li>
+          <li><b>数值只滚变化的字符位。</b><span class="qs-num">QingSteel.setOdo(el, "0.81 mm")</span>，相同值不触发，减少动态效果时直接替换。</li>
+          <li><b>判定切换走固定时序。</b><span class="qs-num">QingSteel.swapVerdict(el, render, toNg)</span>：淡出 → 换内容 → 滑入，变成 NG 时强调一次。</li>
+          <li><b>禁用态统一 38%。</b>不单独定义禁用色，<span class="qs-num">opacity: .38</span> 叠在原角色上。</li>
+        </ol>
+      </div>
+    </div>
+    <div class="sub">
+      <h3>密度约束</h3>
+      <div class="risk">
+        <svg class="qs-ic"><use href="#i-alert"/></svg>
+        <div><b>数据密度不能因圆角和留白下降。</b>圆角 16–28 与 surface 分层会诱使页面加大内边距、拉开行距。约束：控件高 36、列表项 44、页面内边距 20、面板间距 16；420 px 宽的右栏要一屏放下 5 段测量且 NG 项展开后不出现滚动条；D 节第 1 屏在 1440×880 下无纵向滚动。胶囊按钮比直角按钮左右各多占约 6 px，密集工具栏优先用 icon 按钮和 sm 尺寸。</div>
+      </div>
+    </div>
+  </div>
+  <p class="footer-note">青钢 QING / STEEL · 页面中的工件 SN、配方名、IP 地址、时间与测量值均为示例数据 · 所有颜色来自 tokens.css，深浅主题由右上角切换</p>
+</section>
+</main>
+
+<script src="../js/qs-motion.js"></script>
+<script>
+(function () {
+  var Q = window.QingSteel;
+  var root = document.documentElement;
+  var THEME_KEY = 'qs-demo-theme';
+  function ic(name, cls) { return '<svg class="qs-ic' + (cls ? ' ' + cls : '') + '"><use href="#i-' + name + '"/></svg>'; }
+
+  /* ---------- 主题 ---------- */
+  var themeSeg = document.getElementById('themeSeg');
+  function syncThemeSeg(v) {
+    themeSeg.querySelectorAll('button').forEach(function (b) {
+      b.setAttribute('aria-pressed', String((b.getAttribute('data-theme-val') || '') === (v || '')));
+    });
+    fillSwatches();
+    Q.segUpdate(themeSeg);
+  }
+  themeSeg.querySelectorAll('button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      Q.setTheme(b.getAttribute('data-theme-val') || '', { storageKey: THEME_KEY, onChange: syncThemeSeg });
+    });
+  });
+
+  /* ---------- 色板 ---------- */
+  var ROLES = [
+    ['品牌', [['primary', 'on-primary'], ['on-primary', 'primary'], ['primary-container', 'on-primary-container'], ['on-primary-container', 'primary-container'],
+              ['secondary', 'on-secondary'], ['secondary-container', 'on-secondary-container'], ['tertiary', 'on-tertiary'], ['tertiary-container', 'on-tertiary-container']]],
+    ['Surface 五级容器 + outline', [['surface-lowest', 'on-surface-variant'], ['surface-low', 'on-surface-variant'], ['surface-mid', 'on-surface-variant'], ['surface-high', 'on-surface-variant'], ['surface-highest', 'on-surface-variant'],
+              ['surface', 'on-surface'], ['on-surface', 'surface'], ['on-surface-variant', 'surface'], ['outline', 'surface'], ['outline-variant', 'on-surface']]],
+    ['语义色（独立于主色）', [['ok', 'on-ok'], ['ok-container', 'on-ok-container'], ['ng', 'on-ng'], ['ng-container', 'on-ng-container'],
+              ['warn', 'on-warn'], ['warn-container', 'on-warn-container'], ['fault', 'on-fault'], ['fault-container', 'on-fault-container']]]
+  ];
+  document.querySelectorAll('.palette').forEach(function (panel) {
+    var html = '';
+    ROLES.forEach(function (g) {
+      html += '<div class="sw-group"><div class="sw-group-title">' + g[0] + '</div><div class="sw-grid">';
+      g[1].forEach(function (r) {
+        html += '<div class="sw"><div class="tile" style="background:var(--' + r[0] + ');color:var(--' + r[1] + ')">Aa</div><div class="name">' + r[0] + '</div><div class="hex"></div></div>';
+      });
+      html += '</div></div>';
+    });
+    html += '<div class="sw-group"><div class="sw-group-title">相机 1–8</div><div class="sw-cams">';
+    for (var i = 1; i <= 8; i++) html += '<i style="background:var(--cam-' + i + ')">' + i + '</i>';
+    html += '</div></div>';
+    html += '<div class="sw-group"><div class="sw-group-title">层级示意：lowest → highest，无边框</div><div class="layers">' +
+      ['lowest', 'low', 'mid', 'high', 'highest'].map(function (l) { return '<div style="background:var(--surface-' + l + ')">' + l + '</div>'; }).join('') + '</div></div>';
+    panel.insertAdjacentHTML('beforeend', html);
+  });
+  function toHex(c) {
+    var m = /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(c);
+    if (!m) return c;
+    return '#' + [m[1], m[2], m[3]].map(function (n) { return ('0' + (+n).toString(16)).slice(-2); }).join('').toUpperCase();
+  }
+  function fillSwatches() {
+    document.querySelectorAll('.palette .sw').forEach(function (sw) {
+      sw.querySelector('.hex').textContent = toHex(getComputedStyle(sw.querySelector('.tile')).backgroundColor);
+    });
+  }
+  syncThemeSeg(Q.restoreTheme(THEME_KEY));
+  if (window.matchMedia) {
+    var mq = window.matchMedia('(prefers-color-scheme: light)');
+    if (mq.addEventListener) mq.addEventListener('change', fillSwatches); else if (mq.addListener) mq.addListener(fillSwatches);
+  }
+
+  /* ---------- 分段按钮 ---------- */
+  document.querySelectorAll('.qs-seg[data-seg]').forEach(Q.bindSeg);
+  document.querySelectorAll('.qs-seg:not([data-seg])').forEach(function (s) { Q.segUpdate(s, true); });
+  document.querySelectorAll('[data-zoom]').forEach(function (seg) {
+    seg.addEventListener('click', function () { requestAnimationFrame(function () { Q.segUpdate(seg); }); });
+  });
+
+  /* ---------- 导航（示例菜单） ---------- */
+  var NAV = [
+    { key: 'home', icon: 'dash', label: '总览' },
+    { group: '生产' },
+    { key: 'online', icon: 'scan', label: '在线检测' },
+    { key: 'history', icon: 'history', label: '历史记录', cnt: '21' },
+    { group: '工艺' },
+    { key: 'recipe', icon: 'flask', label: '配方' },
+    { key: 'offline', icon: 'folder', label: '离线模式' },
+    { group: '设备' },
+    { key: 'camera', icon: 'camera', label: '相机与采集' },
+    { key: 'calib', icon: 'crosshair', label: '飞拍标定' },
+    { key: 'plc', icon: 'plug', label: 'PLC 通讯' },
+    { key: 'log', icon: 'scroll', label: '通讯日志' }
+  ];
+  function navItem(it, active) {
+    return '<button type="button" class="item" data-key="' + it.key + '"' + (active ? ' aria-current="page"' : '') + '>' +
+      '<span class="pill"></span>' + ic(it.icon) + '<span class="lbl">' + it.label + '</span>' + (it.cnt ? '<span class="cnt">' + it.cnt + '</span>' : '') + '</button>';
+  }
+  document.querySelectorAll('[data-nav]').forEach(function (host) {
+    var active = host.getAttribute('data-nav');
+    var h = '<nav class="qs-nav' + (host.getAttribute('data-collapsed') === 'true' ? ' rail' : '') + '" aria-label="主导航"><span class="ind"></span>' +
+      '<div class="brand"><span class="mark">' + ic('bead') + '</span><div><b>胶路检测</b><small>示例应用 · 工位 A2</small></div></div>';
+    NAV.forEach(function (it) { h += it.group ? '<div class="grp">' + it.group + '</div>' : navItem(it, it.key === active); });
+    h += '<div class="foot">' + navItem({ key: 'settings', icon: 'settings', label: '系统设置' }, active === 'settings') +
+      '<div class="status"><span class="dot"></span><span>PLC</span><span class="qs-num">13</span><span>已连接</span></div>' +
+      '<div class="status"><span class="dot" style="background:var(--primary)"></span><span>引擎</span><span>·</span><span class="qs-num">就绪</span></div>' +
+      '<button type="button" class="qs-btn icon collapse" aria-label="折叠导航">' + ic('chevrons-left') + '</button></div></nav>';
+    host.innerHTML = h;
+    Q.bindNav(host.firstElementChild);
+  });
+
+  /* ---------- 数值滚动 ---------- */
+  document.querySelectorAll('.qs-odo[data-val]').forEach(function (el) { var v = el.getAttribute('data-val'); el.removeAttribute('data-val'); Q.setOdo(el, v); });
+
+  /* ---------- cycle ---------- */
+  var PHASES = ['空闲', '校验', '采集', '收尾', '判定', '回写', '释放'];
+  var ELAPSED = ['0.00 s', '0.12 s', '0.65 s', '1.02 s', '1.84 s', '1.91 s', '2.03 s', '2.03 s'];
+  function setCycle(host, cur) {
+    host.setAttribute('data-cycle', cur);
+    host.querySelectorAll('.ph:not(.fault)').forEach(function (ph, i) {
+      ph.classList.toggle('done', cur === 7 || i < cur);
+      ph.classList.toggle('cur', i === cur);
+    });
+    host.querySelectorAll('.ln').forEach(function (ln, i) { ln.classList.toggle('done', cur === 7 || i + 1 <= cur); });
+    host.querySelector('.ph.fault').classList.toggle('cur', cur === 7);
+    var odo = host.getAttribute('data-odo-link');
+    if (odo) Q.setOdo(document.getElementById(odo), ELAPSED[cur]);
+  }
+  document.querySelectorAll('[data-cycle]').forEach(function (host) {
+    var h = '<div class="qs-cycle" aria-label="cycle 阶段">';
+    PHASES.forEach(function (p, i) {
+      if (i > 0) h += '<span class="ln"></span>';
+      h += '<span class="ph"><span class="g"><span class="n">' + (i + 1) + '</span><span class="pulse"></span>' + ic('check') + '</span>' + p + '</span>';
+    });
+    host.innerHTML = h + '<span class="ph fault">' + ic('zap') + '故障</span></div>';
+    setCycle(host, +host.getAttribute('data-cycle'));
+  });
+  document.querySelectorAll('[data-cycle-adv]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var host = document.getElementById(b.getAttribute('data-cycle-adv'));
+      if (host) setCycle(host, (+host.getAttribute('data-cycle') + 1) % 8);
+    });
+  });
+
+  /* ---------- 分段测量列表 ---------- */
+  var SEGS = [
+    { name: '长边 A', dist: '0.79 – 0.79', off: '+0.02', run: '0.0', st: 'ok' },
+    { name: 'R 角 1', dist: '0.81 – 0.83', off: '+0.04', run: '0.0', st: 'ok' },
+    { name: '短边 B', dist: '0.00 – 0.78', off: '—', run: '3.0', st: 'ng', defect: '断胶 · s 444.5–447.5 mm，长度 3.0 mm（允许 ≤0.5）',
+      okv: { dist: '0.79 – 0.80', off: '+0.01', run: '0.0' } },
+    { name: 'R 角 2', dist: '0.80 – 0.82', off: '-0.01', run: '0.0', st: 'ok' },
+    { name: '长边 C', dist: '0.79 – 0.80', off: '+0.01', run: '0.0', st: 'ok' }
+  ];
+  function setSegValues(row, v) {
+    Q.setOdo(row.querySelector('.dist'), v.dist); Q.setOdo(row.querySelector('.off'), v.off); Q.setOdo(row.querySelector('.run'), v.run);
+  }
+  function setSegState(host, idx, st) {
+    if (!host) return;
+    var row = host.querySelectorAll('.seg')[idx], s = SEGS[idx];
+    if (!row || row.getAttribute('data-st') === st) return;
+    row.setAttribute('data-st', st);
+    row.classList.toggle('ng', st === 'ng'); row.classList.toggle('ok', st === 'ok');
+    row.querySelector('.pill').textContent = st.toUpperCase();
+    row.querySelector('.run').classList.toggle('bad', st === 'ng');
+    setSegValues(row, st === 'ng' ? s : (s.okv || s));
+  }
+  document.querySelectorAll('[data-segs]').forEach(function (host) {
+    var h = '<div class="qs-segs"><div class="hdr"><span>段</span><span class="r">距离 mm</span><span class="r">偏移</span><span class="r">连续超差</span><span class="end">判定</span></div>';
+    SEGS.forEach(function (s) {
+      h += '<div class="seg ' + s.st + '" data-st="' + s.st + '"><span class="nm">' + s.name + '</span><span class="qs-num qs-odo dist"></span><span class="qs-num qs-odo off"></span><span class="qs-num qs-odo run' + (s.st === 'ng' ? ' bad' : '') + '"></span><span class="st"><span class="pill">' + s.st.toUpperCase() + '</span></span>' +
+        '<span class="dx">' + (s.defect ? '<span class="defect">' + ic('alert') + s.defect + '</span>' : '') + '</span></div>';
+    });
+    host.innerHTML = h + '</div>';
+    host.querySelectorAll('.seg').forEach(function (row, i) { setSegValues(row, SEGS[i]); });
+  });
+  document.querySelectorAll('[data-seg-toggle]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var host = document.getElementById(b.getAttribute('data-seg-toggle')); if (!host) return;
+      setSegState(host, 2, host.querySelectorAll('.seg')[2].getAttribute('data-st') === 'ng' ? 'ok' : 'ng');
+    });
+  });
+
+  /* ---------- 判定大卡 ---------- */
+  var VERDICTS = {
+    ok: { big: 'OK', t: '整件合格 · 5 段全部在阈值内', d: '最大偏移 <span class="qs-num">+0.04</span> mm，最长连续超差 <span class="qs-num">0.0</span> mm',
+          foot: ['SN 915171863', '2026-10-09 13:24:46', 'PLC 13 已回写'], footShort: ['SN 915171863', '13:24:46', '帧 4/4'] },
+    ng: { big: 'NG', t: '短边 B · 断胶', d: 's <span class="qs-num">444.5–447.5</span> mm，长度 <span class="qs-num">3.0</span> mm（允许 ≤<span class="qs-num">0.5</span>）',
+          foot: ['SN 915171863', '2026-10-09 13:24:46', 'PLC 13 回写中'], footShort: ['SN 915171863', '13:24:46', '帧 4/4'] }
+  };
+  function fillVerdict(el, st) {
+    var v = VERDICTS[st], foot = el.getAttribute('data-foot') === 'short' ? v.footShort : v.foot;
+    el.innerHTML = '<div class="big">' + v.big + '</div><div class="t">' + v.t + '</div><div class="d">' + v.d + '</div><div class="foot">' + foot.map(function (f) { return '<span>' + f + '</span>'; }).join('') + '</div>';
+    el.setAttribute('data-verdict', st);
+    el.classList.toggle('ng', st === 'ng'); el.classList.toggle('ok', st === 'ok');
+  }
+  function linkVerdict(el, st) {
+    setSegState(document.getElementById(el.getAttribute('data-link-segs')), 2, st);
+    var work = document.getElementById(el.getAttribute('data-link-work'));
+    if (!work) return;
+    var mark = work.querySelector('.defect-mark'); if (mark) mark.classList.toggle('hide', st === 'ok');
+    var fill = work.querySelector('.glue-fill'); if (fill) fill.classList.toggle('show', st === 'ok');
+    var lbl = work.querySelector('.seg-b-label'); if (lbl) { lbl.setAttribute('fill', st === 'ng' ? 'var(--ng)' : 'var(--on-surface-variant)'); lbl.setAttribute('font-weight', st === 'ng' ? '700' : '400'); }
+    var thumb = work.querySelectorAll('.qs-thumb')[2];
+    if (thumb) { var vd = thumb.querySelector('.vd'); vd.textContent = st.toUpperCase(); vd.className = 'vd ' + st; var nm = thumb.querySelector('.ng-mark'); if (nm) nm.style.opacity = st === 'ng' ? '1' : '0'; }
+  }
+  document.querySelectorAll('[data-verdict]').forEach(function (el) { fillVerdict(el, el.getAttribute('data-verdict')); });
+  document.querySelectorAll('[data-verdict-toggle]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      b.getAttribute('data-verdict-toggle').split(/\s+/).forEach(function (id) {
+        var el = document.getElementById(id); if (!el || el.classList.contains('out') || el.classList.contains('in')) return;
+        var next = el.getAttribute('data-verdict') === 'ng' ? 'ok' : 'ng';
+        linkVerdict(el, next);
+        Q.swapVerdict(el, function (x) { fillVerdict(x, next); }, next === 'ng');
+      });
+    });
+  });
+
+  /* ---------- 帧缩略图 + 总览图选框 ---------- */
+  var FRAMES = [[296, 36, 300, 104], [40, 36, 248, 156], [40, 208, 248, 156], [296, 280, 300, 104]];
+  function thumbSvg(k) {
+    var d = ['M10 40 H120', 'M10 34 H70 Q30 34 24 60', 'M28 10 Q24 50 28 60 M70 10 H120', 'M10 44 H120'][k - 1];
+    var ngMark = k === 3 ? '<path class="ng-mark" d="M28 22 V30" stroke="var(--ng)" stroke-width="5" stroke-dasharray="2 2" fill="none" style="transition:opacity var(--dur-medium) var(--ease-standard)"/>' : '';
+    return '<svg viewBox="0 0 130 66" aria-hidden="true"><rect width="130" height="66" fill="var(--surface-lowest)"/><path d="' + d + '" stroke="var(--glue)" stroke-width="5" stroke-linecap="round" fill="none"/>' + ngMark + '</svg>';
+  }
+  document.querySelectorAll('[data-thumbs]').forEach(function (host) {
+    var h = '';
+    for (var k = 1; k <= 4; k++) {
+      var ng = k === 3;
+      h += '<button type="button" class="qs-thumb' + (ng ? ' active' : '') + '" data-k="' + k + '"><div class="pic">' + thumbSvg(k) + '</div><div class="cap"><span class="cam" style="background:var(--cam-' + k + ')"></span>k' + k + '<span class="sp"></span><span class="vd ' + (ng ? 'ng' : 'ok') + '">' + (ng ? 'NG' : 'OK') + '</span></div></button>';
+    }
+    host.innerHTML = h;
+    host.addEventListener('click', function (e) {
+      var t = e.target.closest('.qs-thumb'); if (!t) return;
+      host.querySelectorAll('.qs-thumb').forEach(function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      var card = host.closest('.work-card'), sel = card && card.querySelector('rect.sel');
+      if (sel) {
+        var f = FRAMES[+t.getAttribute('data-k') - 1];
+        sel.style.x = f[0] + 'px'; sel.style.y = f[1] + 'px'; sel.style.width = f[2] + 'px'; sel.style.height = f[3] + 'px';
+      }
+    });
+  });
+
+  /* ---------- 动效小节：曲线图 + 数值演示 ---------- */
+  document.querySelectorAll('.ease').forEach(function (card) {
+    var raw = getComputedStyle(root).getPropertyValue('--ease-' + card.getAttribute('data-ease')).trim();
+    card.querySelector('.fn').textContent = raw;
+    var m = raw.match(/-?[\d.]+/g);
+    if (m && m.length === 4) {
+      var p = m.map(Number);
+      var d = 'M0 100 C ' + (p[0] * 100) + ' ' + (100 - p[1] * 100) + ', ' + (p[2] * 100) + ' ' + (100 - p[3] * 100) + ', 100 0';
+      card.querySelector('svg').innerHTML =
+        '<rect x="0" y="0" width="100" height="100" rx="6" fill="var(--surface-lowest)"/>' +
+        '<line x1="0" y1="0" x2="100" y2="0" stroke="var(--outline-variant)" stroke-width=".8" stroke-dasharray="3 3"/>' +
+        '<path d="' + d + '" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round"/>' +
+        '<circle cx="0" cy="100" r="3" fill="var(--on-surface-variant)"/><circle cx="100" cy="0" r="3" fill="var(--primary)"/>';
+    }
+  });
+  var easeGo = false;
+  document.getElementById('ease-play').addEventListener('click', function () {
+    easeGo = !easeGo;
+    document.querySelectorAll('.ease .track').forEach(function (tr) {
+      tr.querySelector('i').style.transform = easeGo ? 'translateX(' + (tr.clientWidth - 16) + 'px)' : 'translateX(0)';
+    });
+  });
+  var ODO_VALUES = ['0.79 – 0.79', '0.81 – 0.83', '0.78 – 0.80', '0.79 – 0.81', '0.79 – 0.79'];
+  var odoIdx = 0, odoDemo = document.getElementById('odo-demo');
+  Q.setOdo(odoDemo, ODO_VALUES[0]);
+  document.getElementById('odo-next').addEventListener('click', function () { odoIdx = (odoIdx + 1) % ODO_VALUES.length; Q.setOdo(odoDemo, ODO_VALUES[odoIdx]); });
+
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fillSwatches);
+
+  /* ---------- mock 缩放 ---------- */
+  document.querySelectorAll('.mock-wrap').forEach(function (wrap) {
+    var scroll = wrap.querySelector('.mock-scroll');
+    var stage = wrap.querySelector('.mock-stage');
+    var mode = 'fit';
+    function layout() {
+      var s = mode === 'fit' ? Math.min(1, scroll.clientWidth / 1440) : 1;
+      stage.style.transform = 'scale(' + s + ')';
+      scroll.style.height = Math.round(880 * s) + 'px';
+      scroll.style.overflowX = s < 1 ? 'hidden' : 'auto';
+    }
+    wrap.querySelectorAll('[data-zoom] button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        mode = b.getAttribute('data-z');
+        wrap.querySelectorAll('[data-zoom] button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        layout();
+      });
+    });
+    if (window.ResizeObserver) new ResizeObserver(layout).observe(scroll); else window.addEventListener('resize', layout);
+    layout();
+  });
+})();
+</script>
+</body>
+</html>

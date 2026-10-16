@@ -1,0 +1,152 @@
+/*
+ * 青钢 QING / STEEL · design tokens
+ * 种子色 #0F819E → Material 3 tonal 角色；OK / NG / 警告 / 故障四个语义色独立于主色。
+ *
+ * 主题三态（写在 <html> 上）：
+ *   无 data-theme        跟随系统；系统未声明或为深色时用深色
+ *   data-theme="dark"    强制深色
+ *   data-theme="light"   强制浅色
+ * 局部预览某一主题：给容器加 .qs-scheme-dark / .qs-scheme-light。
+ */
+
+/* ---------- 深色（默认，车间） ---------- */
+:root,
+:root[data-theme="dark"],
+.qs-scheme-dark {
+  color-scheme: dark;
+
+  --primary: #7FD4F0;             --on-primary: #00363F;
+  --primary-container: #004E63;   --on-primary-container: #B9EBFF;
+  --secondary: #B3CAD3;           --on-secondary: #1D333B;
+  --secondary-container: #344A52; --on-secondary-container: #D2E5EC;
+  --tertiary: #E8C38F;            --on-tertiary: #412D00;
+  --tertiary-container: #5B4315;  --on-tertiary-container: #FFE2B8;
+
+  --surface: #0F1417;        --surface-dim: #0B1013;   --surface-bright: #353A3E;
+  --surface-lowest: #0A0E11; --surface-low: #171C1F;   --surface-mid: #1B2124;
+  --surface-high: #262B2F;   --surface-highest: #30363A;
+  --on-surface: #DEE3E7;     --on-surface-variant: #B3BFC6;
+  --outline: #83909A;        --outline-variant: #3A4750;
+  --inverse-surface: #DEE3E7; --inverse-on-surface: #2C3135;
+
+  --ok: #5EE19A;    --on-ok: #003920;    --ok-container: #0B3B25;    --on-ok-container: #B5F2CF;
+  --ng: #FF5C5C;    --on-ng: #4A0000;    --ng-container: #6B1414;    --on-ng-container: #FFDAD6;
+  --warn: #FFC247;  --on-warn: #3F2A00;  --warn-container: #4A3400;  --on-warn-container: #FFE2A8;
+  --fault: #E08CFF; --on-fault: #3B0052; --fault-container: #4A1A5E; --on-fault-container: #F5D9FF;
+
+  --cam-1: #6FC8E6; --cam-2: #9BD68A; --cam-3: #F2B36B; --cam-4: #D7A3FF;
+  --cam-5: #F58FB1; --cam-6: #7FD9C5; --cam-7: #C9C56B; --cam-8: #9FB3FF;
+
+  --state-hover: rgba(222, 227, 231, .08);
+  --state-pressed: rgba(222, 227, 231, .12);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .45), 0 4px 14px rgba(0, 0, 0, .28);
+  --glue: #7FD4F0;
+}
+
+/* ---------- 浅色（办公室 / 调试） ---------- */
+:root[data-theme="light"],
+.qs-scheme-light {
+  color-scheme: light;
+
+  --primary: #006782;             --on-primary: #FFFFFF;
+  --primary-container: #B9EBFF;   --on-primary-container: #001F29;
+  --secondary: #4B626B;           --on-secondary: #FFFFFF;
+  --secondary-container: #CEE6EF; --on-secondary-container: #071E25;
+  --tertiary: #765A2B;            --on-tertiary: #FFFFFF;
+  --tertiary-container: #FFDDB0;  --on-tertiary-container: #271900;
+
+  --surface: #F5FAFD;        --surface-dim: #D6DBDE;   --surface-bright: #FFFFFF;
+  --surface-lowest: #FFFFFF; --surface-low: #EFF4F7;   --surface-mid: #E9EEF1;
+  --surface-high: #E3E8EB;   --surface-highest: #DDE3E6;
+  --on-surface: #171C1F;     --on-surface-variant: #40484D;
+  --outline: #70787D;        --outline-variant: #BFC8CD;
+  --inverse-surface: #2C3135; --inverse-on-surface: #EEF1F4;
+
+  --ok: #157A47;    --on-ok: #FFFFFF;    --ok-container: #C7F3DA;    --on-ok-container: #00210F;
+  --ng: #C62828;    --on-ng: #FFFFFF;    --ng-container: #FFDAD6;    --on-ng-container: #410002;
+  --warn: #7A5300;  --on-warn: #FFFFFF;  --warn-container: #FFE2A8;  --on-warn-container: #271900;
+  --fault: #7B2DA0; --on-fault: #FFFFFF; --fault-container: #F0D7FF; --on-fault-container: #2E004A;
+
+  --cam-1: #0B7BA0; --cam-2: #3A8A2A; --cam-3: #B36A00; --cam-4: #7B3FBF;
+  --cam-5: #B8336A; --cam-6: #0E8A74; --cam-7: #7A7700; --cam-8: #3F5FD1;
+
+  --state-hover: rgba(23, 28, 31, .08);
+  --state-pressed: rgba(23, 28, 31, .12);
+  --shadow-1: 0 1px 2px rgba(23, 28, 31, .10), 0 4px 14px rgba(23, 28, 31, .08);
+  --glue: #0F819E;
+}
+
+/* 跟随系统：与上面浅色块保持一致（CSS 无法复用声明块，修改时两处同步） */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+
+    --primary: #006782;             --on-primary: #FFFFFF;
+    --primary-container: #B9EBFF;   --on-primary-container: #001F29;
+    --secondary: #4B626B;           --on-secondary: #FFFFFF;
+    --secondary-container: #CEE6EF; --on-secondary-container: #071E25;
+    --tertiary: #765A2B;            --on-tertiary: #FFFFFF;
+    --tertiary-container: #FFDDB0;  --on-tertiary-container: #271900;
+
+    --surface: #F5FAFD;        --surface-dim: #D6DBDE;   --surface-bright: #FFFFFF;
+    --surface-lowest: #FFFFFF; --surface-low: #EFF4F7;   --surface-mid: #E9EEF1;
+    --surface-high: #E3E8EB;   --surface-highest: #DDE3E6;
+    --on-surface: #171C1F;     --on-surface-variant: #40484D;
+    --outline: #70787D;        --outline-variant: #BFC8CD;
+    --inverse-surface: #2C3135; --inverse-on-surface: #EEF1F4;
+
+    --ok: #157A47;    --on-ok: #FFFFFF;    --ok-container: #C7F3DA;    --on-ok-container: #00210F;
+    --ng: #C62828;    --on-ng: #FFFFFF;    --ng-container: #FFDAD6;    --on-ng-container: #410002;
+    --warn: #7A5300;  --on-warn: #FFFFFF;  --warn-container: #FFE2A8;  --on-warn-container: #271900;
+    --fault: #7B2DA0; --on-fault: #FFFFFF; --fault-container: #F0D7FF; --on-fault-container: #2E004A;
+
+    --cam-1: #0B7BA0; --cam-2: #3A8A2A; --cam-3: #B36A00; --cam-4: #7B3FBF;
+    --cam-5: #B8336A; --cam-6: #0E8A74; --cam-7: #7A7700; --cam-8: #3F5FD1;
+
+    --state-hover: rgba(23, 28, 31, .08);
+    --state-pressed: rgba(23, 28, 31, .12);
+    --shadow-1: 0 1px 2px rgba(23, 28, 31, .10), 0 4px 14px rgba(23, 28, 31, .08);
+    --glue: #0F819E;
+  }
+}
+
+/* ---------- 与主题无关的刻度 ---------- */
+:root {
+  /* 字体：联网时由页面加载 Noto Sans SC / IBM Plex Mono，离线自动落到系统字体 */
+  --font-sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Source Han Sans SC", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, "Noto Sans Mono", monospace;
+
+  /* 字号刻度（font 简写） */
+  --text-display: 700 32px/40px var(--font-sans);
+  --text-headline: 700 24px/32px var(--font-sans);
+  --text-title: 700 18px/26px var(--font-sans);
+  --text-body: 400 14px/22px var(--font-sans);
+  --text-label: 400 12px/16px var(--font-sans);
+  --text-data-lg: 600 28px/36px var(--font-mono);
+  --text-data: 400 14px/22px var(--font-mono);
+
+  /* 形状：胶囊 = 可点，圆角矩形 = 装数据 */
+  --r-xs: 4px; --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 28px; --r-full: 999px;
+
+  /* 间距（4px 基准） */
+  --space-4: 4px; --space-8: 8px; --space-12: 12px; --space-16: 16px;
+  --space-20: 20px; --space-24: 24px; --space-32: 32px;
+
+  /* 尺寸与密度 */
+  --ctl-h: 36px; --ctl-h-sm: 30px; --row-h: 44px; --header-h: 60px;
+  --sidebar-w: 220px; --sidebar-w-rail: 72px;
+  --page-pad: 20px; --panel-gap: 16px;
+
+  /* 动效：三档时长 + 一条呼吸循环；spatial 带轻微回弹（位置 / 形状），standard 与 decel 无回弹 */
+  --dur-short: 120ms; --dur-medium: 240ms; --dur-long: 400ms; --dur-breath: 1600ms;
+  --ease-spatial: cubic-bezier(.38, 1.21, .22, 1);
+  --ease-standard: cubic-bezier(.2, 0, 0, 1);
+  --ease-decel: cubic-bezier(.05, .7, .1, 1);
+}
+
+/* 减少动态效果：时长归零，引用 token 的过渡与动画随之失效；components.css 另有兜底 */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-short: 0ms; --dur-medium: 0ms; --dur-long: 0ms; --dur-breath: 0ms;
+  }
+}
