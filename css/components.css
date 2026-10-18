@@ -160,7 +160,7 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
 .qs-nav :is(.lbl, .cnt, .brand > div, .grp, .status span:not(.dot)) { transition: opacity var(--dur-short) var(--ease-standard); }
 .qs-nav.switching :is(.lbl, .cnt, .brand > div, .grp, .status span:not(.dot)) { opacity: 0; }
 .qs-nav .brand { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 8px; margin-bottom: 8px; overflow: hidden; }
-.qs-nav .brand .mark { width: 32px; height: 32px; border-radius: 10px; background: var(--primary); color: var(--on-primary); display: grid; place-items: center; flex: none; }
+.qs-nav .brand .mark { width: 32px; height: 32px; border-radius: var(--r-sm); background: var(--primary); color: var(--on-primary); display: grid; place-items: center; flex: none; }
 .qs-nav .brand .mark .qs-ic { width: 18px; height: 18px; stroke-width: 2.4; }
 .qs-nav .brand b { font-size: 14px; white-space: nowrap; display: block; line-height: 1.2; }
 .qs-nav .brand small { font-size: 11px; color: var(--on-surface-variant); white-space: nowrap; display: block; }
@@ -277,9 +277,20 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
 .qs-verdict .d { font-size: 13px; opacity: .9; min-width: 0; overflow-wrap: anywhere; }
 .qs-verdict .d .qs-num { font-weight: 500; }
 .qs-verdict .foot { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; font: 400 12px/1.4 var(--font-mono); opacity: .9; }
-.qs-verdict .foot span { padding: 4px 8px; border-radius: var(--r-sm); background: rgba(0, 0, 0, .14); }
+.qs-verdict .foot span { padding: 4px 8px; border-radius: var(--r-sm); background: color-mix(in srgb, currentColor 14%, transparent); }
 .qs-verdict.ng { background: var(--ng); color: var(--on-ng); }
 .qs-verdict.ok { background: var(--ok-container); color: var(--on-ok-container); }
+.qs-verdict.warn { background: var(--warn-container); color: var(--on-warn-container); }
+.qs-verdict.fault { background: var(--fault-container); color: var(--on-fault-container); }
+.qs-verdict.idle { background: var(--surface-high); color: var(--on-surface-variant); }
+.qs-verdict.run { background: var(--primary-container); color: var(--on-primary-container); }
+/* .xl：产线大屏，判定字取 --text-verdict，两米外可读 */
+.qs-verdict.xl { padding: 20px 24px; gap: 8px 24px; }
+.qs-verdict.xl .big { font: var(--text-verdict); letter-spacing: -.02em; }
+.qs-verdict.xl .t { font: var(--text-title); }
+.qs-verdict.xl .d { font-size: 14px; }
+/* 运行中的呼吸点：同屏唯一允许的循环动画 */
+.qs-verdict .pulse { display: inline-block; width: 12px; height: 12px; border-radius: var(--r-full); background: currentColor; animation: qs-breath var(--dur-breath) var(--ease-standard) infinite; }
 
 /* ---------- 测量段列表 ----------
  * 行 .seg.ok / .seg.ng；NG 行整行填 ng-container，.dx 里的缺陷描述用 grid-template-rows 0fr → 1fr 展开。 */
@@ -339,6 +350,70 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
 .qs-odo .ch > span { display: block; }
 .qs-odo .ch .o { position: absolute; left: 0; top: 0; animation: qs-odo-out var(--dur-medium) var(--ease-decel) both; }
 .qs-odo .ch .n { animation: qs-odo-in var(--dur-medium) var(--ease-decel) both; }
+
+/* ---------- 统计读数 ----------
+ * .qs-stats > .qs-stat（ok / ng / warn / fault）：小标签 + 大号等宽读数，用于产量、良率、计数。 */
+.qs-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 8px; min-width: 0; }
+.qs-stat { display: grid; gap: 2px; align-content: start; min-width: 0; padding: 10px 12px; border-radius: var(--r-md); background: var(--surface-mid); }
+.qs-stat small { font: var(--text-label); color: var(--on-surface-variant); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qs-stat b { font: var(--text-data-lg); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qs-stat b small { font: 400 14px/1 var(--font-mono); color: var(--on-surface-variant); margin-left: 2px; }
+.qs-stat.ok b { color: var(--ok); }
+.qs-stat.ng b { color: var(--ng); }
+.qs-stat.warn b { color: var(--warn); }
+.qs-stat.fault b { color: var(--fault); }
+
+/* ---------- 线性进度 ----------
+ * 宽度不参与动画：条长写在 --v（0–1），用 transform: scaleX 过渡。 */
+.qs-progress { height: 4px; border-radius: var(--r-full); background: var(--surface-highest); overflow: hidden; }
+.qs-progress > i { display: block; height: 100%; background: var(--primary); transform-origin: 0 50%; transform: scaleX(var(--v, 0)); transition: transform var(--dur-medium) var(--ease-decel); }
+.qs-progress.ok > i { background: var(--ok); }
+.qs-progress.ng > i { background: var(--ng); }
+
+/* ---------- 提示条 ----------
+ * 页面内的持续提示：info / ok / warn / ng / fault / tertiary（离线、候选等非常规模式）。出现时淡入，不做位移。 */
+.qs-banner {
+  display: flex; align-items: flex-start; gap: 10px; min-width: 0; padding: 10px 14px; border-radius: var(--r-md);
+  background: var(--surface-high); color: var(--on-surface); font: 400 13px/1.5 var(--font-sans); overflow-wrap: anywhere;
+  animation: qs-fade-in var(--dur-short) var(--ease-standard);
+}
+.qs-banner > .qs-ic, .qs-banner > svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
+.qs-banner b { font-weight: 700; }
+.qs-banner a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.qs-banner.info { background: var(--primary-container); color: var(--on-primary-container); }
+.qs-banner.ok { background: var(--ok-container); color: var(--on-ok-container); }
+.qs-banner.warn { background: var(--warn-container); color: var(--on-warn-container); }
+.qs-banner.ng { background: var(--ng-container); color: var(--on-ng-container); }
+.qs-banner.fault { background: var(--fault-container); color: var(--on-fault-container); }
+.qs-banner.tertiary { background: var(--tertiary-container); color: var(--on-tertiary-container); }
+
+/* ---------- 空状态 ----------
+ * 图标 + 一句话说明 + 可选的下一步；居中放在原内容的位置，不另起卡片。 */
+.qs-empty { display: grid; justify-items: center; align-content: center; gap: 6px; min-height: 120px; padding: 24px 16px; text-align: center; color: var(--on-surface-variant); }
+.qs-empty > .qs-ic, .qs-empty > svg { width: 28px; height: 28px; color: var(--outline); margin-bottom: 4px; }
+.qs-empty b { font: 500 14px/1.4 var(--font-sans); color: var(--on-surface); }
+.qs-empty small { font: var(--text-label); max-width: 40ch; }
+.qs-empty .qs-btn { margin-top: 8px; }
+
+/* ---------- 对话框 ----------
+ * .qs-scrim > .qs-dialog（.hd / .bd / .ft）。遮罩淡入，对话框自下方 8px、.98 缩放淡入；只动 transform 与 opacity。
+ * .qs-scrim.side：右侧抽屉，.qs-dialog 贴右并整高，自右侧滑入。 */
+.qs-scrim { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: var(--space-24); background: var(--scrim); animation: qs-fade-in var(--dur-medium) var(--ease-standard) both; }
+.qs-dialog {
+  width: min(520px, 100%); max-height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--surface-high); color: var(--on-surface); border-radius: var(--r-xl); box-shadow: var(--shadow-3);
+  animation: qs-dialog-in var(--dur-medium) var(--ease-decel) both;
+}
+.qs-dialog:focus { outline: none; }
+.qs-dialog > .hd { display: flex; align-items: center; gap: 12px; padding: 16px 16px 8px 24px; flex: none; }
+.qs-dialog > .hd h3 { flex: 1; min-width: 0; margin: 0; font: var(--text-title); }
+.qs-dialog > .bd { flex: 1; min-height: 0; overflow: auto; padding: 8px 24px 16px; font: var(--text-body); }
+.qs-dialog > .ft { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; padding: 12px 24px 20px; flex: none; }
+.qs-scrim.side { place-items: stretch end; padding: 0; }
+.qs-scrim.side .qs-dialog { height: 100%; max-height: none; border-radius: var(--r-xl) 0 0 var(--r-xl); animation-name: qs-sheet-in; }
+@keyframes qs-fade-in { from { opacity: 0; } }
+@keyframes qs-dialog-in { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+@keyframes qs-sheet-in { from { opacity: 0; transform: translateX(24px); } }
 
 /* ---------- 减少动态效果：兜底关闭全部过渡与动画 ---------- */
 @media (prefers-reduced-motion: reduce) {

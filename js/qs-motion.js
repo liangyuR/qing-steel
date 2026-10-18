@@ -140,8 +140,13 @@
     scope.querySelectorAll('.qs-seg.has-ind').forEach(function (s) { segUpdate(s, true); });
     scope.querySelectorAll('.qs-nav').forEach(function (n) { navUpdate(n, true); });
   }
+  var relayoutFrame = 0;
+  function scheduleRelayout() {
+    if (relayoutFrame) return;
+    relayoutFrame = requestAnimationFrame(function () { relayoutFrame = 0; relayout(); });
+  }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { relayout(); });
-  global.addEventListener('resize', function () { relayout(); });
+  global.addEventListener('resize', scheduleRelayout);
 
   global.QingSteel = {
     setTheme: setTheme, restoreTheme: restoreTheme,

@@ -60,6 +60,8 @@
 | `outline` / `outline-variant` | `#83909A` / `#3A4750` | `#70787D` / `#BFC8CD` | outlined 控件描边 / 输入框与表格线 |
 | `state-hover` / `state-pressed` | 8% / 12% `on-surface` | 8% / 12% `on-surface` | 半透明状态层，叠在任意底色上 |
 | `on-surface-disabled` / `disabled-container` | 38% / 12% `on-surface` | 38% / 12% `on-surface` | 禁用控件的文字 / 填充；描边、文字、图标类按钮只换文字色 |
+| `scrim` | 黑 60% | `on-surface` 40% | 对话框 / 抽屉遮罩 |
+| `shadow-1` / `shadow-2` / `shadow-3` | — | — | 抬起的卡片与 FAB / 浮层与提示气泡 / 对话框 |
 
 ### 语义色（独立于主色）
 
@@ -100,6 +102,7 @@
 | `--text-label` | 400 12 / 16 | 标签、说明 |
 | `--text-data-lg` | 600 28 / 36 mono | 关键读数 |
 | `--text-data` | 400 14 / 22 mono | SN、时间、测量值 |
+| `--text-verdict` | 700 80 / 80 mono | 产线大屏的 OK / NG 判定字，1080p 两米外可读 |
 
 字体栈带完整回退：`"IBM Plex Mono", "Cascadia Mono", "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, "Noto Sans Mono", monospace` 与 `"Noto Sans SC", "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Source Han Sans SC", system-ui, sans-serif`。Windows 工控机未装 IBM Plex Mono 时落到系统自带的 Cascadia Mono。**tokens.css 不加载任何网络字体**，离线时直接落到系统字体。
 
@@ -147,6 +150,8 @@
 | 帧缩略图选择 | 描边过渡；总览图选框平移伸缩到新帧；hover 抬起 2px | medium / standard、medium / spatial；hover short |
 | 测量值更新 | 只有变化的字符位纵向滚动，未变的不动；相同值不触发 | medium / decel |
 | 主题切换 | View Transition 整页交叉淡入；不支持时直接切换 | medium / standard |
+| 对话框 / 抽屉出现 | 遮罩淡入；对话框自下方 8 px、.98 缩放淡入，抽屉自右侧 24 px 滑入 | 遮罩 medium / standard，对话框 medium / decel |
+| 进度推进 | 进度条 scaleX 伸长，不改宽度 | medium / decel |
 | 当前阶段（持续） | 呼吸点 opacity 1 → .55；同屏唯一循环动画 | breath / standard |
 | `prefers-reduced-motion` | 时长 token 归零 + 全部过渡与动画关闭；导航折叠不分步，数值直接替换 | — |
 
@@ -167,10 +172,15 @@
 | 卡片 | `.qs-card`（`lv2` / `lv3`） | 嵌套按 low → mid → high 递进，无边框 |
 | 状态徽章 | `.qs-badge` + `ok` / `ng` / `warn` / `fault` / `off` | 圆点 + 文字 + 等宽数值 |
 | cycle 阶段 | `.qs-cycle` > `.ph`（`done` / `cur` / `fault`）+ `.ln` | 当前阶段 primary 实色 + 呼吸点；故障与主链路脱开，进入时才染紫 |
-| 判定大卡 | `.qs-verdict.ok` / `.ng` | NG 实色最醒目；切换时序由脚本驱动 |
+| 判定大卡 | `.qs-verdict` + `ok` / `ng` / `warn` / `fault` / `idle` / `run`，`.xl` | NG 实色最醒目；合格但需注意（如局部超差）用 `warn`，检测异常（如未测成）用 `fault`；`.xl` 判定字取 `--text-verdict`；`.pulse` 呼吸点；切换时序由脚本驱动 |
 | 测量段列表 | `.qs-segs` > `.seg.ok` / `.seg.ng` | NG 行整行填色并展开缺陷描述 |
 | 缩略图 | `.qs-thumbs` > `.qs-thumb`（`active`） | 带相机色点与 OK / NG 标记 |
 | 键值读数 | `.qs-kv` | 小标签 + 等宽读数 |
+| 统计读数 | `.qs-stats` > `.qs-stat`（`ok` / `ng` / `warn` / `fault`） | 产量、良率等大号等宽读数 |
+| 线性进度 | `.qs-progress` > `i`，条长写在 `--v`（0–1） | scaleX 过渡，不改宽度 |
+| 提示条 | `.qs-banner` + `info` / `ok` / `warn` / `ng` / `fault` / `tertiary` | 页面内的持续提示，出现时淡入 |
+| 空状态 | `.qs-empty` > 图标 + `b` + `small` | 放在原内容位置，说明为什么空、下一步做什么 |
+| 对话框 | `.qs-scrim` > `.qs-dialog`（`.hd` / `.bd` / `.ft`）；`.qs-scrim.side` 右侧抽屉 | 遮罩取 `--scrim`，对话框取 `--shadow-3`；进入只动 transform 与 opacity |
 | 数值滚动 | `.qs-odo` | 由 `QingSteel.setOdo()` 生成字符位 |
 | 工具类 | `.qs-num`、`.qs-ic` | 等宽数字；24 网格线性图标 |
 
@@ -185,7 +195,7 @@
 用版本标签固定到某一版（pnpm / npm 均支持 Git 依赖）：
 
 ```bash
-pnpm add github:liangyuR/qing-steel#v0.2.0
+pnpm add github:liangyuR/qing-steel#v0.3.0
 ```
 
 ```js
