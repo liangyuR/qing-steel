@@ -26,13 +26,18 @@ const scale = block(':root {\n  ');
 
 const color = vars => Object.fromEntries(
   Object.entries(vars)
-    .filter(([k]) => !['shadow-1'].includes(k))
+    .filter(([k]) => !k.startsWith('shadow-'))
     .map(([k, v]) => [k, { $type: 'color', $value: v }])
 );
 const pick = (prefix, type) => Object.fromEntries(
   Object.entries(scale)
     .filter(([k]) => k.startsWith(prefix))
     .map(([k, v]) => [k.slice(prefix.length), { $type: type, $value: v }])
+);
+const shadows = vars => Object.fromEntries(
+  Object.entries(vars)
+    .filter(([k]) => k.startsWith('shadow-'))
+    .map(([k, v]) => [k.slice(7), { $type: 'shadow', $value: v }])
 );
 const bezier = v => v.match(/-?[\d.]+/g).map(Number);
 const dims = ['ctl-h', 'ctl-h-sm', 'row-h', 'header-h', 'sidebar-w', 'sidebar-w-rail', 'page-pad', 'panel-gap'];
@@ -41,10 +46,7 @@ const out = {
   $description: '青钢 QING / STEEL design tokens，由 scripts/build-tokens-json.mjs 从 css/tokens.css 生成，请勿手改。',
   seed: { $type: 'color', $value: '#0F819E' },
   color: { dark: color(dark), light: color(light) },
-  shadow: {
-    dark: { 1: { $type: 'shadow', $value: dark['shadow-1'] } },
-    light: { 1: { $type: 'shadow', $value: light['shadow-1'] } }
-  },
+  shadow: { dark: shadows(dark), light: shadows(light) },
   font: {
     sans: { $type: 'fontFamily', $value: scale['font-sans'] },
     mono: { $type: 'fontFamily', $value: scale['font-mono'] }
