@@ -176,7 +176,7 @@
 | 测量段列表 | `.qs-segs` > `.seg.ok` / `.seg.ng` | NG 行整行填色并展开缺陷描述 |
 | 缩略图 | `.qs-thumbs` > `.qs-thumb`（`active`） | 带相机色点与 OK / NG 标记 |
 | 键值读数 | `.qs-kv` | 小标签 + 等宽读数 |
-| 统计读数 | `.qs-stats` > `.qs-stat`（`ok` / `ng` / `warn` / `fault`） | 产量、良率等大号等宽读数 |
+| 统计读数 | `.qs-stats` > `.qs-stat`（`ok` / `ng` / `warn` / `fault`），最小列宽 `--stat-min`（默认 128px） | 产量、良率等大号等宽读数；默认列宽放得下 6 个字符（`12 345`、`100.0%`），容器变窄时先换行，读数更长时调大 `--stat-min` |
 | 线性进度 | `.qs-progress` > `i`，条长写在 `--v`（0–1） | scaleX 过渡，不改宽度 |
 | 提示条 | `.qs-banner` + `info` / `ok` / `warn` / `ng` / `fault` / `tertiary` | 页面内的持续提示，出现时淡入 |
 | 空状态 | `.qs-empty` > 图标 + `b` + `small` | 放在原内容位置，说明为什么空、下一步做什么 |

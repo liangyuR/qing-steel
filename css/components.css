@@ -352,8 +352,9 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
 .qs-odo .ch .n { animation: qs-odo-in var(--dur-medium) var(--ease-decel) both; }
 
 /* ---------- 统计读数 ----------
- * .qs-stats > .qs-stat（ok / ng / warn / fault）：小标签 + 大号等宽读数，用于产量、良率、计数。 */
-.qs-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 8px; min-width: 0; }
+ * .qs-stats > .qs-stat（ok / ng / warn / fault）：小标签 + 大号等宽读数，用于产量、良率、计数。
+ * 最小列宽 --stat-min 默认 128px，可完整放下 6 个 28px 等宽字符（"12 345"、"100.0%"）；读数更长时调大，宁可换行也不截断。 */
+.qs-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--stat-min, 128px)), 1fr)); gap: 8px; min-width: 0; }
 .qs-stat { display: grid; gap: 2px; align-content: start; min-width: 0; padding: 10px 12px; border-radius: var(--r-md); background: var(--surface-mid); }
 .qs-stat small { font: var(--text-label); color: var(--on-surface-variant); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .qs-stat b { font: var(--text-data-lg); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
