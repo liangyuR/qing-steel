@@ -1,0 +1,27 @@
+{
+  "name": "qing-steel",
+  "version": "0.2.0",
+  "description": "青钢 QING / STEEL：面向工业视觉软件的 Material 3 风格设计语言（tokens + 组件样式 + 动效脚本）",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liangyuR/qing-steel.git"
+  },
+  "files": [
+    "css",
+    "js",
+    "tokens.json"
+  ],
+  "style": "css/tokens.css",
+  "exports": {
+    "./tokens.css": "./css/tokens.css",
+    "./components.css": "./css/components.css",
+    "./qs-motion.js": "./js/qs-motion.js",
+    "./tokens.json": "./tokens.json",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "tokens": "node scripts/build-tokens-json.mjs",
+    "check": "node scripts/build-tokens-json.mjs --check"
+  }
+}

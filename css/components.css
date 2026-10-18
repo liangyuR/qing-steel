@@ -33,7 +33,7 @@
   height: var(--ctl-h); padding: 0 18px; border-radius: var(--r-full); border: 0;
   background: var(--btn-bg); color: var(--btn-fg);
   font: 500 14px/1 var(--font-sans); display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
-  white-space: nowrap;
+  white-space: nowrap; text-decoration: none;
   transition: transform var(--dur-medium) var(--ease-spatial), border-radius var(--dur-medium) var(--ease-spatial);
 }
 .qs-btn:active:not(:disabled) { transform: scale(.97); border-radius: var(--r-md); transition-duration: var(--dur-short); transition-timing-function: var(--ease-standard); }
@@ -45,8 +45,12 @@
 .qs-btn.danger-tonal { --btn-bg: var(--ng-container); --btn-fg: var(--on-ng-container); }
 .qs-btn.sm { height: var(--ctl-h-sm); padding: 0 14px; font-size: 13px; }
 .qs-btn.icon { width: var(--ctl-h); padding: 0; justify-content: center; --btn-bg: transparent; --btn-fg: var(--on-surface-variant); }
-.qs-btn:disabled { cursor: default; opacity: .38; }
-.qs-btn:disabled::after { display: none; }
+/* 禁用：填充类换成 disabled-container，描边 / 文字 / 图标类保持透明，文字统一 on-surface-disabled */
+.qs-btn:is(:disabled, [aria-disabled="true"]) { cursor: not-allowed; --btn-bg: var(--disabled-container); --btn-fg: var(--on-surface-disabled); }
+.qs-btn:is(.outlined, .text, .icon):is(:disabled, [aria-disabled="true"]) { --btn-bg: transparent; }
+.qs-btn.outlined:is(:disabled, [aria-disabled="true"]) { box-shadow: inset 0 0 0 1px var(--disabled-container); }
+.qs-btn:is(:disabled, [aria-disabled="true"])::after { display: none; }
+a.qs-btn[aria-disabled="true"] { pointer-events: none; }
 
 .qs-fab {
   position: relative; overflow: hidden; isolation: isolate;

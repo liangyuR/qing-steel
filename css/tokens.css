@@ -34,11 +34,13 @@
   --warn: #FFC247;  --on-warn: #3F2A00;  --warn-container: #4A3400;  --on-warn-container: #FFE2A8;
   --fault: #E08CFF; --on-fault: #3B0052; --fault-container: #4A1A5E; --on-fault-container: #F5D9FF;
 
-  --cam-1: #6FC8E6; --cam-2: #9BD68A; --cam-3: #F2B36B; --cam-4: #D7A3FF;
-  --cam-5: #F58FB1; --cam-6: #7FD9C5; --cam-7: #C9C56B; --cam-8: #9FB3FF;
+  --cam-1: #7FD4F0; --cam-2: #5FB8E8; --cam-3: #9FC6FF; --cam-4: #B7A8FF;
+  --cam-5: #8FE3E0; --cam-6: #6F9BFF; --cam-7: #C9D8FF; --cam-8: #A7E8FF;
 
   --state-hover: rgba(222, 227, 231, .08);
   --state-pressed: rgba(222, 227, 231, .12);
+  --on-surface-disabled: rgba(222, 227, 231, .38);
+  --disabled-container: rgba(222, 227, 231, .12);
   --shadow-1: 0 1px 2px rgba(0, 0, 0, .45), 0 4px 14px rgba(0, 0, 0, .28);
   --glue: #7FD4F0;
 }
@@ -67,11 +69,13 @@
   --warn: #7A5300;  --on-warn: #FFFFFF;  --warn-container: #FFE2A8;  --on-warn-container: #271900;
   --fault: #7B2DA0; --on-fault: #FFFFFF; --fault-container: #F0D7FF; --on-fault-container: #2E004A;
 
-  --cam-1: #0B7BA0; --cam-2: #3A8A2A; --cam-3: #B36A00; --cam-4: #7B3FBF;
-  --cam-5: #B8336A; --cam-6: #0E8A74; --cam-7: #7A7700; --cam-8: #3F5FD1;
+  --cam-1: #00677F; --cam-2: #1565A8; --cam-3: #3A5BC7; --cam-4: #5A4FC0;
+  --cam-5: #00787A; --cam-6: #2950B8; --cam-7: #4B5F8C; --cam-8: #0B7BA0;
 
   --state-hover: rgba(23, 28, 31, .08);
   --state-pressed: rgba(23, 28, 31, .12);
+  --on-surface-disabled: rgba(23, 28, 31, .38);
+  --disabled-container: rgba(23, 28, 31, .12);
   --shadow-1: 0 1px 2px rgba(23, 28, 31, .10), 0 4px 14px rgba(23, 28, 31, .08);
   --glue: #0F819E;
 }
@@ -100,11 +104,13 @@
     --warn: #7A5300;  --on-warn: #FFFFFF;  --warn-container: #FFE2A8;  --on-warn-container: #271900;
     --fault: #7B2DA0; --on-fault: #FFFFFF; --fault-container: #F0D7FF; --on-fault-container: #2E004A;
 
-    --cam-1: #0B7BA0; --cam-2: #3A8A2A; --cam-3: #B36A00; --cam-4: #7B3FBF;
-    --cam-5: #B8336A; --cam-6: #0E8A74; --cam-7: #7A7700; --cam-8: #3F5FD1;
+    --cam-1: #00677F; --cam-2: #1565A8; --cam-3: #3A5BC7; --cam-4: #5A4FC0;
+    --cam-5: #00787A; --cam-6: #2950B8; --cam-7: #4B5F8C; --cam-8: #0B7BA0;
 
     --state-hover: rgba(23, 28, 31, .08);
     --state-pressed: rgba(23, 28, 31, .12);
+    --on-surface-disabled: rgba(23, 28, 31, .38);
+    --disabled-container: rgba(23, 28, 31, .12);
     --shadow-1: 0 1px 2px rgba(23, 28, 31, .10), 0 4px 14px rgba(23, 28, 31, .08);
     --glue: #0F819E;
   }
@@ -113,8 +119,8 @@
 /* ---------- 与主题无关的刻度 ---------- */
 :root {
   /* 字体：联网时由页面加载 Noto Sans SC / IBM Plex Mono，离线自动落到系统字体 */
-  --font-sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Source Han Sans SC", system-ui, -apple-system, sans-serif;
-  --font-mono: "IBM Plex Mono", "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, "Noto Sans Mono", monospace;
+  --font-sans: "Noto Sans SC", "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Source Han Sans SC", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", "Cascadia Mono", "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, "Noto Sans Mono", monospace;
 
   /* 字号刻度（font 简写） */
   --text-display: 700 32px/40px var(--font-sans);
