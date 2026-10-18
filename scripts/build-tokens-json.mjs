@@ -1,5 +1,5 @@
 // 从 css/tokens.css 生成 tokens.json（W3C Design Tokens 草案格式），tokens.css 是唯一来源。
-// 用法：node scripts/build-tokens-json.mjs
+// 用法：node scripts/build-tokens-json.mjs（生成） / node scripts/build-tokens-json.mjs --check（只校验）
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
@@ -68,5 +68,12 @@ const out = {
   )
 };
 
-writeFileSync(root + 'tokens.json', JSON.stringify(out, null, 2) + '\n');
-console.log('tokens.json 已生成');
+const json = JSON.stringify(out, null, 2) + '\n';
+if (process.argv.includes('--check')) {
+  const current = readFileSync(root + 'tokens.json', 'utf8').replace(/\r\n/g, '\n');
+  if (current !== json) { console.error('tokens.json 与 css/tokens.css 不一致，请运行 npm run tokens'); process.exit(1); }
+  console.log('tokens.json 与 css/tokens.css 一致');
+} else {
+  writeFileSync(root + 'tokens.json', json);
+  console.log('tokens.json 已生成');
+}

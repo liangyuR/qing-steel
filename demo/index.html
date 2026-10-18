@@ -872,7 +872,7 @@ QingSteel.setTheme('light', { storageKey: 'my-app-theme' });</pre>
           <li><b>指示器由脚本定位。</b><span class="qs-num">QingSteel.bindSeg(el)</span> / <span class="qs-num">bindNav(el)</span> 绑定点击并让胶囊滑动；字体加载与窗口缩放后自动重算。</li>
           <li><b>数值只滚变化的字符位。</b><span class="qs-num">QingSteel.setOdo(el, "0.81 mm")</span>，相同值不触发，减少动态效果时直接替换。</li>
           <li><b>判定切换走固定时序。</b><span class="qs-num">QingSteel.swapVerdict(el, render, toNg)</span>：淡出 → 换内容 → 滑入，变成 NG 时强调一次。</li>
-          <li><b>禁用态统一 38%。</b>不单独定义禁用色，<span class="qs-num">opacity: .38</span> 叠在原角色上。</li>
+          <li><b>禁用态用两个专用角色。</b>文字取 <span class="qs-num">--on-surface-disabled</span>（on-surface 38%），填充取 <span class="qs-num">--disabled-container</span>（12%）；描边 / 文字 / 图标按钮保持透明底，只换文字色。</li>
         </ol>
       </div>
     </div>

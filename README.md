@@ -59,6 +59,7 @@
 | `on-surface` / `on-surface-variant` | `#DEE3E7` / `#B3BFC6` | `#171C1F` / `#40484D` | 正文 / 次要文字 |
 | `outline` / `outline-variant` | `#83909A` / `#3A4750` | `#70787D` / `#BFC8CD` | outlined 控件描边 / 输入框与表格线 |
 | `state-hover` / `state-pressed` | 8% / 12% `on-surface` | 8% / 12% `on-surface` | 半透明状态层，叠在任意底色上 |
+| `on-surface-disabled` / `disabled-container` | 38% / 12% `on-surface` | 38% / 12% `on-surface` | 禁用控件的文字 / 填充；描边、文字、图标类按钮只换文字色 |
 
 ### 语义色（独立于主色）
 
@@ -69,7 +70,7 @@
 | 警告 `warn` | `#FFC247` / `#4A3400` | `#7A5300` / `#FFE2A8` | 接近阈值、心跳变慢 |
 | 故障 `fault` | `#E08CFF` / `#4A1A5E` | `#7B2DA0` / `#F0D7FF` | 系统 / 设备故障，与产品 NG 分离 |
 
-每个语义色都有成对的 `on-*` 与 `on-*-container`，见 `css/tokens.css`。另有 `--cam-1` … `--cam-8` 八个相机 / 通道识别色（浅色主题降低明度），以及 `--glue`（图像上的胶路 / 目标描边色）。
+每个语义色都有成对的 `on-*` 与 `on-*-container`，见 `css/tokens.css`。另有 `--cam-1` … `--cam-8` 八个相机 / 通道识别色：取青、蓝、靛、紫蓝一组冷色，不与 OK 绿、警告琥珀、故障紫、NG 红撞色（浅色主题降低明度），以及 `--glue`（图像上的胶路 / 目标描边色）。
 
 ---
 
@@ -100,7 +101,7 @@
 | `--text-data-lg` | 600 28 / 36 mono | 关键读数 |
 | `--text-data` | 400 14 / 22 mono | SN、时间、测量值 |
 
-字体栈带完整回退：`"IBM Plex Mono", "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, "Noto Sans Mono", monospace` 与 `"Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Source Han Sans SC", system-ui, sans-serif`。**tokens.css 不加载任何网络字体**，离线时直接落到系统字体。
+字体栈带完整回退：`"IBM Plex Mono", "Cascadia Mono", "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, "Noto Sans Mono", monospace` 与 `"Noto Sans SC", "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Source Han Sans SC", system-ui, sans-serif`。Windows 工控机未装 IBM Plex Mono 时落到系统自带的 Cascadia Mono。**tokens.css 不加载任何网络字体**，离线时直接落到系统字体。
 
 ### 间距与密度（4 px 基准）
 
@@ -157,7 +158,7 @@
 
 | 组件 | 类名 | 要点 |
 | --- | --- | --- |
-| 按钮 | `.qs-btn` + `tonal` / `outlined` / `text` / `danger` / `danger-tonal` / `sm` / `icon`，`.qs-fab` | filled 只给页面主操作；tonal 是默认；danger 实色只给不可逆动作；禁用统一 `opacity: .38` |
+| 按钮 | `.qs-btn` + `tonal` / `outlined` / `text` / `danger` / `danger-tonal` / `sm` / `icon`，`.qs-fab` | filled 只给页面主操作；tonal 是默认；danger 实色只给不可逆动作；禁用取 `disabled-container` / `on-surface-disabled`；可直接用在 `<a>` 上，禁用链接写 `aria-disabled="true"` |
 | Chip | `.qs-chip` + `action` / `outlined` / `selected` / `frame` / `ok` / `ng` / `warn` / `fault` / `tertiary` | `action` 才可点；NG Chip 实色加粗 |
 | 分段按钮 | `.qs-seg`（`sm`），`button[aria-pressed]` | 脚本加 `.ind` 后选中底色滑动；不加脚本时静态高亮 |
 | 输入框 | `.qs-field` > `label` + `.qs-input`（`num` 右对齐等宽） | 唯一保留 1px 线的控件；`.unit` 放单位 |
@@ -178,6 +179,24 @@
 ---
 
 ## 使用
+
+### 作为依赖安装
+
+用版本标签固定到某一版（pnpm / npm 均支持 Git 依赖）：
+
+```bash
+pnpm add github:liangyuR/qing-steel#v0.2.0
+```
+
+```js
+import "qing-steel/tokens.css";      // 必选：颜色、字号、形状、间距、动效 token
+import "qing-steel/components.css";  // 可选：qs-* 组件样式
+import "qing-steel/qs-motion.js";    // 可选：动效脚本
+```
+
+只做深色界面的应用在 `<html>` 上写 `data-theme="dark"`，避免系统为浅色时跟随切换。版本变化见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+### 直接引用
 
 ```html
 <html lang="zh-CN">   <!-- 无 data-theme：跟随系统，系统未声明时为深色 -->
@@ -235,7 +254,8 @@ QingSteel.setTheme('light', { storageKey: 'my-app-theme' });  // '' / 'dark' / '
 `css/tokens.css` 是唯一来源。修改后运行：
 
 ```bash
-node scripts/build-tokens-json.mjs
+npm run tokens   # 重新生成 tokens.json
+npm run check    # 只校验 tokens.json 是否与 css/tokens.css 一致
 ```
 
 脚本会同时校验「强制浅色」与「跟随系统浅色」两个声明块是否一致。
@@ -250,7 +270,9 @@ css/components.css      qs-* 组件样式与减少动态效果兜底
 js/qs-motion.js         可选的动效辅助脚本，无依赖
 tokens.json             W3C Design Tokens 草案格式，供其他工具链消费
 demo/index.html         完整样张：主张、token、组件、两个 1440×880 屏幕、接入说明
-scripts/                tokens.json 生成脚本
+scripts/                tokens.json 生成与校验脚本
+package.json            包信息与导出路径（tokens.css / components.css / qs-motion.js / tokens.json）
+CHANGELOG.md            版本记录
 ```
 
 ## 说明
