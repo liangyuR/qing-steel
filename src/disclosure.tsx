@@ -216,6 +216,8 @@ export interface PopoverProps {
   className?: string;
 }
 const HOVER_CLOSE_DELAY = 150;
+const TABBABLE =
+  'button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 export function Popover({
   trigger,
   title,
@@ -246,6 +248,7 @@ export function Popover({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
+    if (latest.current && !current) pinned.current = false;
     latest.current = current;
   });
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -257,6 +260,11 @@ export function Popover({
     },
     [setCurrent],
   );
+  const focusContent = () => {
+    const content = contentRef.current;
+    if (!content) return;
+    (content.querySelector<HTMLElement>(TABBABLE) ?? content).focus();
+  };
   const scheduleClose = () => {
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
@@ -302,11 +310,14 @@ export function Popover({
         onClick: (event: { preventDefault: () => void }) => {
           event.preventDefault();
           pointerPressed.current = false;
-          if (pinned.current && latest.current) change(false);
-          else {
-            change(true);
-            pinned.current = true;
+          if (pinned.current && latest.current) {
+            change(false);
+            return;
           }
+          const wasOpen = latest.current;
+          pinned.current = true;
+          change(true);
+          if (wasOpen && !tooltip) focusContent();
         },
       }
     : {};
@@ -341,15 +352,23 @@ export function Popover({
           aria-label={title ? undefined : label}
           data-open-on={openOn}
           onOpenAutoFocus={(event) => {
-            if (hover || tooltip) event.preventDefault();
+            if (tooltip || (hover && !pinned.current)) event.preventDefault();
           }}
           onCloseAutoFocus={(event) => {
             if (hover) event.preventDefault();
           }}
+          onFocusOutside={(event) => {
+            if (pinned.current) event.preventDefault();
+          }}
           onEscapeKeyDown={() => {
             keyboardFocus.current = false;
             const active = document.activeElement;
-            if (hover && active && contentRef.current?.contains(active)) {
+            if (
+              hover &&
+              active &&
+              active !== triggerRef.current &&
+              (pinned.current || contentRef.current?.contains(active))
+            ) {
               restoring.current = true;
               triggerRef.current?.focus();
               restoring.current = false;

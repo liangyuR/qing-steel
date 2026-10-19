@@ -64,7 +64,7 @@ export interface TableProps<T> {
 const selectableRow = () => true;
 const collator = new Intl.Collator('zh-CN', { numeric: true });
 const interactiveSelector =
-  'a[href], button, input, select, textarea, label, summary, [contenteditable=""], [contenteditable="true"], [role="button"], [role="checkbox"], [role="combobox"], [role="link"], [role="menuitem"], [role="option"], [role="radio"], [role="slider"], [role="spinbutton"], [role="switch"], [role="tab"], [role="textbox"]';
+  'a[href], button, input, select, textarea, label, summary, [contenteditable=""], [contenteditable="true"], [role="button"], [role="checkbox"], [role="combobox"], [role="link"], [role="menuitem"], [role="option"], [role="radio"], [role="slider"], [role="spinbutton"], [role="switch"], [role="tab"], [role="textbox"], td.qs-table-checkbox';
 function fromRowItself(event: { target: EventTarget; currentTarget: HTMLElement }) {
   const row = event.currentTarget;
   const target = event.target as Element | null;

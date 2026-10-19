@@ -196,7 +196,7 @@ const getRowProps = useCallback(
 ```
 
 - `getRowProps(row)` 返回 `<tr>` 的原生属性（`onClick / onKeyDown / className / title / tabIndex / aria-label / aria-selected / data-*` 等）与可选的 `tone=info / ok / warn / ng / fault`。色调在首列显示 3 px 语义色条并给整行加浅底，选中态仍优先显示主色容器。函数应保持引用稳定（`useCallback`），否则每次重绘都会刷新全部行。
-- 行 `onClick` 只响应行本身：来自行内按钮、链接、输入框、选择框、开关、复选框等控件的点击不会触发，也不会响应挂在行内的 Radix 浮层（经 React 树冒泡）里的点击。行设置了 `onClick` 并可聚焦时，焦点在行上按 Enter 或空格触发同一操作；焦点在单元格控件内时按键保持控件自身行为。`aria-selected="true"` 与内置选择一样显示选中底色。
+- 行 `onClick` 只响应行本身：来自行内按钮、链接、输入框、选择框、开关、复选框等控件以及选择列单元格（含复选框周围的留白）的点击不会触发，也不会响应挂在行内的 Radix 浮层（经 React 树冒泡）里的点击。行设置了 `onClick` 并可聚焦时，焦点在行上按 Enter 或空格触发同一操作；焦点在单元格控件内时按键保持控件自身行为。`aria-selected="true"` 与内置选择一样显示选中底色。
 - 列定义新增 `rowHeader`（该列渲染为 `<th scope="row">`）、`nowrap`（表头与单元格不换行）和 `colSpan(row)`（单元格跨列，后续被覆盖的列不渲染，超出剩余列数时截断）。可编辑单元格直接在 `render` 中返回输入控件，`render` 读取的外部状态需要通过 `columns` 或行数据的引用变化让行重绘。
 - `loading` 默认仍整表替换为加载提示。设置 `keepRowsWhileLoading` 后，加载中继续显示传入的行；传入空数组时显示上一次加载完成时的行。表格在 `<table>` 上标记 `aria-busy`，行内容在短暂延迟后降低不透明度、表头底部显示主色线，并通过读屏状态播报“正在更新数据”；排序按钮与全选在加载中禁用。首次加载没有上一次结果时仍显示加载提示。
 - `Pagination` 的 `showPageSize={false}` 隐藏每页条数选择，用于页大小固定的列表。
@@ -221,7 +221,7 @@ const getRowProps = useCallback(
 - Accordion 的 `forceMount`（整组）或 `items[].forceMount`（单项）让折叠后的内容保持挂载，未保存的输入、滚动位置和组件状态不丢失；折叠的内容区设置 `inert` 并在动画结束后隐藏，不能聚焦，也不向辅助技术暴露。默认仍在收起动画结束后卸载内容。
 - `ignoreFieldsetDisabled` 让标题在 `<fieldset disabled>` 内仍可点击、Enter / 空格展开收起；内容里的表单控件继续遵循 fieldset 禁用。该模式下标题渲染为 `role="button"` 的元素（浏览器会禁用 fieldset 内的所有 `<button>`），方向键、Home / End 导航不变；`disabled` 的项仍是禁用按钮。默认关闭，与 0.8.0 一致。
 - 折叠展开改为 grid 行高 `0fr ↔ 1fr` 过渡，内容本身只做透明度与 4 px 位移：不再测量像素高度，`forceMount` 与内容高度变化都适用，连续点击可从当前位置反向。展开 medium / decel，收起 short / accel；减少动态效果时直接切换。
-- Popover 的 `openOn="hover"` 在指针悬停（`delay` 毫秒后，默认 120）或键盘聚焦时打开，移出且焦点不在触发按钮或浮层内时关闭；点击触发按钮固定展开，再次点击、外部点击或 Escape 关闭。触摸操作只响应点击。悬停打开不移动焦点，Escape 时焦点若在浮层内则返回触发按钮。
+- Popover 的 `openOn="hover"` 在指针悬停（`delay` 毫秒后，默认 120）或键盘聚焦时打开，移出且焦点不在触发按钮或浮层内时关闭；点击或回车触发按钮固定展开，固定后焦点移出（含 Tab 离开）不会关闭，再次点击触发按钮、外部点击或 Escape 才关闭。触摸操作只响应点击。悬停与聚焦预览不移动焦点；`role="dialog"` 的浮层由点击或回车固定时，焦点移入浮层的首个可聚焦控件（没有则落在浮层容器上），键盘用户可到达关闭按钮和内容里的控件。按 Escape 关闭时，若浮层已固定或焦点在浮层内，焦点回到触发按钮；其余预览关闭不改变焦点。
 - `role="tooltip"` 用于上下文帮助：浮层角色为 tooltip，打开时触发按钮通过 `aria-describedby` 关联说明，不带 `aria-haspopup`，不移动焦点，没有关闭按钮；说明内容不应包含可交互控件。`title` 改为可选：省略时不显示标题行，`role="dialog"` 的浮层此时应提供 `label` 作为可访问名称。
 
 ## 工业扩展组件

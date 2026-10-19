@@ -199,6 +199,26 @@ describe('表格与分页', () => {
     await user.keyboard('{Enter}');
     expect(opened).toEqual(['b', 'a']);
   });
+  it('点击选择列单元格的留白 → 不触发行操作，也不改变勾选', async () => {
+    const user = userEvent.setup();
+    const opened: string[] = [];
+    render(
+      <Table
+        caption="限值"
+        rows={[{ id: 'a' }]}
+        columns={[{ key: 'id', header: '编号', accessor: (row) => row.id }]}
+        rowKey={(row) => row.id}
+        selectable
+        getRowProps={(row) => ({ onClick: () => opened.push(row.id) })}
+      />,
+    );
+    const checkbox = screen.getByRole('checkbox', { name: '选择 a' });
+    await user.click(checkbox.closest('td') as HTMLElement);
+    expect(opened).toEqual([]);
+    expect(checkbox).not.toBeChecked();
+    await user.click(screen.getByText('a'));
+    expect(opened).toEqual(['a']);
+  });
   it('单元格跨列 → 被覆盖的后续列不渲染，行头使用 th scope=row', () => {
     type Limit = { id: string; off?: boolean };
     render(
@@ -454,6 +474,55 @@ describe('导航与内容', () => {
     expect(screen.getByRole('tooltip')).toBeVisible();
     await user.click(trigger);
     await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument());
+  });
+  it('上下文帮助回车固定后 Tab 移出 → 仍然显示，Escape 关闭并让焦点回到触发按钮', async () => {
+    const user = userEvent.setup();
+    render(
+      <ThemeProvider>
+        <Popover openOn="hover" role="tooltip" trigger={<Button aria-label="选帧说明">?</Button>}>
+          切换原图不会改变整件判定
+        </Popover>
+        <Button>下一项</Button>
+      </ThemeProvider>,
+    );
+    const trigger = screen.getByRole('button', { name: '选帧说明' });
+    await user.tab();
+    expect(trigger).toHaveFocus();
+    expect(await screen.findByRole('tooltip')).toBeVisible();
+    await user.keyboard('{Enter}');
+    await user.tab();
+    expect(screen.getByRole('button', { name: '下一项' })).toHaveFocus();
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    expect(screen.getByRole('tooltip')).toBeVisible();
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument());
+    expect(trigger).toHaveFocus();
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+  it('悬停对话框浮层键盘回车固定 → 焦点进入浮层，内容可达，Escape 后回到触发按钮', async () => {
+    const user = userEvent.setup();
+    render(
+      <ThemeProvider>
+        <Popover openOn="hover" title="说明" trigger={<Button>帮助</Button>}>
+          <a href="#doc">详细文档</a>
+        </Popover>
+        <Button>下一项</Button>
+      </ThemeProvider>,
+    );
+    const trigger = screen.getByRole('button', { name: '帮助' });
+    await user.tab();
+    const dialog = await screen.findByRole('dialog', { name: '说明' });
+    expect(trigger).toHaveFocus();
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(dialog).toContainElement(document.activeElement as HTMLElement));
+    await user.tab();
+    expect(screen.getByRole('link', { name: '详细文档' })).toHaveFocus();
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    expect(screen.getByRole('dialog', { name: '说明' })).toBeVisible();
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(trigger).toHaveFocus();
   });
   it('编辑锚点浮层并 Escape 关闭 → 局部主题继承且焦点回到触发按钮', async () => {
     const user = userEvent.setup();
