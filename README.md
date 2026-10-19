@@ -195,8 +195,8 @@
 
 | 组件 | 类名 | 要点 |
 | --- | --- | --- |
-| 按钮 | `.qs-btn` + `tonal` / `outlined` / `text` / `danger` / `danger-tonal` / `sm` / `icon`，`.qs-fab` | filled 只给页面主操作；tonal 是默认；danger 实色只给不可逆动作；禁用取 `disabled-container` / `on-surface-disabled`；可直接用在 `<a>` 上，禁用链接写 `aria-disabled="true"` |
-| Chip | `.qs-chip` + `action` / `outlined` / `selected` / `frame` / `ok` / `ng` / `warn` / `fault` / `tertiary` | `action` 才可点；NG Chip 实色加粗 |
+| 按钮 | `.qs-btn` + `tonal` / `outlined` / `text` / `danger` / `danger-tonal` / `warn` / `warn-tonal` / `sm` / `icon`（`icon.sm` 30 px、`icon.xs` 24 px），`.qs-fab` | filled 只给页面主操作；tonal 是默认；danger 实色只给不可逆动作，warn 用于需要留意但不危险的操作；按压只缩放 .98，不改圆角；禁用取 `disabled-container` / `on-surface-disabled`；可直接用在 `<a>` 上，禁用链接写 `aria-disabled="true"` |
+| Chip | `.qs-chip` + `action` / `outlined` / `selected` / `frame` / `ok` / `ng` / `warn` / `fault` / `tertiary` / `sm` | `action` 才可点；NG Chip 实色加粗；`sm` 为 24 px 高 |
 | 分段按钮 | `.qs-seg`（`sm`），`button[aria-pressed]` | 脚本加 `.ind` 后选中底色滑动；不加脚本时静态高亮 |
 | 输入框 | `.qs-field` > `label` + `.qs-input`（`num` 右对齐等宽） | 唯一保留 1px 线的控件；`.unit` 放单位 |
 | 导航 | `.qs-nav`（`rail`），`.item[aria-current="page"]` | 展开 220 / rail 72；胶囊指示器；底部状态与折叠按钮 |
@@ -204,7 +204,7 @@
 | 卡片 | `.qs-card`（`lv2` / `lv3`） | 嵌套按 low → mid → high 递进，无边框 |
 | 面板 | `.qs-panel` | 28px 圆角，常驻无投影；布局由宿主管理 |
 | 临时浮层 | `.qs-popover` / `.qs-tooltip` | 下拉、菜单、按需预览 / 简短提示；视觉和阴影上游提供，宿主管理位置和行为 |
-| 状态徽章 | `.qs-badge` + `ok` / `ng` / `warn` / `fault` / `off` | 圆点 + 文字 + 等宽数值 |
+| 状态徽章 | `.qs-badge` + `ok` / `ng` / `warn` / `fault` / `off` / `neutral` | 圆点 + 文字 + 等宽数值；`neutral` 为空心点，表示灯未亮、空闲、未开始 |
 | cycle 阶段 | `.qs-cycle` > `.ph`（`done` / `cur` / `fault`）+ `.ln` | 当前阶段 primary 实色 + 呼吸点；故障与主链路脱开，进入时才染紫 |
 | 判定大卡 | `.qs-verdict` + `ok` / `ng` / `warn` / `fault` / `idle` / `run`，`.xl` | NG 实色最醒目；合格但需注意（如局部超差）用 `warn`，检测异常（如未测成）用 `fault`；`.xl` 判定字取 `--text-verdict`；`.pulse` 呼吸点；切换时序由脚本驱动 |
 | 测量段列表 | `.qs-segs` > `.seg.ok` / `.seg.ng` | NG 行整行填色并展开缺陷描述 |

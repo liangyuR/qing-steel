@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   Accordion,
@@ -160,6 +160,142 @@ describe('表格与分页', () => {
     expect(screen.getByRole('checkbox', { name: '选择 c' })).not.toBeChecked();
     await user.click(screen.getByRole('checkbox', { name: '选择本页全部' }));
     expect(screen.getByText('已选：a')).toBeVisible();
+  });
+  it('行内编辑与选择 → 只有点击行本身或聚焦行后回车才触发行操作', async () => {
+    const user = userEvent.setup();
+    const opened: string[] = [];
+    type Limit = { id: string; value: number };
+    const editable: TableColumn<Limit>[] = [
+      { key: 'id', header: '编号', accessor: (row) => row.id },
+      {
+        key: 'value',
+        header: '数值',
+        render: (row) => <TextField aria-label={`${row.id} 数值`} defaultValue={row.value} />,
+      },
+    ];
+    render(
+      <Table
+        caption="限值"
+        rows={[
+          { id: 'a', value: 1 },
+          { id: 'b', value: 2 },
+        ]}
+        columns={editable}
+        rowKey={(row) => row.id}
+        selectable
+        getRowProps={(row) => ({
+          tabIndex: 0,
+          'aria-label': `打开 ${row.id}`,
+          onClick: () => opened.push(row.id),
+        })}
+      />,
+    );
+    const input = screen.getByRole('textbox', { name: 'a 数值' });
+    await user.click(input);
+    await user.keyboard('{Enter} 3');
+    await user.click(screen.getByRole('checkbox', { name: '选择 a' }));
+    expect(opened).toEqual([]);
+    expect(input).toHaveValue('1 3');
+    await user.click(within(screen.getByRole('row', { name: '打开 b' })).getByText('b'));
+    screen.getByRole('row', { name: '打开 a' }).focus();
+    await user.keyboard('{Enter}');
+    expect(opened).toEqual(['b', 'a']);
+  });
+  it('点击选择列单元格的留白 → 不触发行操作，也不改变勾选', async () => {
+    const user = userEvent.setup();
+    const opened: string[] = [];
+    render(
+      <Table
+        caption="限值"
+        rows={[{ id: 'a' }]}
+        columns={[{ key: 'id', header: '编号', accessor: (row) => row.id }]}
+        rowKey={(row) => row.id}
+        selectable
+        getRowProps={(row) => ({ onClick: () => opened.push(row.id) })}
+      />,
+    );
+    const checkbox = screen.getByRole('checkbox', { name: '选择 a' });
+    await user.click(checkbox.closest('td') as HTMLElement);
+    expect(opened).toEqual([]);
+    expect(checkbox).not.toBeChecked();
+    await user.click(screen.getByText('a'));
+    expect(opened).toEqual(['a']);
+  });
+  it('单元格跨列 → 被覆盖的后续列不渲染，行头使用 th scope=row', () => {
+    type Limit = { id: string; off?: boolean };
+    render(
+      <Table<Limit>
+        caption="判定项"
+        rows={[{ id: '位置' }, { id: '胶宽', off: true }]}
+        rowKey={(row) => row.id}
+        columns={[
+          { key: 'name', header: '判定项', accessor: (row) => row.id, rowHeader: true },
+          {
+            key: 'lower',
+            header: '下限',
+            accessor: (row) => (row.off ? '不判' : '0.5'),
+            colSpan: (row) => (row.off ? 5 : undefined),
+          },
+          { key: 'upper', header: '上限', accessor: () => '0.8' },
+          { key: 'band', header: '区间', accessor: () => '0.5 ~ 0.8' },
+        ]}
+      />,
+    );
+    const [, on, off] = screen.getAllByRole('row');
+    expect(within(on).getByRole('rowheader', { name: '位置' })).toHaveAttribute('scope', 'row');
+    expect(
+      within(on)
+        .getAllByRole('cell')
+        .map((cell) => cell.textContent),
+    ).toEqual(['0.5', '0.8', '0.5 ~ 0.8']);
+    const cells = within(off).getAllByRole('cell');
+    expect(cells.map((cell) => cell.textContent)).toEqual(['不判']);
+    expect(cells[0]).toHaveAttribute('colspan', '3');
+  });
+  it.each([
+    { keep: false, stale: [] as string[], message: true },
+    { keep: true, stale: ['a', 'b'], message: false },
+  ])(
+    '重新加载且行数据清空 → keepRowsWhileLoading=$keep 时显示 $stale 行',
+    ({ keep, stale, message }) => {
+      const view = (rows: Row[], loading: boolean) => (
+        <Table
+          caption="数据"
+          rows={rows}
+          columns={columns}
+          rowKey={(row) => row.id}
+          loading={loading}
+          keepRowsWhileLoading={keep}
+        />
+      );
+      const { rerender } = render(
+        view(
+          [
+            { id: 'a', value: 1 },
+            { id: 'b', value: 2 },
+          ],
+          false,
+        ),
+      );
+      rerender(view([], true));
+      expect(screen.getByRole('table')).toHaveAttribute('aria-busy', 'true');
+      expect(
+        screen
+          .queryAllByRole('row')
+          .slice(1)
+          .map((row) => within(row).queryAllByRole('cell')[0]?.textContent)
+          .filter((text) => text === 'a' || text === 'b'),
+      ).toEqual(stale);
+      expect(screen.queryByText('正在加载数据…') !== null).toBe(message);
+      rerender(view([{ id: 'c', value: 3 }], false));
+      expect(screen.getByRole('table')).not.toHaveAttribute('aria-busy');
+      expect(screen.getByRole('cell', { name: 'c' })).toBeVisible();
+    },
+  );
+  it('固定页大小 → showPageSize=false 时不渲染每页条数选择', () => {
+    render(<Pagination total={120} pageSize={30} showPageSize={false} />);
+    expect(screen.queryByRole('combobox', { name: '每页条数' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '第 4 页' })).toBeVisible();
   });
   it('改变每页条数和清空数据 → 回到第一页，空数据禁用翻页并显示零条', async () => {
     const user = userEvent.setup();
@@ -336,6 +472,156 @@ describe('导航与内容', () => {
     );
     expect(screen.getByRole('button', { name: '第二项' })).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText('内容二')).toBeVisible();
+  });
+  it.each([
+    { forceMount: false, after: '' },
+    { forceMount: true, after: '未保存' },
+  ])('折叠后再展开 → forceMount=$forceMount 时输入值为 "$after"', async ({ forceMount, after }) => {
+    const user = userEvent.setup();
+    render(
+      <Accordion
+        forceMount={forceMount}
+        defaultValue="debug"
+        items={[{ value: 'debug', title: '高级参数', content: <TextField aria-label="备注" /> }]}
+      />,
+    );
+    await user.type(screen.getByRole('textbox', { name: '备注' }), '未保存');
+    await user.click(screen.getByRole('button', { name: '高级参数' }));
+    const region = document.getElementById(
+      screen.getByRole('button', { name: '高级参数' }).getAttribute('aria-controls')!,
+    )!;
+    expect(region).toHaveAttribute('inert');
+    await waitFor(() => expect(region).not.toBeVisible());
+    expect(within(region).queryAllByRole('textbox', { hidden: true })).toHaveLength(
+      forceMount ? 1 : 0,
+    );
+    await user.click(screen.getByRole('button', { name: '高级参数' }));
+    expect(region).not.toHaveAttribute('inert');
+    expect(screen.getByRole('textbox', { name: '备注' })).toHaveValue(after);
+  });
+  it.each([false, true])(
+    '放在 fieldset disabled 内 → ignoreFieldsetDisabled=%s 决定标题能否展开，内容控件保持禁用',
+    async (ignoreFieldsetDisabled) => {
+      const user = userEvent.setup();
+      render(
+        <fieldset disabled>
+          <Accordion
+            ignoreFieldsetDisabled={ignoreFieldsetDisabled}
+            items={[{ value: 'gain', title: '增益', content: <TextField aria-label="增益值" /> }]}
+          />
+        </fieldset>,
+      );
+      const trigger = screen.getByRole('button', { name: '增益' });
+      if (!ignoreFieldsetDisabled) {
+        expect(trigger).toBeDisabled();
+        return;
+      }
+      fireEvent.click(trigger);
+      expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByRole('textbox', { name: '增益值' })).toBeDisabled();
+      fireEvent.keyDown(trigger, { key: ' ' });
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      fireEvent.keyDown(trigger, { key: 'Enter' });
+      expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    },
+  );
+  it('上下文帮助键盘聚焦 → 打开 tooltip 并由触发按钮描述，焦点不移入，Escape 关闭', async () => {
+    const user = userEvent.setup();
+    render(
+      <ThemeProvider>
+        <Button>前一个</Button>
+        <Popover openOn="hover" role="tooltip" trigger={<Button aria-label="复位条件">?</Button>}>
+          由 PLC 发 faultReset 复位
+        </Popover>
+      </ThemeProvider>,
+    );
+    screen.getByRole('button', { name: '前一个' }).focus();
+    await user.tab();
+    const trigger = screen.getByRole('button', { name: '复位条件' });
+    const tip = await screen.findByRole('tooltip');
+    expect(tip).toHaveTextContent('由 PLC 发 faultReset 复位');
+    expect(trigger).toHaveAccessibleDescription('由 PLC 发 faultReset 复位');
+    expect(trigger).toHaveFocus();
+    expect(trigger).not.toHaveAttribute('aria-haspopup');
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument());
+    expect(trigger).toHaveFocus();
+  });
+  it('上下文帮助指针操作 → 悬停打开、移出关闭；点击固定后移出不关闭，再次点击关闭', async () => {
+    const user = userEvent.setup();
+    render(
+      <ThemeProvider>
+        <Popover
+          openOn="hover"
+          role="tooltip"
+          delay={0}
+          trigger={<Button aria-label="曲线读法">?</Button>}
+        >
+          绿色带为公差
+        </Popover>
+        <p>外部</p>
+      </ThemeProvider>,
+    );
+    const trigger = screen.getByRole('button', { name: '曲线读法' });
+    await user.hover(trigger);
+    expect(await screen.findByRole('tooltip')).toBeVisible();
+    await user.unhover(trigger);
+    await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument());
+    await user.click(trigger);
+    await user.unhover(trigger);
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    expect(screen.getByRole('tooltip')).toBeVisible();
+    await user.click(trigger);
+    await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument());
+  });
+  it('上下文帮助回车固定后 Tab 移出 → 仍然显示，Escape 关闭并让焦点回到触发按钮', async () => {
+    const user = userEvent.setup();
+    render(
+      <ThemeProvider>
+        <Popover openOn="hover" role="tooltip" trigger={<Button aria-label="选帧说明">?</Button>}>
+          切换原图不会改变整件判定
+        </Popover>
+        <Button>下一项</Button>
+      </ThemeProvider>,
+    );
+    const trigger = screen.getByRole('button', { name: '选帧说明' });
+    await user.tab();
+    expect(trigger).toHaveFocus();
+    expect(await screen.findByRole('tooltip')).toBeVisible();
+    await user.keyboard('{Enter}');
+    await user.tab();
+    expect(screen.getByRole('button', { name: '下一项' })).toHaveFocus();
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    expect(screen.getByRole('tooltip')).toBeVisible();
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument());
+    expect(trigger).toHaveFocus();
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+  it('悬停对话框浮层键盘回车固定 → 焦点进入浮层，内容可达，Escape 后回到触发按钮', async () => {
+    const user = userEvent.setup();
+    render(
+      <ThemeProvider>
+        <Popover openOn="hover" title="说明" trigger={<Button>帮助</Button>}>
+          <a href="#doc">详细文档</a>
+        </Popover>
+        <Button>下一项</Button>
+      </ThemeProvider>,
+    );
+    const trigger = screen.getByRole('button', { name: '帮助' });
+    await user.tab();
+    const dialog = await screen.findByRole('dialog', { name: '说明' });
+    expect(trigger).toHaveFocus();
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(dialog).toContainElement(document.activeElement as HTMLElement));
+    await user.tab();
+    expect(screen.getByRole('link', { name: '详细文档' })).toHaveFocus();
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    expect(screen.getByRole('dialog', { name: '说明' })).toBeVisible();
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(trigger).toHaveFocus();
   });
   it('编辑锚点浮层并 Escape 关闭 → 局部主题继承且焦点回到触发按钮', async () => {
     const user = userEvent.setup();
