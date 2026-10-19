@@ -2,6 +2,7 @@
  * 青钢 QING / STEEL · components
  * 依赖 tokens.css。所有颜色、圆角、时长都取自 token，不出现单主题字面色。
  * 带位移指示器 / 数值滚动的组件需要 js/qs-motion.js；不引入脚本时退化为静态选中态。
+ * 常驻容器用 surface 色阶分层，不加投影；临时覆盖内容使用 qs-popover / qs-tooltip / qs-dialog。
  */
 
 /* ---------- 基础 ---------- */
@@ -146,7 +147,7 @@ label.qs-field > span:first-child:not(.qs-input) { font-size: 12px; color: var(-
 /* ---------- 导航：展开 220 / rail 72 ----------
  * 选中：.item[aria-current="page"]。qs-motion.js 驱动 .ind 胶囊在项之间滑动、折叠时文字先淡出。 */
 .qs-nav {
-  width: var(--sidebar-w); background: var(--surface-low); display: flex; flex-direction: column;
+  width: var(--sidebar-w); background: var(--surface-low); border-radius: var(--r-xl); box-shadow: none; display: flex; flex-direction: column;
   padding: 12px; gap: 4px; flex: none; min-height: 100%; position: relative;
   overflow-x: hidden; overflow-y: auto; scrollbar-width: none;
   transition: width var(--dur-medium) var(--ease-standard), padding var(--dur-medium) var(--ease-standard);
@@ -217,20 +218,30 @@ label.qs-field > span:first-child:not(.qs-input) { font-size: 12px; color: var(-
 .qs-nav.rail .collapse .qs-ic { transform: rotate(180deg); }
 
 /* ---------- 顶栏 ---------- */
-.qs-top { height: var(--header-h); display: flex; align-items: center; gap: 12px; padding: 0 var(--page-pad); background: var(--surface); flex: none; }
+.qs-top { height: var(--header-h); display: flex; align-items: center; gap: 12px; padding: 0 var(--page-pad); background: var(--surface); box-shadow: none; flex: none; }
 .qs-top h1 { margin: 0; font-size: 18px; font-weight: 700; }
 .qs-top .crumb { color: var(--on-surface-variant); font-size: 13px; display: flex; align-items: center; gap: 6px; }
 .qs-top .crumb .qs-ic { width: 14px; height: 14px; }
 .qs-top .spacer { flex: 1; }
 
-/* ---------- 卡片：surface 分层代替边框 ---------- */
-.qs-card { background: var(--surface-low); border-radius: var(--r-lg); padding: 16px; min-width: 0; }
+/* ---------- 常驻卡片 / 面板：surface 分层，不用投影 ----------
+ * lv2 / lv3 仅代表色阶；不要把嵌套层级当作悬浮高度。
+ */
+.qs-card, .qs-panel { background: var(--surface-low); border-radius: var(--r-lg); padding: var(--space-16); min-width: 0; box-shadow: none; }
+.qs-panel { border-radius: var(--r-xl); }
 .qs-card.lv2 { background: var(--surface-mid); }
 .qs-card.lv3 { background: var(--surface-high); }
-.qs-card .hd { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.qs-card .hd h3 { margin: 0; font-size: 14px; font-weight: 700; }
-.qs-card .hd .sp { flex: 1; }
-.qs-card .hd .meta { color: var(--on-surface-variant); font-size: 12px; }
+:is(.qs-card, .qs-panel) .hd { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+:is(.qs-card, .qs-panel) .hd h3 { margin: 0; font-size: 14px; font-weight: 700; }
+:is(.qs-card, .qs-panel) .hd .sp { flex: 1; }
+:is(.qs-card, .qs-panel) .hd .meta { color: var(--on-surface-variant); font-size: 12px; }
+
+/* ---------- 临时浮层 ----------
+ * 用于下拉、操作菜单、悬停/焦点预览。宿主只负责定位、尺寸、滚动、语义及开关/焦点行为。
+ * 不默认设 position / z-index，以便用于 portal、原生 popover 或普通定位容器。
+ */
+.qs-popover { min-width: 0; padding: var(--space-16); border-radius: var(--r-lg); background: var(--surface-high); color: var(--on-surface); box-shadow: var(--shadow-2); }
+.qs-tooltip { padding: var(--space-8) var(--space-12); border-radius: var(--r-sm); background: var(--surface-high); color: var(--on-surface); box-shadow: var(--shadow-2); font: var(--text-label); }
 
 /* ---------- cycle 阶段 ----------
  * .ph.done 已完成 / .ph.cur 当前（带呼吸点）/ .ph.fault 与主链路脱开，只有进入时 .cur 才染紫；.ln.done 连接线填满。
@@ -376,7 +387,7 @@ label.qs-field > span:first-child:not(.qs-input) { font-size: 12px; color: var(-
  * 页面内的持续提示：info / ok / warn / ng / fault / tertiary（离线、候选等非常规模式）。出现时淡入，不做位移。 */
 .qs-banner {
   display: flex; align-items: flex-start; gap: 10px; min-width: 0; padding: 10px 14px; border-radius: var(--r-md);
-  background: var(--surface-high); color: var(--on-surface); font: 400 13px/1.5 var(--font-sans); overflow-wrap: anywhere;
+  background: var(--surface-high); color: var(--on-surface); box-shadow: none; font: 400 13px/1.5 var(--font-sans); overflow-wrap: anywhere;
   animation: qs-fade-in var(--dur-short) var(--ease-standard);
 }
 .qs-banner > .qs-ic, .qs-banner > svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
