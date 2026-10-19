@@ -117,7 +117,7 @@ it('分段选项 label 为节点并带 aria-label → 按 aria-label 定位与�
   );
 });
 
-it('数字输入 clamp={false} 越界 → 失焦后保留输入、标记无效并提示范围，回到范围内恢复', () => {
+it('数字输入 clamp={false} 越界 → 失焦后才保留输入、标记无效并提示范围，回到范围内立即恢复', () => {
   render(
     <form>
       <NumberField label="曝光" unit="μs" min={100} max={5000} step="any" clamp={false} />
@@ -125,11 +125,19 @@ it('数字输入 clamp={false} 越界 → 失焦后保留输入、标记无效�
   );
   const input = screen.getByRole('spinbutton', { name: '曝光' }) as HTMLInputElement;
   fireEvent.change(input, { target: { value: '6200' } });
+  expect(input).not.toHaveAttribute('aria-invalid');
+  expect(input).not.toHaveAccessibleDescription('应在 100–5000 μs 之间');
   fireEvent.blur(input);
   expect(input).toHaveValue(6200);
   expect(input).toHaveAttribute('aria-invalid', 'true');
   expect(input).toHaveAccessibleDescription('应在 100–5000 μs 之间');
   expect(input.form!.checkValidity()).toBe(false);
+  fireEvent.change(input, { target: { value: '1234.567' } });
+  expect(input).not.toHaveAttribute('aria-invalid');
+  fireEvent.change(input, { target: { value: '12345' } });
+  expect(input).not.toHaveAttribute('aria-invalid');
+  fireEvent.blur(input);
+  expect(input).toHaveAttribute('aria-invalid', 'true');
   fireEvent.change(input, { target: { value: '1234.567' } });
   fireEvent.blur(input);
   expect(input).toHaveValue(1234.567);
@@ -156,6 +164,17 @@ describe('FileInput', () => {
     await user.click(screen.getByRole('button', { name: '重置' }));
     expect(changed).toHaveBeenLastCalledWith([]);
     expect(screen.queryByText('k1.png')).not.toBeInTheDocument();
+  });
+
+  it('受控 files 保持为空（宿主拒绝本次选择）→ 原生 input 同步清空', async () => {
+    const user = userEvent.setup();
+    const changed = vi.fn();
+    render(<FileInput label="样本" files={[]} onFilesChange={changed} />);
+    const input = screen.getByLabelText('样本') as HTMLInputElement;
+    await user.upload(input, png('bad.png'));
+    expect(changed).toHaveBeenCalledOnce();
+    expect(input.files).toHaveLength(0);
+    expect(input.value).toBe('');
   });
 
   it('拖放多个文件到单选输入 → 只取第一个；禁用时忽略拖放', () => {

@@ -115,7 +115,7 @@ await user.selectOptions(trigger.closest('.qs-select')!.querySelector('select')!
 
 Select、TextField、NumberField、Checkbox、Switch、FileInput 都跟随祖先 `<fieldset disabled>`：外观换成禁用色，当前值仍可辨认。Chrome 会向禁用按钮派发 pointerdown，而 Radix 只看自身 `disabled`，因此 Select 在触发按钮处于禁用状态时拦截指针与键盘打开。
 
-NumberField 默认在失焦时把值夹回 `min / max`。需要“越界仍保留输入、提示后由宿主阻止保存”时设置 `clamp={false}`：值原样保留，输入框 `aria-invalid`，带 `label` 或 `description` 时显示 `rangeError`（默认“应在 min–max 单位 之间”，也可传函数按范围生成）；原生 `min / max` 仍参与 constraint validation，`form.checkValidity()` 返回 false。宿主按同一 `min / max` 判断能否保存。放在外部 FormField 内且自身没有 `label` 时只标记无效，错误文字由外部 FormField 的 `error` 提供。`step="any"` 允许任意小数，不触发步长校验。
+NumberField 默认在失焦时把值夹回 `min / max`。需要“越界仍保留输入、提示后由宿主阻止保存”时设置 `clamp={false}`：值原样保留，失焦后输入框才 `aria-invalid`，带 `label` 或 `description` 时同时显示 `rangeError`（输入过程中的中间值不报错；已提示后回到范围内立即清除）（默认“应在 min–max 单位 之间”，也可传函数按范围生成）；原生 `min / max` 仍参与 constraint validation，`form.checkValidity()` 返回 false。宿主按同一 `min / max` 判断能否保存。放在外部 FormField 内且自身没有 `label` 时只标记无效，错误文字由外部 FormField 的 `error` 提供。`step="any"` 允许任意小数，不触发步长校验。
 
 ```tsx
 <NumberField label="曝光时间" unit="μs" min={100} max={5000} step="any"
@@ -123,7 +123,7 @@ NumberField 默认在失焦时把值夹回 `min / max`。需要“越界仍保�
 const canSave = exposure !== '' && exposure >= 100 && exposure <= 5000;
 ```
 
-FileInput 保留原生 `<input type="file">`（透明覆盖在整个控件上），标签、`name / accept / multiple / required / form`、表单提交与重置、Playwright 的 `setInputFiles` 和 Testing Library 的 `user.upload` 都直接作用于它。`onFilesChange` 收到 `File[]`，表单重置时收到空数组。`dropzone` 显示拖放区与文件列表；两种外观都接受拖放，单选时只取第一个文件，禁用时忽略。`accept` 只是选择器提示，拖放不按它过滤，类型与大小须由宿主校验。受控时传 `files`；传入空数组会同时清空原生 input，校验失败后用户可以重新选择同一个文件。
+FileInput 保留原生 `<input type="file">`（透明覆盖在整个控件上），标签、`name / accept / multiple / required / form`、表单提交与重置、Playwright 的 `setInputFiles` 和 Testing Library 的 `user.upload` 都直接作用于它。`onFilesChange` 收到 `File[]`，表单重置时收到空数组。`dropzone` 显示拖放区与文件列表；两种外观都接受拖放，单选时只取第一个文件，禁用时忽略。`accept` 只是选择器提示，拖放不按它过滤，类型与大小须由宿主校验。受控时传 `files`：组件会把它同步回原生 input（含宿主过滤后的子集、拒绝本次选择而保持原值、传入空数组），被宿主丢弃的文件不会随表单提交，校验失败后用户可以重新选择同一个文件。
 
 ```tsx
 <FileInput label={`k${k + 1} 原图`} accept=".png,.jpg,.bmp,.tif"

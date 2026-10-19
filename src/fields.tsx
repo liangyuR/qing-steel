@@ -6,6 +6,7 @@ import {
   useId,
   useEffect,
   useLayoutEffect,
+  useReducer,
   useRef,
   useState,
   type DragEvent,
@@ -194,12 +195,18 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
   ref,
 ) {
   const [current, setCurrent] = useControllable(value, defaultValue, onValueChange);
+  const [revealed, setRevealed] = useState(false);
   const lower = bound(min);
   const upper = bound(max);
-  const outOfRange =
+  const exceeds = (candidate: number | '') =>
     !clamp &&
-    current !== '' &&
-    ((lower !== undefined && current < lower) || (upper !== undefined && current > upper));
+    candidate !== '' &&
+    ((lower !== undefined && candidate < lower) || (upper !== undefined && candidate > upper));
+  const exceeded = exceeds(current);
+  const outOfRange = revealed && exceeded;
+  useEffect(() => {
+    if (!exceeded) setRevealed(false);
+  }, [exceeded]);
   const rangeMessage = outOfRange
     ? typeof rangeError === 'function'
       ? rangeError({ min: lower, max: upper, unit })
@@ -234,6 +241,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
           if (clamp && lower !== undefined) next = Math.max(lower, next);
           if (clamp && upper !== undefined) next = Math.min(upper, next);
           if (next !== current) setCurrent(next);
+          setRevealed(exceeds(next));
         }
         onBlur?.(event);
       }}
@@ -700,6 +708,16 @@ function formatFileSize(bytes: number) {
   const [size, unit] = bytes < 1024 * 1024 ? [bytes / 1024, 'KB'] : [bytes / 1024 / 1024, 'MB'];
   return `${size < 10 ? size.toFixed(1) : Math.round(size)} ${unit}`;
 }
+const sameFiles = (a: readonly File[], b: readonly File[]) =>
+  a.length === b.length &&
+  a.every(
+    (file, index) =>
+      file === b[index] ||
+      (file.name === b[index].name &&
+        file.size === b[index].size &&
+        file.type === b[index].type &&
+        file.lastModified === b[index].lastModified),
+  );
 const carriesFiles = (event: DragEvent) =>
   Array.from(event.dataTransfer?.types ?? []).includes('Files');
 const FileControl = forwardRef<HTMLInputElement, Omit<FileInputProps, keyof FieldDecoration>>(
@@ -726,8 +744,10 @@ const FileControl = forwardRef<HTMLInputElement, Omit<FileInputProps, keyof Fiel
     useLayoutEffect(() => {
       latest.current = { files, onFilesChange };
     });
+    const [, resync] = useReducer((tick: number) => tick + 1, 0);
     const commit = useCallback((next: File[]) => {
       if (latest.current.files === undefined) setPicked(next);
+      else resync();
       latest.current.onFilesChange?.(next);
     }, []);
     const setRef = useCallback(
@@ -739,8 +759,17 @@ const FileControl = forwardRef<HTMLInputElement, Omit<FileInputProps, keyof Fiel
       [forwardedRef],
     );
     useLayoutEffect(() => {
-      if (files && !files.length && input.current?.value) input.current.value = '';
-    }, [files]);
+      const native = input.current;
+      if (!files || !native) return;
+      const held = Array.from(native.files ?? []);
+      if (sameFiles(held, files)) return;
+      if (!files.length) native.value = '';
+      else if (typeof DataTransfer !== 'undefined') {
+        const transfer = new DataTransfer();
+        files.forEach((file) => transfer.items.add(file));
+        native.files = transfer.files;
+      }
+    });
     useEffect(() => {
       const form = input.current?.form;
       const reset = (event: Event) =>

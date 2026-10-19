@@ -153,13 +153,13 @@ h2.qs-heading {
   width: 100%;
   align-content: start;
 }
-.qs-field > label {
+.qs-field > label:not(.qs-choice) {
   transition: color var(--dur-short) var(--ease-standard);
 }
-.qs-field:focus-within > label {
+.qs-field:focus-within > label:not(.qs-choice) {
   color: var(--primary);
 }
-.qs-field.qs-invalid:focus-within > label {
+.qs-field.qs-invalid:focus-within > label:not(.qs-choice) {
   color: var(--ng);
 }
 .qs-field small {
@@ -567,6 +567,27 @@ h2.qs-heading {
 }
 .qs-checkbox > input:disabled + .qs-checkbox-box svg {
   stroke: var(--surface);
+}
+@media (forced-colors: active) {
+  .qs-checkbox > input:is(:checked, :indeterminate) + .qs-checkbox-box::before,
+  .qs-radio > input:checked + .qs-radio-mark::before {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+  .qs-checkbox-box svg,
+  .qs-checkbox > input:disabled + .qs-checkbox-box svg {
+    stroke: Canvas;
+  }
+  .qs-choice:has(> input:disabled) {
+    color: GrayText;
+  }
+  .qs-choice > input:disabled + :is(.qs-checkbox-box, .qs-radio-mark) {
+    border-color: GrayText;
+  }
+  .qs-checkbox > input:disabled + .qs-checkbox-box::before,
+  .qs-radio > input:disabled + .qs-radio-mark::before {
+    background: GrayText;
+  }
 }
 .qs-radio-group {
   margin: 0;

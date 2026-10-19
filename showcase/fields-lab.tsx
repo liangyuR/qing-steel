@@ -95,7 +95,7 @@ export function FormsLab() {
         title="文件输入"
         name="FileInput"
         wide
-        description="保留原生 input：标签、表单提交、重置与自动化测试的 setInputFiles 都直接可用。拖放不按 accept 过滤，宿主须自行校验类型与大小；示例只读取文件名，不上传。"
+        description="保留原生 input：标签、表单提交、重置与自动化测试的 setInputFiles 都直接可用。拖放不按 accept 过滤，宿主须自行校验类型与大小；受控的 files 会同步回原生 input，宿主丢弃的文件不会随表单提交。示例只读取文件名，不上传。"
       >
         <Grid minWidth={260}>
           <Stack direction="column" align="stretch" gap={18}>
@@ -112,15 +112,22 @@ export function FormsLab() {
             multiple
             accept="image/*"
             files={picked}
-            onFilesChange={setPicked}
-            description={picked.length ? `已选择 ${picked.length} 个文件` : '可一次拖入多张图片。'}
+            onFilesChange={(next) => {
+              const images = next.filter((file) => file.type.startsWith('image/'));
+              if (images.length) setPicked(images);
+            }}
+            description={
+              picked.length
+                ? `已选择 ${picked.length} 个文件`
+                : '可一次拖入多张图片，非图片会被宿主丢弃。'
+            }
           />
         </Grid>
       </Example>
       <Example
         title="越界保留与富选项"
         name="NumberField clamp={false} · Select"
-        description='clamp={false} 时越界输入不会在失焦时被改写，组件标记无效并提示范围，宿主据此阻止保存；step="any" 允许任意小数。选项可带状态圆点，独立的 aria-label 供辅助技术与测试定位。'
+        description='clamp={false} 时越界输入不会在失焦时被改写，失焦后组件标记无效并提示范围（输入过程中不打扰），宿主据此阻止保存；step="any" 允许任意小数。选项可带状态圆点，独立的 aria-label 供辅助技术与测试定位。'
       >
         <NumberField
           label="曝光时间"
