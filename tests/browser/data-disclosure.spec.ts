@@ -36,11 +36,12 @@ test('数据行与折叠浮层 → 行操作、保留结果刷新、锁定区展
   await expect(width).toHaveAttribute('aria-selected', 'true');
 
   const locked = page.locator('[data-shot=accordion-fieldset]');
+  const lockedCard = page.locator('.demo-card').filter({ has: locked });
   const debug = locked.getByRole('button', { name: '高级参数（调试）' });
   await debug.click();
   await expect(debug).toHaveAttribute('aria-expanded', 'true');
   await expect(locked.getByRole('spinbutton', { name: /搜索半宽/ })).toBeDisabled();
-  await page.getByRole('switch', { name: /锁定参数/ }).uncheck({ force: true });
+  await lockedCard.getByRole('switch', { name: /锁定参数/ }).uncheck({ force: true });
   await locked.getByRole('textbox', { name: '调试备注' }).fill('现场备注');
   await debug.press('Enter');
   await expect(debug).toHaveAttribute('aria-expanded', 'false');

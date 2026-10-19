@@ -1,12 +1,12 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
 
-const settled = (page: Page) =>
+const settled = (demo: Locator) =>
   expect
     .poll(() =>
-      page.evaluate(
-        () =>
-          document.getAnimations().filter((a) => a.playState === 'running').length +
-          document.querySelectorAll('.qs-navigation[data-motion]').length,
+      demo.evaluate(
+        (el) =>
+          el.getAnimations({ subtree: true }).filter((a) => a.playState === 'running').length +
+          el.querySelectorAll('.qs-navigation[data-motion]').length,
       ),
     )
     .toBe(0);
@@ -16,10 +16,11 @@ async function open(page: Page) {
   page.on('pageerror', (error) => errors.push(error.message));
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/showcase/');
-  const drawer = page.getByRole('navigation', { name: '展开导航示例' });
+  const demo = page.locator('.navigation-demo');
+  const drawer = demo.getByRole('navigation', { name: '展开导航示例' });
   await drawer.evaluate((el) => el.scrollIntoView({ block: 'center' }));
-  await settled(page);
-  return { drawer, errors };
+  await settled(demo);
+  return { demo, drawer, errors };
 }
 
 const indicatorOffset = (nav: Locator) =>
@@ -35,7 +36,7 @@ const indicatorOffset = (nav: Locator) =>
   });
 
 test('收起导航抽屉 → 布局宽度只切换一次，图标列不横移，右侧内容连续跟随', async ({ page }) => {
-  const { drawer, errors } = await open(page);
+  const { demo, drawer, errors } = await open(page);
   const trace = await drawer.evaluate(async (nav) => {
     const icon = nav.querySelector('.qs-navigation-icon')!;
     const content = document.querySelector('.navigation-demo-content')!;
@@ -44,15 +45,37 @@ test('收起导航抽屉 → 布局宽度只切换一次，图标列不横移，
     const contentLefts: number[] = [];
     let overflow = 0;
     const root = document.documentElement;
-    nav.querySelector<HTMLButtonElement>('.qs-navigation-toggle')!.click();
-    const start = performance.now();
-    while (performance.now() - start < 900) {
-      await new Promise(requestAnimationFrame);
+    const sample = () => {
       widths.add((nav as HTMLElement).offsetWidth);
       const box = icon.getBoundingClientRect();
       iconCenters.push(box.left + box.width / 2);
       contentLefts.push(content.getBoundingClientRect().left);
       overflow = Math.max(overflow, root.scrollWidth - root.clientWidth);
+    };
+    const flips = () =>
+      [...nav.getAnimations({ subtree: true }), ...content.getAnimations()].filter(
+        (animation) => !(animation instanceof CSSAnimation || animation instanceof CSSTransition),
+      );
+    sample();
+    nav.querySelector<HTMLButtonElement>('.qs-navigation-toggle')!.click();
+    const start = performance.now();
+    let scrubbed = false;
+    while (performance.now() - start < 900) {
+      await new Promise(requestAnimationFrame);
+      const moving = scrubbed ? [] : flips();
+      if (moving.length) {
+        scrubbed = true;
+        const end = Math.max(
+          ...moving.map((animation) => Number(animation.effect!.getComputedTiming().endTime)),
+        );
+        for (const animation of moving) animation.pause();
+        for (let time = 0; time < end; time += 16) {
+          for (const animation of moving) animation.currentTime = time;
+          sample();
+        }
+        for (const animation of moving) animation.finish();
+      }
+      sample();
     }
     return { widths: [...widths], iconCenters, contentLefts, overflow };
   });
@@ -66,7 +89,7 @@ test('收起导航抽屉 → 布局宽度只切换一次，图标列不横移，
   expect(trace.contentLefts[0] - trace.contentLefts[trace.contentLefts.length - 1]).toBeGreaterThan(
     140,
   );
-  await settled(page);
+  await settled(demo);
   const toggle = drawer.getByRole('button', { name: '展开导航' });
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   expect(errors).toEqual([]);
@@ -75,12 +98,12 @@ test('收起导航抽屉 → 布局宽度只切换一次，图标列不横移，
 test('切换过程中再次点击 → 立即反向并停在最后请求的状态，文字与指示器恢复可见', async ({
   page,
 }) => {
-  const { drawer, errors } = await open(page);
+  const { demo, drawer, errors } = await open(page);
   const toggle = drawer.locator('.qs-navigation-toggle');
   await toggle.click();
   await page.waitForTimeout(200);
   await toggle.click();
-  await settled(page);
+  await settled(demo);
   expect(await drawer.evaluate((el) => (el as HTMLElement).offsetWidth)).toBe(220);
   await expect(drawer.getByRole('button', { name: '收起导航' })).toHaveAttribute(
     'aria-expanded',
@@ -98,7 +121,7 @@ test('切换过程中再次点击 → 立即反向并停在最后请求的状态
     await page.locator('.navigation-demo-content').evaluate((el) => getComputedStyle(el).transform),
   ).toBe('none');
   for (let i = 0; i < 3; i++) await toggle.click();
-  await settled(page);
+  await settled(demo);
   expect(await drawer.evaluate((el) => (el as HTMLElement).offsetWidth)).toBe(72);
   expect(errors).toEqual([]);
 });
@@ -106,10 +129,10 @@ test('切换过程中再次点击 → 立即反向并停在最后请求的状态
 test('展开途中反向收起 → 可见底板右缘从当前位置单调回到 72，不塌缩到 rail 以内', async ({
   page,
 }) => {
-  const { drawer, errors } = await open(page);
+  const { demo, drawer, errors } = await open(page);
   const toggle = drawer.locator('.qs-navigation-toggle');
   await toggle.click();
-  await settled(page);
+  await settled(demo);
   const edges = await drawer.evaluate(async (nav) => {
     const button = nav.querySelector<HTMLButtonElement>('.qs-navigation-toggle')!;
     const frame = nav.querySelector('.qs-navigation-surface')!;
@@ -161,14 +184,14 @@ test('宿主链接给出选中态 → 抽屉指示器跟随链接的 aria-curren
 });
 
 test('收起时显示小字标签 → 标签可见且悬停不弹出提示；默认收起悬停才出提示', async ({ page }) => {
-  const { drawer } = await open(page);
+  const { demo, drawer } = await open(page);
   await drawer.locator('.qs-navigation-toggle').click();
-  await settled(page);
+  await settled(demo);
   await drawer.getByRole('link', { name: '参数设置' }).hover();
   await expect(page.getByRole('tooltip', { name: '参数设置' })).toBeVisible();
   await page.mouse.move(1, 1);
   await page.getByRole('switch', { name: '收起时显示小字标签' }).check({ force: true });
-  await settled(page);
+  await settled(demo);
   const label = drawer.getByRole('link', { name: '参数设置' }).locator('.qs-navigation-label');
   expect((await label.boundingBox())!.width).toBeGreaterThan(20);
   await drawer.getByRole('link', { name: '参数设置' }).hover();

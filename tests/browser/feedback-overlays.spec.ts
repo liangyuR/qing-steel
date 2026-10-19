@@ -62,18 +62,31 @@ test('首个字段在折叠区 → 焦点落在首个可见字段并被限制在
 test('标签切换到更宽的标签 → 指示器只位移与改宽，短线内缩不被缩放变形', async ({ page }) => {
   await page.goto('/tests/browser/probe/');
   const list = page.getByRole('tablist', { name: '探针标签' });
+  const tab = list.getByRole('tab', { name: '一个很长很长很长的标签页' });
   await list.scrollIntoViewIfNeeded();
-  const final = await list.getByRole('tab', { name: '一个很长很长很长的标签页' }).boundingBox();
-  await list.getByRole('tab', { name: '一个很长很长很长的标签页' }).click();
-  const sample = await list.evaluate(async (el) => {
-    await new Promise((resolve) => setTimeout(resolve, 80));
-    const indicator = el.querySelector('.selection-track-indicator')!;
-    return {
-      transform: getComputedStyle(indicator).transform,
-      width: indicator.getBoundingClientRect().width,
-      running: indicator.getAnimations().length,
-    };
-  });
+  const final = await tab.boundingBox();
+  const pending = await list.evaluateHandle((el) => ({
+    sample: new Promise<{ transform: string; width: number; running: number }>((resolve) => {
+      const poll = () => {
+        const indicator = el.querySelector('.selection-track-indicator')!;
+        const animations = indicator.getAnimations();
+        if (!animations.length) return void requestAnimationFrame(poll);
+        const running = animations.filter((a) => a.playState === 'running').length;
+        for (const animation of animations) {
+          animation.pause();
+          animation.currentTime = 80;
+        }
+        resolve({
+          transform: getComputedStyle(indicator).transform,
+          width: indicator.getBoundingClientRect().width,
+          running,
+        });
+      };
+      poll();
+    }),
+  }));
+  await tab.click();
+  const sample = await pending.evaluate((handle) => handle.sample);
   expect(sample.running).toBe(1);
   expect(sample.transform.startsWith('matrix(1, 0, 0, 1')).toBe(true);
   expect(sample.width).toBeLessThan(final!.width - 1);
