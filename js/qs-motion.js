@@ -134,6 +134,88 @@
     }, dur('short'));
   }
 
+  /* 全局提示：整页同一时刻一条，新提示替换旧提示；到时淡出后移除，指针悬停或焦点在提示内时暂停计时；离开时焦点还给打开前的元素 */
+  function snackDuration(text) {
+    return Math.min(10000, Math.max(4000, 3000 + String(text).length * 70));
+  }
+  function snackLeft(text, opts) {
+    var d = Number(opts.duration);
+    if (opts.duration == null || isNaN(d)) return snackDuration(text);
+    return Math.min(2147483647, Math.max(1, d));
+  }
+  function snackRestoreFocus(el) {
+    if (!el.contains(document.activeElement)) return;
+    [el.qsReturn, el.qsFrom].some(function (x) {
+      if (x && x !== document.body && x.isConnected && !el.contains(x) && x.focus) x.focus();
+      return !el.contains(document.activeElement);
+    });
+  }
+  function snackHost(opts) {
+    var parent = opts.host || document.body;
+    var host = parent.querySelector(':scope > .qs-snackbars');
+    if (!host) {
+      host = document.createElement('div');
+      host.className = 'qs-snackbars';
+      host.setAttribute('role', 'status');
+      host.setAttribute('aria-live', 'polite');
+      parent.appendChild(host);
+    }
+    host.classList.toggle('top', !!opts.top);
+    return host;
+  }
+  function dismissSnackbar(el) {
+    if (!el || el.classList.contains('out')) return;
+    if (el.qsStop) el.qsStop();
+    snackRestoreFocus(el);
+    el.classList.add('out');
+    setTimeout(function () { el.remove(); }, dur('short'));
+  }
+  function snackbar(text, opts) {
+    opts = opts || {};
+    var host = snackHost(opts);
+    document.querySelectorAll('.qs-snackbar:not(.out)').forEach(function (x) { if (x.qsStop) dismissSnackbar(x); });
+    var el = document.createElement('div');
+    el.qsReturn = opts.returnFocus || document.activeElement;
+    el.className = 'qs-snackbar' + (opts.tone ? ' ' + opts.tone : '');
+    el.innerHTML = '<span class="msg"></span>';
+    el.querySelector('.msg').textContent = text;
+    if (opts.action) {
+      var act = document.createElement('button');
+      act.type = 'button'; act.className = 'qs-btn text sm'; act.textContent = opts.action.label;
+      act.addEventListener('click', function () { if (opts.action.onClick) opts.action.onClick(); dismissSnackbar(el); });
+      el.appendChild(act);
+    }
+    if (opts.close !== false) {
+      var close = document.createElement('button');
+      close.type = 'button'; close.className = 'qs-btn icon'; close.setAttribute('aria-label', '关闭提示');
+      close.innerHTML = '<svg class="qs-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+      close.addEventListener('click', function () { dismissSnackbar(el); });
+      el.appendChild(close);
+    }
+    host.appendChild(el);
+    var left = snackLeft(text, opts), timer = 0, started = 0;
+    function arm() {
+      if (opts.persistent || timer || el.classList.contains('out') || el.matches(':hover') || el.contains(document.activeElement)) return;
+      started = Date.now();
+      timer = setTimeout(function () { timer = 0; dismissSnackbar(el); }, left);
+    }
+    function pause() {
+      if (!timer) return;
+      clearTimeout(timer); timer = 0;
+      left = Math.max(1500, left - (Date.now() - started));
+    }
+    el.qsStop = function () { clearTimeout(timer); timer = 0; };
+    el.addEventListener('mouseenter', pause);
+    el.addEventListener('focusin', function (e) {
+      pause();
+      if (e.relatedTarget && !el.contains(e.relatedTarget)) el.qsFrom = e.relatedTarget;
+    });
+    el.addEventListener('mouseleave', function () { setTimeout(arm); });
+    el.addEventListener('focusout', function () { setTimeout(arm); });
+    arm();
+    return { el: el, dismiss: function () { dismissSnackbar(el); } };
+  }
+
   /* 字体加载或尺寸变化后重算指示器位置 */
   function relayout(scope) {
     scope = scope || document;
@@ -153,6 +235,7 @@
     segUpdate: segUpdate, bindSeg: bindSeg,
     navUpdate: navUpdate, navToggleRail: navToggleRail, bindNav: bindNav,
     setOdo: setOdo, swapVerdict: swapVerdict,
+    snackbar: snackbar, dismissSnackbar: dismissSnackbar, snackDuration: snackDuration,
     relayout: relayout, dur: dur, reducedMotion: reducedMotion
   };
 })(window);

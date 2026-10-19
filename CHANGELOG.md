@@ -1,5 +1,11 @@
 # 版本记录
 
+## 0.4.0
+
+- 新增组件：`.qs-snackbars` / `.qs-snackbar` 全局提示（snackbar），用于瞬时的操作结果，浮在页面之上、不占布局。默认视口底部居中，`.top` 顶部居中；默认 inverse-surface，`ok` / `info` / `warn` / `ng` / `fault` 取对应 container 色，阴影取 `--shadow-2`。进入自外侧 12 px、.98 缩放淡入（medium / decel），加 `.out` 后回退淡出（short / standard），只动 transform 与 opacity；减少动态效果时由令牌归零与现有兜底关闭。
+- `qs-motion.js` 新增 `snackbar(text, opts)`、`dismissSnackbar(el)` 与 `snackDuration(text)`：整页同一时刻一条，新提示替换旧提示（不论 `opts.host` 是否相同）；按文字长度自动消失（4–10 s），`opts.duration` 限制在 1–2147483647 ms，`opts.persistent` 不自动消失；指针悬停或焦点在提示内时暂停计时；可带一个文字操作与关闭按钮；离开时焦点在提示内则还给 `opts.returnFocus` 或打开提示时的焦点元素，不丢到 body。`opts.host` 只决定定位层的父元素（用于模态 `<dialog>`），不改变显示位置。定位层带 `role="status"` 与 `aria-live="polite"`。
+- 演示页“提示条”一节新增全局提示示例。无破坏性变更。
+
 ## 0.3.0
 
 - 新增令牌：`--scrim`（对话框遮罩）、`--shadow-2`（浮层 / 提示气泡）、`--shadow-3`（对话框），深浅两套；`--text-verdict`（700 80px 等宽，产线大屏判定字）。`tokens.json` 的 `shadow` 组随之包含 1–3 三级。

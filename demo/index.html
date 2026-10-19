@@ -584,6 +584,7 @@ pre.code { margin: 0; background: var(--surface-lowest); color: var(--on-surface
         <div class="qs-banner ng"><svg class="qs-ic"><use href="#i-x"/></svg><span>测量线程超时未返回 <span class="qs-num">2 / 4</span>。</span></div>
         <div class="qs-banner fault"><svg class="qs-ic"><use href="#i-zap"/></svg><span>PLC 心跳中断，等待复位。</span></div>
         <div class="qs-banner tertiary"><svg class="qs-ic"><use href="#i-flask"/></svg><span><b>候选配方调试结果</b> · 未发布，仅用于离线测试。</span></div>
+        <div class="row"><button class="qs-btn sm tonal" type="button" id="snack-ok"><svg class="qs-ic"><use href="#i-check"/></svg>全局提示 · 成功</button><button class="qs-btn sm outlined" type="button" id="snack-default">全局提示 · 带操作</button><span class="note">瞬时结果用全局提示：浮层不占布局，新提示替换旧提示，悬停时暂停计时。</span></div>
       </div>
     </div>
     <div class="sub">
@@ -631,6 +632,7 @@ pre.code { margin: 0; background: var(--surface-lowest); color: var(--on-surface
           <tr><td>帧缩略图选择</td><td>缩略图描边过渡；总览图选框平移、伸缩到新帧</td><td><code>medium / standard</code>、<code>medium / spatial</code>；hover 抬起 2px <code>short / standard</code></td></tr>
           <tr><td>测量值更新</td><td>只有变化的字符位纵向滚动，未变的不动；相同值不触发</td><td><code>medium / decel</code></td></tr>
           <tr><td>主题切换</td><td>View Transition 整页交叉淡入；不支持时直接切换</td><td><code>medium / standard</code></td></tr>
+          <tr><td>全局提示出现 / 消失</td><td>自外侧 12 px、.98 缩放淡入；新提示替换旧提示，旧提示回退 6 px 并淡出；悬停或聚焦时暂停计时</td><td>进入 <code>medium / decel</code>，离开 <code>short / standard</code></td></tr>
           <tr><td>当前阶段（持续）</td><td>呼吸点 opacity 1 → .55；同屏唯一循环动画</td><td><code>breath / standard</code></td></tr>
           <tr><td>prefers-reduced-motion</td><td>全部过渡与动画置为 0；导航折叠不做分步，数值直接替换</td><td>—</td></tr>
         </tbody>
@@ -1194,6 +1196,12 @@ QingSteel.setTheme('light', { storageKey: 'my-app-theme' });</pre>
     document.addEventListener('keydown', key);
     document.body.appendChild(scrim);
     scrim.querySelector('.qs-dialog').focus();
+  });
+  document.getElementById('snack-ok').addEventListener('click', function () {
+    Q.snackbar('候选配置已保存，生产版本保持不变', { tone: 'ok' });
+  });
+  document.getElementById('snack-default').addEventListener('click', function () {
+    Q.snackbar('已导出 history-2026-10-09.csv', { action: { label: '打开文件夹' } });
   });
 
   /* ---------- 动效小节：曲线图 + 数值演示 ---------- */
