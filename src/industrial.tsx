@@ -199,7 +199,9 @@ export function VerdictCard({
       <div className="big">{code}</div>
       <div className="t">{title}</div>
       {description != null && description !== false && description !== '' && (
-        <div className="d">{description}</div>
+        <div className="d" aria-live="off">
+          {description}
+        </div>
       )}
       {showFooter && shown && (
         <div className="foot">
@@ -372,16 +374,17 @@ function CameraThumbnailView({
       frame.preview
     );
   const hasVisual = visual != null && visual !== false;
-  const overlay = unavailable && !!frame.keepPreview && hasVisual;
-  const preview = overlay ? (
+  const showVisual = hasVisual && (!unavailable || !!frame.keepPreview);
+  const dimmed = unavailable && showVisual;
+  const preview = showVisual ? (
     <>
-      <span className="qs-camera-visual">{visual}</span>
-      <span className="qs-camera-overlay">{stateText}</span>
+      <span className="qs-camera-visual" data-dimmed={dimmed || undefined}>
+        {visual}
+      </span>
+      {dimmed && <span className="qs-camera-overlay">{stateText}</span>}
     </>
   ) : unavailable ? (
     <span>{stateText}</span>
-  ) : hasVisual ? (
-    visual
   ) : (
     <span>{imageFailed ? '图像加载失败' : '暂无预览'}</span>
   );

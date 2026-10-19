@@ -205,7 +205,7 @@ import { VerdictCard, InspectionStages, MeasurementReading } from 'qing-steel';
 
 判定切换时新内容自下方 6 px 淡入（medium / decel，依次错开 short 的四分之一），背景色同步过渡。只有新的 NG 结果 ID 到达时整卡放大到 1.02 再回落一次（long，前段 decel、后段 standard，无回弹）；同一结果的重绘、故障覆盖后恢复都不会再次强调，连续到达时取消旧动效、不排队。初次挂载不播放，`emphasize={false}` 可关闭强调，减少动态效果时直接切换。
 
-`result.code` / `result.title` 覆盖大字与副标题，用于产线语义：局部超差传 `verdict: 'warn', code: 'OK', title: '局部超差'`，NG 细分传 `title: '断胶'` 等。无结果时的文案用 `stateContent` 覆盖，`faultMessage` 仍优先作为故障描述。`serialPlacement="header"` 把 SN 放到头部并写入可访问名称（`判定结果 · SN …`，过长时单行省略、悬停显示全文）；`meta` 的函数形式只收到当前展示的有效结果，被隐藏或被故障覆盖时为 `null`，避免把上一件的 PLC 码带到本件。
+`result.code` / `result.title` 覆盖大字与副标题，用于产线语义：局部超差传 `verdict: 'warn', code: 'OK', title: '局部超差'`，NG 细分传 `title: '断胶'` 等。无结果时的文案用 `stateContent` 覆盖，`faultMessage` 仍优先作为故障描述。`serialPlacement="header"` 把 SN 放到头部并写入可访问名称（`判定结果 · SN …`，过长时单行省略、悬停显示全文）；`meta` 的函数形式只收到当前展示的有效结果，被隐藏或被故障覆盖时为 `null`，避免把上一件的 PLC 码带到本件。整卡是 polite 播报区，判定切换时整卡读一次；描述行本身不参与播报，因此把「帧 n / N」这类逐帧变化的文字放进 `stateContent.running.description` 不会每帧重读整卡。
 
 ```tsx
 <VerdictCard
@@ -231,7 +231,7 @@ import { VerdictCard, InspectionStages, MeasurementReading } from 'qing-steel';
 />
 ```
 
-CameraFrame 包含 `id / cameraId / label / state`，可选 `cycleId / stateLabel / src / alt / preview / keepPreview / detail / channel / disabled`。state 支持 `waiting / capturing / ok / ng / warn / fault / missing / skipped`；channel 为 1–8；`stateLabel` 替换状态文案（如「局部超差」「断胶」「未示教」），同时用于可访问名称，颜色仍由 state 决定。src 提供图片，preview 可提供 SVG 等只读内容，请勿嵌套按钮或链接。缺图、跳过、等待和采集中默认显示明确占位；`keepPreview` 开启时保留预览、降低不透明度并叠加状态文字。图片加载失败显示错误文字，同时保留检测结果状态。
+CameraFrame 包含 `id / cameraId / label / state`，可选 `cycleId / stateLabel / src / alt / preview / keepPreview / detail / channel / disabled`。state 支持 `waiting / capturing / ok / ng / warn / fault / missing / skipped`；channel 为 1–8；`stateLabel` 替换状态文案（如「局部超差」「断胶」「未示教」），同时用于可访问名称，颜色仍由 state 决定。src 提供图片，preview 可提供 SVG 等只读内容，请勿嵌套按钮或链接。缺图、跳过、等待和采集中默认显示明确占位；`keepPreview` 开启时保留预览、降低不透明度并叠加状态文字，预览节点在采集中、出结果与恢复之间保持同一实例，宿主 canvas 不会被卸载重建。图片加载失败显示错误文字，同时保留检测结果状态。
 
 `renderPreview(frame)` 为宿主渲染槽，优先于 src / preview，适合挂载自行绘制的 canvas 实时预览；请用 `useCallback` 保持引用稳定，组件按引用与帧字段跳过无关重绘。尺寸默认宽 176 px、预览高 88 px，可用 `width / previewHeight`（CameraStrip 为 `thumbnailWidth / previewHeight`）或 CSS 变量 `--qs-camera-w / --qs-camera-preview-h` 调整，网格模式以宽度作为最小列宽。
 

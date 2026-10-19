@@ -264,6 +264,9 @@ button.qs-camera-thumbnail:not(:disabled):active::before {
   place-items: center;
   width: 100%;
   height: 100%;
+  transition: opacity var(--dur-short) var(--ease-standard);
+}
+.qs-camera-visual[data-dimmed] {
   opacity: 0.45;
 }
 .qs-camera-overlay {

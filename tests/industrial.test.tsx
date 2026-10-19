@@ -161,6 +161,35 @@ describe('相机帧状态', () => {
     rerender(<CameraThumbnail frame={waiting} />);
     expect(screen.queryByRole('img', { name: '示教中线' })).not.toBeInTheDocument();
   });
+  it.each([
+    [
+      '宿主 canvas',
+      { renderPreview: (frame: CameraFrame) => <canvas aria-label={frame.id} /> },
+      'canvas',
+    ],
+    ['src 图片', {}, 'img'],
+  ])(
+    'keepPreview 下状态在采集中与出结果间切换（%s）→ 预览节点保持同一实例，叠加层随状态出现与消失',
+    (_, props, selector) => {
+      const base: CameraFrame = {
+        id: 'k4',
+        cameraId: 'camera-1',
+        label: 'k4',
+        state: 'capturing',
+        keepPreview: true,
+        src: '/live.png',
+      };
+      const { container, rerender } = render(<CameraThumbnail frame={base} {...props} />);
+      const node = container.querySelector(selector)!;
+      expect(node).not.toBeNull();
+      for (const state of ['ok', 'missing', 'ng'] as const) {
+        rerender(<CameraThumbnail frame={{ ...base, state }} {...props} />);
+        expect(container.querySelector(selector)).toBe(node);
+        expect(node.isConnected).toBe(true);
+        expect(container.querySelector('.qs-camera-overlay') !== null).toBe(state === 'missing');
+      }
+    },
+  );
   it('传入 aria-label、aria-pressed 与 onClick → 覆盖默认名称和按下态，点击仍触发选择', async () => {
     const onSelect = vi.fn();
     const onClick = vi.fn();
@@ -339,6 +368,19 @@ describe('判定卡宿主文案与产线头部', () => {
     expect(card).toHaveTextContent('SN SN-008 · 帧 3 / 12');
     expect(card).not.toHaveTextContent('SN-007');
     expect(card).not.toHaveTextContent('等待当前工件的检测结果');
+  });
+  it('运行中宿主描述逐帧变化 → 描述行在原节点更新且不参与读屏播报，整卡仍是 polite 播报区', () => {
+    const running = (description: string) => (
+      <VerdictCard cycleId="cycle-9" state="running" stateContent={{ running: { description } }} />
+    );
+    const { rerender } = render(running('帧 1 / 12'));
+    const card = screen.getByRole('region');
+    expect(card).toHaveAttribute('aria-live', 'polite');
+    const description = within(card).getByText('帧 1 / 12');
+    expect(description).toHaveAttribute('aria-live', 'off');
+    rerender(running('帧 2 / 12'));
+    expect(within(card).getByText('帧 2 / 12')).toBe(description);
+    expect(description).toHaveAttribute('aria-live', 'off');
   });
   it('故障时保留本件判定 → 有效结果继续显示；没有本件结果时仍显示 ERR', () => {
     const { rerender } = render(
