@@ -57,10 +57,11 @@ const SelectionTrack = forwardRef<
     as?: 'div' | 'nav';
     activeKey: string;
     trackId?: string;
+    morph?: 'scale' | 'size';
     children: ReactNode;
   }
 >(function SelectionTrack(
-  { as: Tag = 'div', activeKey, trackId, className = '', children, ...props },
+  { as: Tag = 'div', activeKey, trackId, morph = 'scale', className = '', children, ...props },
   forwardedRef,
 ) {
   const ref = useRef<HTMLDivElement & HTMLElement>(null);
@@ -174,14 +175,19 @@ const SelectionTrack = forwardRef<
     const tokens = getComputedStyle(element);
     const duration = tokens.getPropertyValue('--dur-medium').trim();
     const easing = tokens.getPropertyValue('--ease-standard').trim();
-    const scale = `scale(${move.to.width ? move.from.width / move.to.width : 1}, ${move.to.height ? move.from.height / move.to.height : 1})`;
-    animation.current = element.animate(
-      [
-        { transform: `translate(${move.from.x}px, ${move.from.y}px) ${scale}` },
-        { transform: `translate(${move.to.x}px, ${move.to.y}px)` },
-      ],
-      { duration: parseFloat(duration) * (duration.endsWith('ms') ? 1 : 1000), easing },
-    );
+    const keyframes =
+      morph === 'size'
+        ? [frame(move.from), frame(move.to)]
+        : [
+            {
+              transform: `translate(${move.from.x}px, ${move.from.y}px) scale(${move.to.width ? move.from.width / move.to.width : 1}, ${move.to.height ? move.from.height / move.to.height : 1})`,
+            },
+            { transform: `translate(${move.to.x}px, ${move.to.y}px)` },
+          ];
+    animation.current = element.animate(keyframes, {
+      duration: parseFloat(duration) * (duration.endsWith('ms') ? 1 : 1000),
+      easing,
+    });
   }, [placement]);
 
   useLayoutEffect(() => {

@@ -1,10 +1,19 @@
 import {
+  Children,
+  cloneElement,
   forwardRef,
-  type HTMLAttributes,
+  useId,
+  useMemo,
+  type AnchorHTMLAttributes,
   type ButtonHTMLAttributes,
-  type ReactNode,
-  type SVGProps,
   type CSSProperties,
+  type HTMLAttributes,
+  type MouseEvent,
+  type ReactElement,
+  type ReactNode,
+  type Ref,
+  type RefAttributes,
+  type SVGProps,
 } from 'react';
 import { cx, type Size, type Tone } from './core';
 
@@ -123,31 +132,66 @@ export function Grid({
     />
   );
 }
+const present = (node: ReactNode) => node != null && node !== false && node !== '';
 export interface SurfaceProps extends HTMLAttributes<HTMLDivElement> {
   level?: 'lowest' | 'low' | 'mid' | 'high' | 'highest';
+  as?: 'div' | 'section' | 'article' | 'aside';
 }
-export function Surface({ level = 'low', className, style, ...props }: SurfaceProps) {
+export function Surface({
+  level = 'low',
+  as: Tag = 'div',
+  className,
+  style,
+  ...props
+}: SurfaceProps) {
   return (
-    <div
+    <Tag
       className={cx('qs-surface', className)}
       style={{ background: `var(--surface-${level})`, ...style }}
       {...props}
     />
   );
 }
+export interface CardProps extends Omit<SurfaceProps, 'title'> {
+  title?: ReactNode;
+  description?: ReactNode;
+  actions?: ReactNode;
+  headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
+}
 export function Card({
   title,
+  description,
   actions,
+  headingLevel,
   children,
   className,
   ...props
-}: Omit<SurfaceProps, 'title'> & { title?: ReactNode; actions?: ReactNode }) {
+}: CardProps) {
+  const titleId = `${useId()}-title`;
+  const hasTitle = present(title);
+  const Title = headingLevel ? (`h${headingLevel}` as 'h2') : 'div';
+  const named =
+    hasTitle &&
+    ((props.as ?? 'div') !== 'div' || props.role != null) &&
+    !props['aria-label'] &&
+    !props['aria-labelledby'];
   return (
-    <Surface className={cx('qs-react-card', className)} {...props}>
-      {(title || actions) && (
+    <Surface
+      {...props}
+      aria-labelledby={props['aria-labelledby'] || (named ? titleId : undefined)}
+      className={cx('qs-react-card', className)}
+    >
+      {(hasTitle || present(description) || present(actions)) && (
         <div className="qs-card-heading">
-          <div>{title}</div>
-          {actions}
+          <div className="qs-card-heading-text">
+            {hasTitle && (
+              <Title id={titleId} className="qs-card-title">
+                {title}
+              </Title>
+            )}
+            {present(description) && <div className="qs-card-description">{description}</div>}
+          </div>
+          {present(actions) && <div className="qs-card-actions">{actions}</div>}
         </div>
       )}
       {children}
@@ -168,22 +212,62 @@ export function Divider({
     />
   );
 }
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export type ButtonTone = 'danger' | 'warn';
+interface ButtonAppearance {
   variant?: 'filled' | 'tonal' | 'outlined' | 'text';
   size?: Size;
   danger?: boolean;
+  tone?: ButtonTone;
   loading?: boolean;
   leadingIcon?: ReactNode;
   trailingIcon?: ReactNode;
 }
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, ButtonAppearance {
+  asChild?: boolean;
+  href?: undefined;
+}
+export interface ButtonLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement>, ButtonAppearance {
+  href: string;
+  disabled?: boolean;
+  asChild?: false;
+}
+type ButtonComponent = {
+  (props: ButtonLinkProps & RefAttributes<HTMLAnchorElement>): ReactElement | null;
+  (props: ButtonProps & RefAttributes<HTMLButtonElement>): ReactElement | null;
+};
+type AnyButtonProps = ButtonProps | ButtonLinkProps;
+type WarnedGetter = { isReactWarning?: boolean } | undefined;
+function refOf(element: ReactElement): Ref<unknown> | undefined {
+  // React 19 把 ref 放进 props，React 18 留在元素上；避开开发模式下的警告 getter。
+  const props = element.props as { ref?: Ref<unknown> };
+  const legacy = () => (element as unknown as { ref?: Ref<unknown> }).ref;
+  if ((Object.getOwnPropertyDescriptor(props, 'ref')?.get as WarnedGetter)?.isReactWarning)
+    return legacy();
+  if ((Object.getOwnPropertyDescriptor(element, 'ref')?.get as WarnedGetter)?.isReactWarning)
+    return props.ref;
+  return props.ref ?? legacy();
+}
+function assignRef<T>(ref: Ref<T> | undefined, value: T | null) {
+  if (typeof ref === 'function') ref(value);
+  else if (ref) (ref as { current: T | null }).current = value;
+}
+function isRenderProp(value: unknown): value is (state: unknown) => unknown {
+  return typeof value === 'function';
+}
+function blockInactive(event: MouseEvent) {
+  event.preventDefault();
+  event.stopPropagation();
+}
+const ButtonImpl = forwardRef<HTMLElement, AnyButtonProps>(function Button(
   {
     variant = 'tonal',
     size = 'md',
     danger,
+    tone,
     loading,
     leadingIcon,
     trailingIcon,
+    asChild,
     className,
     children,
     disabled,
@@ -191,79 +275,218 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   },
   ref,
 ) {
+  const inactive = !!(disabled || loading);
+  const tint = tone ?? (danger ? 'danger' : undefined);
+  const lead = loading ? (
+    <span className="qs-loading-dot" aria-hidden="true">
+      <i />
+      <i />
+      <i />
+    </span>
+  ) : (
+    leadingIcon
+  );
+  const classes = cx(
+    'qs-btn',
+    variant !== 'filled' && variant,
+    size === 'sm' && 'sm',
+    tint && (variant === 'filled' ? tint : `${tint}-tonal`),
+    present(lead) && 'with-leading',
+    present(trailingIcon) && 'with-trailing',
+    className,
+  );
+  const child = asChild ? (Children.only(children) as ReactElement<Record<string, unknown>>) : null;
+  const childRef = child ? refOf(child) : undefined;
+  const composedRef = useMemo(
+    () =>
+      childRef
+        ? (node: HTMLElement | null) => {
+            assignRef(ref, node);
+            assignRef(childRef, node);
+          }
+        : ref,
+    [ref, childRef],
+  );
+  if (child) {
+    const own = child.props;
+    const slot = props as Record<string, unknown>;
+    const merged: Record<string, unknown> = { ...slot, ...own };
+    for (const key of Object.keys(own)) {
+      const mine = slot[key];
+      const theirs = own[key];
+      if (/^on[A-Z]/.test(key) && typeof mine === 'function' && typeof theirs === 'function')
+        merged[key] = (...args: unknown[]) => {
+          theirs(...args);
+          mine(...args);
+        };
+    }
+    const ownClassName = own.className;
+    merged.className = isRenderProp(ownClassName)
+      ? (state: unknown) => cx(classes, ownClassName(state) as string | undefined)
+      : cx(classes, ownClassName as string | undefined);
+    const ownStyle = own.style;
+    if (isRenderProp(ownStyle))
+      merged.style = (state: unknown) => ({
+        ...props.style,
+        ...(ownStyle(state) as CSSProperties | undefined),
+      });
+    else if (props.style || ownStyle)
+      merged.style = { ...props.style, ...(ownStyle as CSSProperties | undefined) };
+    if (loading) merged['aria-busy'] = true;
+    if (inactive) {
+      Object.assign(merged, {
+        'aria-disabled': true,
+        tabIndex: -1,
+        onClick: blockInactive,
+        onAuxClick: blockInactive,
+      });
+      if (child.type === 'button') merged.disabled = true;
+    }
+    merged.ref = composedRef;
+    if (!present(lead) && !present(trailingIcon)) return cloneElement(child, merged);
+    const ownChildren = own.children;
+    if (isRenderProp(ownChildren)) {
+      merged.children = (state: unknown) => (
+        <>
+          {lead}
+          {ownChildren(state) as ReactNode}
+          {trailingIcon}
+        </>
+      );
+      return cloneElement(child, merged);
+    }
+    return cloneElement(child, merged, lead, ownChildren as ReactNode, trailingIcon);
+  }
+  if (props.href !== undefined) {
+    const { href, onClick, onAuxClick, tabIndex, ...anchor } = props as ButtonLinkProps;
+    return (
+      <a
+        {...anchor}
+        ref={ref as Ref<HTMLAnchorElement>}
+        href={inactive ? undefined : href}
+        role={inactive ? 'link' : anchor.role}
+        tabIndex={inactive ? undefined : tabIndex}
+        aria-disabled={inactive || anchor['aria-disabled']}
+        aria-busy={loading || undefined}
+        className={classes}
+        onClick={inactive ? blockInactive : onClick}
+        onAuxClick={inactive ? blockInactive : onAuxClick}
+      >
+        {lead}
+        {children}
+        {trailingIcon}
+      </a>
+    );
+  }
   return (
     <button
       type="button"
-      {...props}
-      ref={ref}
-      disabled={disabled || loading}
+      {...(props as ButtonHTMLAttributes<HTMLButtonElement>)}
+      ref={ref as Ref<HTMLButtonElement>}
+      disabled={inactive}
       aria-busy={loading || undefined}
-      className={cx(
-        'qs-btn',
-        variant !== 'filled' && variant,
-        size === 'sm' && 'sm',
-        danger && (variant === 'filled' ? 'danger' : 'danger-tonal'),
-        className,
-      )}
+      className={classes}
     >
-      {loading ? (
-        <span className="qs-loading-dot" aria-hidden="true">
-          ···
-        </span>
-      ) : (
-        leadingIcon
-      )}
+      {lead}
       {children}
       {trailingIcon}
     </button>
   );
 });
-export interface IconButtonProps extends ButtonProps {
+export const Button = ButtonImpl as unknown as ButtonComponent;
+export interface IconButtonProps extends Omit<ButtonProps, 'size'> {
   'aria-label': string;
   selected?: boolean;
+  size?: Size | 'xs';
 }
-export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
-  { selected, className, ...props },
-  ref,
-) {
-  return (
-    <Button
-      {...props}
-      ref={ref}
-      aria-pressed={selected}
-      className={cx('icon', selected && 'qs-selected', className)}
-    />
-  );
-});
+export interface IconButtonLinkProps extends Omit<ButtonLinkProps, 'size'> {
+  'aria-label': string;
+  selected?: boolean;
+  size?: Size | 'xs';
+}
+type IconButtonComponent = {
+  (props: IconButtonLinkProps & RefAttributes<HTMLAnchorElement>): ReactElement | null;
+  (props: IconButtonProps & RefAttributes<HTMLButtonElement>): ReactElement | null;
+};
+export const IconButton = forwardRef<HTMLElement, IconButtonProps | IconButtonLinkProps>(
+  function IconButton({ selected, size, className, ...props }, ref) {
+    const pressable = props.href === undefined && !props.asChild;
+    return (
+      <ButtonImpl
+        {...props}
+        ref={ref}
+        size={size === 'xs' ? undefined : size}
+        aria-pressed={pressable && selected !== undefined ? selected : props['aria-pressed']}
+        className={cx('icon', size === 'xs' && 'xs', selected && 'qs-selected', className)}
+      />
+    );
+  },
+) as unknown as IconButtonComponent;
+export type ChipTone = 'ok' | 'warn' | 'ng' | 'fault';
+export interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  selected?: boolean;
+  onRemove?: () => void;
+  removeLabel?: string;
+  label?: ReactNode;
+  tone?: ChipTone;
+  size?: Size;
+}
 export function Chip({
   selected,
   onRemove,
   removeLabel = '移除',
+  label,
+  tone,
+  size,
   children,
   className,
   onClick,
   disabled,
+  type,
+  name,
+  value,
+  form,
+  formAction,
+  formEncType,
+  formMethod,
+  formNoValidate,
+  formTarget,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & {
-  selected?: boolean;
-  onRemove?: () => void;
-  removeLabel?: string;
-}) {
+}: ChipProps) {
+  const classes = cx('qs-chip', size === 'sm' && 'sm', tone, className);
+  const content = present(label) ? (
+    <>
+      <span className="qs-chip-key">{label}</span>
+      <span className="qs-chip-value">{children}</span>
+    </>
+  ) : (
+    children
+  );
   return (
     <span className="qs-chip-wrap">
       {onClick || selected !== undefined ? (
         <button
-          type="button"
+          type={type ?? 'button'}
+          name={name}
+          value={value}
+          form={form}
+          formAction={formAction}
+          formEncType={formEncType}
+          formMethod={formMethod}
+          formNoValidate={formNoValidate}
+          formTarget={formTarget}
           {...props}
           disabled={disabled}
           onClick={onClick}
           aria-pressed={selected}
-          className={cx('qs-chip', 'action', selected && 'selected', className)}
+          className={cx(classes, 'action', selected && 'selected')}
         >
-          {children}
+          {content}
         </button>
       ) : (
-        <span className={cx('qs-chip', className)}>{children}</span>
+        <span {...props} className={classes}>
+          {content}
+        </span>
       )}
       {onRemove && (
         <button
@@ -296,12 +519,11 @@ export function Badge({
     </span>
   );
 }
-export function StatusBadge({
-  tone = 'info',
-  children,
-  className,
-  ...props
-}: HTMLAttributes<HTMLSpanElement> & { tone?: Tone | 'off' }) {
+export type StatusBadgeTone = Tone | 'off' | 'neutral';
+export interface StatusBadgeProps extends HTMLAttributes<HTMLSpanElement> {
+  tone?: StatusBadgeTone;
+}
+export function StatusBadge({ tone = 'info', children, className, ...props }: StatusBadgeProps) {
   return (
     <span className={cx('qs-badge', tone, className)} {...props}>
       <span className="dot" aria-hidden="true" />
@@ -351,19 +573,22 @@ export function ListItem({
     </li>
   );
 }
+export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
+  title: ReactNode;
+  description?: ReactNode;
+  icon?: ReactNode;
+  action?: ReactNode;
+}
 export function EmptyState({
   title,
   description,
   icon,
   action,
-}: {
-  title: ReactNode;
-  description?: ReactNode;
-  icon?: ReactNode;
-  action?: ReactNode;
-}) {
+  className,
+  ...props
+}: EmptyStateProps) {
   return (
-    <div className="qs-empty">
+    <div className={cx('qs-empty', className)} {...props}>
       {icon}
       <b>{title}</b>
       {description && <small>{description}</small>}
