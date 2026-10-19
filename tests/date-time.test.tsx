@@ -52,6 +52,22 @@ it('受控时间确认只发出一次原生事件，取消不提交', async () =
   expect(change).toHaveBeenCalledExactlyOnceWith('10:30');
 });
 
+it('日期面板打开时点开另一个时间选择 → 旧面板关闭后不抢回焦点，新面板保持打开可继续选择', async () => {
+  const user = userEvent.setup();
+  render(
+    <ThemeProvider>
+      <DatePicker label="日期" />
+      <TimePicker label="时间" defaultValue="09:30" />
+    </ThemeProvider>,
+  );
+  await user.click(screen.getByRole('button', { name: '打开日期选择' }));
+  await user.click(screen.getByRole('button', { name: '打开时间选择' }));
+  await user.click(screen.getAllByRole('radio', { name: /^10$/ })[0]);
+  const picker = screen.getByRole('dialog', { name: '时间选择' });
+  expect(screen.queryByRole('dialog', { name: '日期选择' })).toBeNull();
+  expect(picker).toContainElement(document.activeElement as HTMLElement);
+});
+
 it('表单重置恢复初始值，只读和禁用控件不开启面板', async () => {
   const user = userEvent.setup();
   render(

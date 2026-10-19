@@ -237,7 +237,8 @@ const Picker = forwardRef<HTMLInputElement, DateTimePickerProps & { kind: 'date'
             aria-label={title}
             onCloseAutoFocus={(event) => {
               event.preventDefault();
-              input.current?.focus();
+              const active = document.activeElement;
+              if (!active || active === document.body) input.current?.focus();
             }}
           >
             {isTime ? (
