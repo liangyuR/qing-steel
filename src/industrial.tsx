@@ -8,36 +8,78 @@ import {
   useCallback,
   type ReactNode,
   type CSSProperties,
+  type HTMLAttributes,
 } from 'react';
 import { cx } from './core';
 import { Alert } from './feedback';
 import { EmptyState, Icon } from './primitives';
 
-function motion(element: HTMLElement, frames: Keyframe[], durationToken: string) {
-  if (!element.animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const css = getComputedStyle(element);
-  const token = css.getPropertyValue(durationToken).trim();
-  const duration = parseFloat(token) * (token.endsWith('ms') ? 1 : 1000);
-  if (!Number.isFinite(duration) || duration <= 0) return;
-  return element.animate(frames, {
-    duration,
-    easing: css.getPropertyValue('--ease-decel').trim() || 'ease-out',
-  });
+function tokenMs(css: CSSStyleDeclaration, name: string) {
+  const token = css.getPropertyValue(name).trim();
+  const value = parseFloat(token) * (token.endsWith('ms') ? 1 : 1000);
+  return Number.isFinite(value) ? value : 0;
+}
+const reducedMotion = () =>
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const easingOf = (css: CSSStyleDeclaration, easing: string, fallback: string) =>
+  easing.startsWith('--') ? css.getPropertyValue(easing).trim() || fallback : easing;
+
+function motion(
+  element: HTMLElement,
+  frames: Keyframe[],
+  durationToken: string,
+  {
+    easing = '--ease-decel',
+    delay = 0,
+    source = element,
+  }: { easing?: string; delay?: number; source?: HTMLElement } = {},
+) {
+  if (!element.animate || reducedMotion()) return;
+  const css = getComputedStyle(source);
+  const duration = tokenMs(css, durationToken);
+  if (duration <= 0) return;
+  return element.animate(
+    frames.map((frame) =>
+      typeof frame.easing === 'string'
+        ? { ...frame, easing: easingOf(css, frame.easing, 'ease') }
+        : frame,
+    ),
+    {
+      duration,
+      delay,
+      easing: easingOf(css, easing, 'ease-out'),
+      fill: delay > 0 ? 'backwards' : 'none',
+    },
+  );
 }
 export type InspectionVerdict = 'ok' | 'ng' | 'warn' | 'fault';
 export interface InspectionResult {
   id: string;
   cycleId: string;
   verdict: InspectionVerdict;
+  code?: string;
+  title?: string;
   description?: string;
   serialNumber?: string;
   durationMs?: number;
 }
+export type VerdictCardState = 'idle' | 'running' | 'fault';
+export interface VerdictContent {
+  code?: ReactNode;
+  title?: ReactNode;
+  description?: ReactNode;
+}
 export interface VerdictCardProps {
   result?: InspectionResult | null;
   cycleId?: string;
-  state?: 'idle' | 'running' | 'fault';
+  state?: VerdictCardState;
   faultMessage?: string;
+  keepResultOnFault?: boolean;
+  stateContent?: Partial<Record<VerdictCardState, VerdictContent>>;
+  serialPlacement?: 'footer' | 'header';
+  meta?: ReactNode | ((result: InspectionResult | null) => ReactNode);
+  showFooter?: boolean;
   size?: 'md' | 'lg';
   emphasize?: boolean;
   label?: string;
@@ -51,11 +93,25 @@ const verdictLabels = {
   idle: ['—', '等待检测'],
   running: ['RUN', '检测中'],
 } as const;
+const emphasisFrames: Keyframe[] = [
+  { transform: 'scale(1)', easing: '--ease-decel' },
+  { transform: 'scale(1.02)', offset: 0.35, easing: '--ease-standard' },
+  { transform: 'scale(1)' },
+];
+const enterFrames: Keyframe[] = [
+  { opacity: 0, transform: 'translateY(6px)' },
+  { opacity: 1, transform: 'none' },
+];
 export function VerdictCard({
   result,
   cycleId,
   state = 'idle',
   faultMessage,
+  keepResultOnFault = false,
+  stateContent,
+  serialPlacement = 'footer',
+  meta,
+  showFooter = true,
   size = 'lg',
   emphasize = true,
   label = '整件判定',
@@ -63,42 +119,61 @@ export function VerdictCard({
 }: VerdictCardProps) {
   const validResult =
     result && (cycleId === undefined || result.cycleId === cycleId) ? result : null;
-  const outcome = state === 'fault' ? 'fault' : (validResult?.verdict ?? state);
-  const [code, title] = verdictLabels[outcome];
-  const description =
-    state === 'fault'
-      ? (faultMessage ?? '请检查设备或测量流程。')
-      : (validResult?.description ??
-        (result && !validResult
+  const shown = validResult && (state !== 'fault' || keepResultOnFault) ? validResult : null;
+  const outcome = shown ? shown.verdict : state;
+  const custom = shown ? undefined : stateContent?.[state];
+  const code = shown
+    ? (shown.code ?? verdictLabels[outcome][0])
+    : (custom?.code ?? verdictLabels[outcome][0]);
+  const title = shown
+    ? (shown.title ?? verdictLabels[outcome][1])
+    : (custom?.title ?? verdictLabels[outcome][1]);
+  const description: ReactNode = shown
+    ? shown.description
+    : state === 'fault'
+      ? (faultMessage ?? custom?.description ?? '请检查设备或测量流程。')
+      : custom?.description !== undefined
+        ? custom.description
+        : result && !validResult
           ? '等待当前工件的检测结果。'
-          : outcome === 'running'
+          : state === 'running'
             ? '正在采集与测量，尚未形成最终判定。'
-            : '尚未收到检测结果。'));
+            : '尚未收到检测结果。';
+  const serial = serialPlacement === 'header' ? shown?.serialNumber : undefined;
+  const heading = serial ? `${label} · SN ${serial}` : label;
   const ref = useRef<HTMLElement>(null);
-  const key = `${outcome}:${validResult?.cycleId ?? cycleId ?? ''}:${validResult?.id ?? ''}`;
+  const key = `${outcome}:${shown?.cycleId ?? cycleId ?? ''}:${shown?.id ?? ''}`;
   const previous = useRef(key);
+  const emphasized = useRef(outcome === 'ng' ? (shown?.id ?? null) : null);
   useLayoutEffect(() => {
     const changed = previous.current !== key;
     previous.current = key;
-    if (!changed || !emphasize || outcome !== 'ng' || !ref.current) return;
-    const animation = motion(
-      ref.current,
-      [
-        { transform: 'scale(1)' },
-        { transform: 'scale(1.02)', offset: 0.4 },
-        { transform: 'scale(1)' },
-      ],
-      '--dur-long',
+    const node = ref.current;
+    if (!changed || !node) return;
+    const step = tokenMs(getComputedStyle(node), '--dur-short') / 4;
+    const animations = Array.from(
+      node.querySelectorAll<HTMLElement>(':scope > .big, :scope > .t, :scope > .d, :scope > .foot'),
+      (part, index) =>
+        motion(part, enterFrames, '--dur-medium', { delay: index * step, source: node }),
     );
-    return () => animation?.cancel();
-  }, [key, outcome, emphasize]);
+    if (emphasize && outcome === 'ng' && shown && emphasized.current !== shown.id) {
+      emphasized.current = shown.id;
+      animations.push(motion(node, emphasisFrames, '--dur-long', { easing: 'linear' }));
+    }
+    return () => animations.forEach((animation) => animation?.cancel());
+  }, [key]);
+  const metaContent =
+    typeof meta === 'function'
+      ? meta(shown)
+      : (meta ?? <span className="qs-num">{cycleId ?? validResult?.cycleId ?? '未开始'}</span>);
   return (
     <section
       ref={ref}
-      aria-label={label}
+      aria-label={heading}
       aria-live="polite"
       aria-atomic="true"
       data-verdict={outcome}
+      data-device-state={state}
       className={cx(
         'qs-verdict',
         'qs-industrial-verdict',
@@ -108,18 +183,30 @@ export function VerdictCard({
       )}
     >
       <div className="qs-verdict-header">
-        <span>{label}</span>
-        <span className="qs-num">{cycleId ?? validResult?.cycleId ?? '未开始'}</span>
+        <span className="qs-verdict-label" title={serial ? heading : undefined}>
+          {serial ? (
+            <>
+              {label} · SN <span className="qs-num">{serial}</span>
+            </>
+          ) : (
+            label
+          )}
+        </span>
+        {metaContent != null && metaContent !== false && (
+          <span className="qs-verdict-meta">{metaContent}</span>
+        )}
       </div>
       <div className="big">{code}</div>
       <div className="t">{title}</div>
-      <div className="d">{description}</div>
-      {validResult && state !== 'fault' && (
+      {description != null && description !== false && description !== '' && (
+        <div className="d">{description}</div>
+      )}
+      {showFooter && shown && (
         <div className="foot">
-          {validResult.serialNumber && <span>SN {validResult.serialNumber}</span>}
-          <span>结果 {validResult.id}</span>
-          {validResult.durationMs !== undefined && Number.isFinite(validResult.durationMs) && (
-            <span>{validResult.durationMs} ms</span>
+          {shown.serialNumber && !serial && <span>SN {shown.serialNumber}</span>}
+          <span>结果 {shown.id}</span>
+          {shown.durationMs !== undefined && Number.isFinite(shown.durationMs) && (
+            <span>{shown.durationMs} ms</span>
           )}
         </div>
       )}
@@ -177,6 +264,10 @@ export function InspectionStages({
                     <Icon className="qs-ic">
                       <path d="m5 12 4 4L19 6" />
                     </Icon>
+                  ) : failed ? (
+                    <Icon className="qs-ic">
+                      <path d="M12 6v7M12 18h.01" />
+                    </Icon>
                   ) : (
                     <span className={cx('pulse', (!pulse || !!fault) && 'qs-no-pulse')} />
                   )}
@@ -204,9 +295,11 @@ export interface CameraFrame {
   label: string;
   cycleId?: string;
   state: CameraFrameState;
+  stateLabel?: string;
   src?: string;
   alt?: string;
   preview?: ReactNode;
+  keepPreview?: boolean;
   detail?: string;
   channel?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
   disabled?: boolean;
@@ -221,13 +314,39 @@ const frameLabels: Record<CameraFrameState, string> = {
   missing: '未收到帧',
   skipped: '不检测',
 };
-export interface CameraThumbnailProps {
+const cssLength = (value: number | string | undefined) =>
+  typeof value === 'number' ? `${value}px` : value;
+function cameraSize(width?: number | string, previewHeight?: number | string) {
+  const style: Record<string, string> = {};
+  const w = cssLength(width);
+  const h = cssLength(previewHeight);
+  if (w) style['--qs-camera-w'] = w;
+  if (h) style['--qs-camera-preview-h'] = h;
+  return style as CSSProperties;
+}
+export interface CameraThumbnailProps extends Omit<
+  HTMLAttributes<HTMLElement>,
+  'onSelect' | 'children'
+> {
   frame: CameraFrame;
   selected?: boolean;
   onSelect?: (id: string) => void;
-  className?: string;
+  renderPreview?: (frame: CameraFrame) => ReactNode;
+  width?: number | string;
+  previewHeight?: number | string;
 }
-function CameraThumbnailView({ frame, selected, onSelect, className }: CameraThumbnailProps) {
+function CameraThumbnailView({
+  frame,
+  selected,
+  onSelect,
+  renderPreview,
+  width,
+  previewHeight,
+  className,
+  style,
+  onClick,
+  ...rest
+}: CameraThumbnailProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const imageFailed = !!frame.src && failedSrc === frame.src;
   const unavailable =
@@ -235,27 +354,42 @@ function CameraThumbnailView({ frame, selected, onSelect, className }: CameraThu
     frame.state === 'capturing' ||
     frame.state === 'missing' ||
     frame.state === 'skipped';
-  const preview = unavailable ? (
-    <span>{frameLabels[frame.state]}</span>
-  ) : frame.src ? (
-    imageFailed ? (
-      <span>图像加载失败</span>
+  const stateText = frame.stateLabel ?? frameLabels[frame.state];
+  const hosted = renderPreview?.(frame);
+  const visual =
+    hosted != null && hosted !== false ? (
+      hosted
+    ) : frame.src ? (
+      imageFailed ? null : (
+        <img
+          key={frame.src}
+          src={frame.src}
+          alt={frame.alt ?? `${frame.label}采集图像`}
+          onError={() => setFailedSrc(frame.src!)}
+        />
+      )
     ) : (
-      <img
-        key={frame.src}
-        src={frame.src}
-        alt={frame.alt ?? `${frame.label}采集图像`}
-        onError={() => setFailedSrc(frame.src!)}
-      />
-    )
+      frame.preview
+    );
+  const hasVisual = visual != null && visual !== false;
+  const overlay = unavailable && !!frame.keepPreview && hasVisual;
+  const preview = overlay ? (
+    <>
+      <span className="qs-camera-visual">{visual}</span>
+      <span className="qs-camera-overlay">{stateText}</span>
+    </>
+  ) : unavailable ? (
+    <span>{stateText}</span>
+  ) : hasVisual ? (
+    visual
   ) : (
-    (frame.preview ?? <span>暂无预览</span>)
+    <span>{imageFailed ? '图像加载失败' : '暂无预览'}</span>
   );
   const content = (
     <>
       <span className="qs-camera-heading">
         <span className="qs-num">{frame.label}</span>
-        <span className={`qs-frame-state qs-frame-${frame.state}`}>{frameLabels[frame.state]}</span>
+        <span className={`qs-frame-state qs-frame-${frame.state}`}>{stateText}</span>
       </span>
       <span className="qs-camera-preview">{preview}</span>
       <span className="qs-camera-meta">
@@ -274,15 +408,23 @@ function CameraThumbnailView({ frame, selected, onSelect, className }: CameraThu
     </>
   );
   const classes = cx('qs-camera-thumbnail', selected && 'qs-camera-selected', className);
+  const sized = { ...cameraSize(width, previewHeight), ...style };
+  const name = `${frame.label} · ${stateText}`;
   return onSelect ? (
     <button
       type="button"
       className={classes}
       disabled={frame.disabled}
-      aria-label={`${frame.label} · ${frameLabels[frame.state]}`}
+      aria-label={name}
       aria-pressed={!!selected}
-      onClick={() => onSelect(frame.id)}
       data-frame-id={frame.id}
+      data-state={frame.state}
+      style={sized}
+      {...rest}
+      onClick={(event) => {
+        onClick?.(event);
+        if (!event.defaultPrevented) onSelect(frame.id);
+      }}
     >
       {content}
     </button>
@@ -290,22 +432,32 @@ function CameraThumbnailView({ frame, selected, onSelect, className }: CameraThu
     <div
       className={classes}
       role="group"
-      aria-label={`${frame.label} · ${frameLabels[frame.state]}`}
+      aria-label={name}
       data-frame-id={frame.id}
+      data-state={frame.state}
+      style={sized}
+      onClick={onClick}
+      {...rest}
     >
       {content}
     </div>
   );
 }
-export const CameraThumbnail = memo(
-  CameraThumbnailView,
-  (a, b) =>
-    a.selected === b.selected &&
-    a.onSelect === b.onSelect &&
-    a.className === b.className &&
-    Object.keys(a.frame).length === Object.keys(b.frame).length &&
-    (Object.keys(a.frame) as (keyof CameraFrame)[]).every((key) => a.frame[key] === b.frame[key]),
-);
+function shallowEqual<T extends object>(a: T | undefined, b: T | undefined) {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  const keys = Object.keys(a) as (keyof T)[];
+  return keys.length === Object.keys(b).length && keys.every((key) => a[key] === b[key]);
+}
+export const CameraThumbnail = memo(CameraThumbnailView, (a, b) => {
+  const keys = Object.keys(a) as (keyof CameraThumbnailProps)[];
+  return (
+    keys.length === Object.keys(b).length &&
+    keys.every((key) =>
+      key === 'frame' || key === 'style' ? shallowEqual<object>(a[key], b[key]) : a[key] === b[key],
+    )
+  );
+});
 export interface CameraStripProps {
   frames: CameraFrame[];
   value?: string | null;
@@ -314,6 +466,9 @@ export interface CameraStripProps {
   cycleId?: string;
   layout?: 'strip' | 'grid';
   label?: string;
+  renderPreview?: (frame: CameraFrame) => ReactNode;
+  thumbnailWidth?: number | string;
+  previewHeight?: number | string;
   className?: string;
 }
 export function CameraStrip({
@@ -324,6 +479,9 @@ export function CameraStrip({
   cycleId,
   layout = 'strip',
   label = '相机帧',
+  renderPreview,
+  thumbnailWidth,
+  previewHeight,
   className,
 }: CameraStripProps) {
   const [localSelection, setLocalSelection] = useState({ cycleId, id: defaultValue });
@@ -342,37 +500,79 @@ export function CameraStrip({
       ? {
           ...frame,
           state: 'waiting' as const,
+          stateLabel: undefined,
           src: undefined,
           preview: undefined,
+          keepPreview: undefined,
           detail: '等待当前工件采集',
         }
       : frame,
   );
+  const current = useCallback(
+    (frame: CameraFrame) =>
+      cycleId !== undefined && frame.cycleId !== cycleId ? null : renderPreview?.(frame),
+    [cycleId, renderPreview],
+  );
+  const lastReveal = useRef<string | null>(null);
   useEffect(() => {
-    if (layout !== 'strip') return;
     const container = root.current;
-    const reveal = () => {
-      const active = container?.querySelector<HTMLElement>('[aria-pressed="true"]');
-      if (!active || !container) return;
+    if (layout !== 'strip' || !container) {
+      container?.removeAttribute('data-overflow-start');
+      container?.removeAttribute('data-overflow-end');
+      return;
+    }
+    const measure = () => {
+      const max = container.scrollWidth - container.clientWidth;
+      container.toggleAttribute('data-overflow-start', container.scrollLeft > 1);
+      container.toggleAttribute('data-overflow-end', container.scrollLeft < max - 1);
+    };
+    const reveal = (smooth: boolean) => {
+      const active = container.querySelector<HTMLElement>('[aria-pressed="true"]');
+      if (!active) return;
       const rect = active.getBoundingClientRect();
       const parent = container.getBoundingClientRect();
-      if (rect.left < parent.left) container.scrollLeft -= parent.left - rect.left;
-      else if (rect.right > parent.right) container.scrollLeft += rect.right - parent.right;
+      const inset = parseFloat(getComputedStyle(container).scrollPaddingInlineStart) || 0;
+      const delta =
+        rect.left < parent.left + inset
+          ? rect.left - parent.left - inset
+          : rect.right > parent.right - inset
+            ? rect.right - parent.right + inset
+            : 0;
+      if (!delta) return;
+      const left = container.scrollLeft + delta;
+      if (smooth && !reducedMotion() && typeof container.scrollTo === 'function')
+        container.scrollTo({ left, behavior: 'smooth' });
+      else container.scrollLeft = left;
     };
-    reveal();
-    let frame = 0;
-    const schedule = () => {
-      if (!frame)
-        frame = requestAnimationFrame(() => {
-          frame = 0;
-          reveal();
+    const target = `${cycleId ?? ''}\0${selected ?? ''}`;
+    reveal(lastReveal.current !== null && lastReveal.current !== target);
+    lastReveal.current = target;
+    measure();
+    let resized = 0;
+    let scrolled = 0;
+    const onResize = () => {
+      if (!resized)
+        resized = requestAnimationFrame(() => {
+          resized = 0;
+          reveal(false);
+          measure();
         });
     };
-    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
-    if (container) observer?.observe(container);
+    const onScroll = () => {
+      if (!scrolled)
+        scrolled = requestAnimationFrame(() => {
+          scrolled = 0;
+          measure();
+        });
+    };
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(onResize);
+    observer?.observe(container);
+    container.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       observer?.disconnect();
-      cancelAnimationFrame(frame);
+      container.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(resized);
+      cancelAnimationFrame(scrolled);
     };
   }, [selected, cycleId, layout, frames.map((frame) => frame.id).join('\0')]);
   if (!frames.length)
@@ -383,6 +583,7 @@ export function CameraStrip({
       role="group"
       aria-label={label}
       className={cx('qs-camera-strip', layout === 'grid' && 'qs-camera-grid', className)}
+      style={cameraSize(thumbnailWidth, previewHeight)}
       onKeyDown={(event) => {
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
         const buttons = Array.from(
@@ -406,7 +607,8 @@ export function CameraStrip({
           key={`${cycleId ?? ''}:${frame.id}`}
           frame={frame}
           selected={selected === frame.id}
-          onSelect={(id) => setSelected(id)}
+          onSelect={setSelected}
+          renderPreview={renderPreview ? current : undefined}
         />
       ))}
     </div>
@@ -420,6 +622,7 @@ function formatNumber(
   precision: number,
   locale: string,
   useGrouping: boolean,
+  groupSeparator?: string,
 ) {
   if (value == null || !Number.isFinite(value)) return null;
   const digits = Number.isFinite(precision) ? Math.max(0, Math.min(20, Math.trunc(precision))) : 2;
@@ -435,14 +638,20 @@ function formatNumber(
     if (numberFormats.size >= 32) numberFormats.delete(numberFormats.keys().next().value!);
     numberFormats.set(key, formatter);
   }
-  return formatter.format(normalized);
+  if (!useGrouping || groupSeparator === undefined) return formatter.format(normalized);
+  return formatter
+    .formatToParts(normalized)
+    .map((part) => (part.type === 'group' ? groupSeparator : part.value))
+    .join('');
 }
 const NumberCharacter = memo(function NumberCharacter({
   character,
   animate,
+  direction,
 }: {
   character: string;
   animate: boolean;
+  direction: 1 | -1;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
   const previous = useRef(character);
@@ -453,15 +662,15 @@ const NumberCharacter = memo(function NumberCharacter({
     if (!animate || old === character || !/\d/.test(old) || !/\d/.test(character) || !ref.current)
       return;
     const now = performance.now();
-    const token = getComputedStyle(ref.current).getPropertyValue('--dur-short').trim();
-    const minimum = parseFloat(token) * (token.endsWith('ms') ? 1 : 1000);
-    const rapid = lastChange.current !== null && now - lastChange.current < minimum;
+    const css = getComputedStyle(ref.current);
+    const settle = tokenMs(css, '--dur-medium') + tokenMs(css, '--dur-short');
+    const rapid = lastChange.current !== null && now - lastChange.current < settle;
     lastChange.current = now;
-    if (rapid) return; // Streaming values stay legible instead of repeatedly fading to 25%.
+    if (rapid) return;
     const animation = motion(
       ref.current,
       [
-        { transform: 'translateY(60%)', opacity: 0.25 },
+        { transform: `translateY(${direction * 40}%)`, opacity: 0.3 },
         { transform: 'translateY(0)', opacity: 1 },
       ],
       '--dur-medium',
@@ -479,6 +688,7 @@ export interface AnimatedNumberProps {
   precision?: number;
   locale?: string;
   useGrouping?: boolean;
+  groupSeparator?: string;
   animate?: boolean;
   placeholder?: string;
   className?: string;
@@ -487,12 +697,20 @@ export function AnimatedNumber({
   value,
   precision = 2,
   locale = 'zh-CN',
-  useGrouping = false,
+  useGrouping,
+  groupSeparator,
   animate = true,
   placeholder = '—',
   className,
 }: AnimatedNumberProps) {
-  const text = formatNumber(value, precision, locale, useGrouping);
+  const grouping = useGrouping ?? groupSeparator !== undefined;
+  const text = formatNumber(value, precision, locale, grouping, groupSeparator);
+  const previousValue = useRef(value);
+  const direction: 1 | -1 =
+    value != null && previousValue.current != null && value < previousValue.current ? -1 : 1;
+  useEffect(() => {
+    previousValue.current = value;
+  }, [value]);
   let decimal = decimalMarks.get(locale);
   if (!decimal) {
     decimal =
@@ -513,21 +731,33 @@ export function AnimatedNumber({
                 key={decimalIndex >= 0 ? index - decimalIndex : index - text.length}
                 character={character}
                 animate={animate}
+                direction={direction}
               />
             ))}
       </span>
     </span>
   );
 }
-export interface MeasurementReadingProps extends AnimatedNumberProps {
+export interface MeasurementReadingProps extends Omit<AnimatedNumberProps, 'value'> {
   label: string;
+  value: number | string | null | undefined;
   unit?: string;
   status?: 'neutral' | InspectionVerdict;
   stale?: boolean;
   limits?: { min?: number; max?: number };
   description?: ReactNode;
+  pendingLabel?: string | null;
   size?: 'md' | 'lg';
 }
+const readingLabels = {
+  neutral: '',
+  ok: 'OK',
+  ng: 'NG',
+  warn: '待复核',
+  fault: '测量异常',
+  pending: '未测',
+  stale: '历史值',
+};
 function MeasurementReadingView({
   label,
   unit,
@@ -535,28 +765,25 @@ function MeasurementReadingView({
   stale = false,
   limits,
   description,
+  pendingLabel = readingLabels.pending,
   size = 'lg',
   className,
+  value,
   ...number
 }: MeasurementReadingProps) {
   const id = useId();
-  const available = number.value != null && Number.isFinite(number.value);
+  const textValue = typeof value === 'string' ? value.trim() || null : null;
+  const available = textValue !== null || (typeof value === 'number' && Number.isFinite(value));
   const effective = stale ? 'stale' : !available && status !== 'fault' ? 'pending' : status;
-  const labels = {
-    neutral: '',
-    ok: 'OK',
-    ng: 'NG',
-    warn: '待复核',
-    fault: '测量异常',
-    pending: '未测',
-    stale: '历史值',
-  };
-  const formatLimit = (value: number | undefined) =>
+  const stateText = effective === 'pending' ? (pendingLabel ?? '') : readingLabels[effective];
+  const grouping = number.useGrouping ?? number.groupSeparator !== undefined;
+  const formatLimit = (limit: number | undefined) =>
     formatNumber(
-      value,
+      limit,
       number.precision ?? 2,
       number.locale ?? 'zh-CN',
-      number.useGrouping ?? false,
+      grouping,
+      number.groupSeparator,
     ) ?? '—';
   return (
     <div
@@ -572,11 +799,15 @@ function MeasurementReadingView({
     >
       <div className="qs-measurement-heading">
         <span id={id}>{label}</span>
-        {labels[effective] && <span className="qs-measurement-state">{labels[effective]}</span>}
+        {stateText && <span className="qs-measurement-state">{stateText}</span>}
       </div>
       <div className="qs-measurement-value">
-        <AnimatedNumber {...number} />
-        <span className="qs-measurement-unit">{unit}</span>
+        {textValue !== null ? (
+          <span className="qs-measurement-text">{textValue}</span>
+        ) : (
+          <AnimatedNumber {...number} value={typeof value === 'number' ? value : null} />
+        )}
+        {unit && <span className="qs-measurement-unit">{unit}</span>}
       </div>
       {limits && (
         <div className="qs-measurement-limits">
@@ -614,6 +845,97 @@ export function MeasurementReadings({
     >
       {items.map(({ id, ...item }) => (
         <MeasurementReading key={id} {...item} />
+      ))}
+    </section>
+  );
+}
+
+export type StatTone = 'neutral' | 'ok' | 'ng' | 'warn' | 'fault';
+export interface StatCounterProps extends Omit<AnimatedNumberProps, 'value' | 'precision'> {
+  label: ReactNode;
+  value: number | string | null | undefined;
+  unit?: ReactNode;
+  tone?: StatTone;
+  toneWhenZero?: boolean;
+  precision?: number;
+  description?: ReactNode;
+  span?: number;
+  size?: 'md' | 'lg';
+}
+function StatCounterView({
+  label,
+  value,
+  unit,
+  tone = 'neutral',
+  toneWhenZero = false,
+  precision = 0,
+  description,
+  span,
+  size = 'lg',
+  className,
+  ...number
+}: StatCounterProps) {
+  const id = useId();
+  const textValue = typeof value === 'string' ? value.trim() || null : null;
+  const numeric = typeof value === 'number' && Number.isFinite(value) ? value : null;
+  const empty = textValue === null && numeric === null;
+  const quiet = empty || (numeric !== null && numeric === 0 && !toneWhenZero);
+  const effective = quiet ? 'neutral' : tone;
+  return (
+    <div
+      role="group"
+      aria-labelledby={id}
+      className={cx('qs-stat-counter', size === 'md' && 'qs-stat-counter-md', className)}
+      data-tone={effective}
+      style={
+        span && span > 1 ? ({ gridColumn: `span ${Math.trunc(span)}` } as CSSProperties) : undefined
+      }
+    >
+      <span className="qs-stat-counter-label" id={id}>
+        {label}
+      </span>
+      <span className="qs-stat-counter-value">
+        {textValue !== null ? (
+          <span className="qs-stat-counter-text">{textValue}</span>
+        ) : (
+          <AnimatedNumber {...number} value={numeric} precision={precision} />
+        )}
+        {unit != null && unit !== false && !empty && (
+          <span className="qs-stat-counter-unit">{unit}</span>
+        )}
+      </span>
+      {description && <span className="qs-stat-counter-description">{description}</span>}
+    </div>
+  );
+}
+export const StatCounter = memo(StatCounterView);
+export interface KpiItem extends StatCounterProps {
+  id: string;
+}
+export interface KpiGroupProps {
+  items: KpiItem[];
+  label?: string;
+  columns?: number;
+  minWidth?: number;
+  className?: string;
+}
+export function KpiGroup({
+  items,
+  label = '统计',
+  columns,
+  minWidth = 112,
+  className,
+}: KpiGroupProps) {
+  const style: Record<string, string> = { '--kpi-min': `${minWidth}px` };
+  if (columns && columns > 0) style['--kpi-columns'] = String(Math.trunc(columns));
+  return (
+    <section
+      aria-label={label}
+      className={cx('qs-kpi-group', !!columns && columns > 0 && 'qs-kpi-columns', className)}
+      style={style as CSSProperties}
+    >
+      {items.map(({ id, ...item }) => (
+        <StatCounter key={id} {...item} />
       ))}
     </section>
   );

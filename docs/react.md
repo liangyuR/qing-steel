@@ -172,15 +172,17 @@ const columns: TableColumn<Row>[] = [
 
 展示页新增「工业判定与阶段」「相机与采集帧」「测量与数字读数」。仍从 `qing-steel` 导入，样式包含在 `qing-steel/react.css` 中。
 
-| 组件 | 主要属性 / 行为 |
-| --- | --- |
-| VerdictCard | `result / cycleId / state / faultMessage / size / emphasize / label`；结果为 `{id,cycleId,verdict,description?,serialNumber?,durationMs?}`，verdict 支持 `ok / ng / warn / fault` |
-| InspectionStages | `steps=[{id,label}] / currentStepId / completedStepIds / fault / pulse / label`；fault 为 `{stepId?,message}`，完成状态显式传入；呼吸效果默认关闭 |
-| CameraThumbnail | `frame / selected / onSelect / className`；提供 onSelect 时为按钮，否则为只读缩略图 |
-| CameraStrip | `frames / value / defaultValue / onValueChange / cycleId / layout / label`；layout 为 `strip / grid`，方向键及 Home / End 选择可用帧，横向模式自动显露选中帧 |
-| AnimatedNumber | `value / precision / locale / useGrouping / animate / placeholder`；只对变化的数字位播放动效，默认精度 2 |
-| MeasurementReading | 数字属性加 `label / unit / status / stale / limits / description / size`；limits 为 `{min?,max?}`，status 为 `neutral / ok / ng / warn / fault` |
-| MeasurementReadings | `items / label / minWidth`；items 为带唯一 id 的 MeasurementReading 属性，自适应读数组 |
+| 组件                | 主要属性 / 行为                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| VerdictCard         | `result / cycleId / state / faultMessage / size / emphasize / label`；结果为 `{id,cycleId,verdict,code?,title?,description?,serialNumber?,durationMs?}`，verdict 支持 `ok / ng / warn / fault`。`keepResultOnFault`（默认 false）、`stateContent`（idle / running / fault 的大字、副标题、描述）、`serialPlacement=footer或header`、`meta`（头部右侧内容或 `(result) => ReactNode`）、`showFooter`（默认 true） |
+| InspectionStages    | `steps=[{id,label}] / currentStepId / completedStepIds / fault / pulse / label`；fault 为 `{stepId?,message}`，完成状态显式传入；呼吸效果默认关闭                                                                                                                                                                                                                                                               |
+| CameraThumbnail     | `frame / selected / onSelect / className / renderPreview / width / previewHeight`，其余原生属性（`aria-label`、`aria-pressed`、`title`、`data-*`、`onClick` 等）透传到根元素；提供 onSelect 时为按钮，否则为只读缩略图                                                                                                                                                                                          |
+| CameraStrip         | `frames / value / defaultValue / onValueChange / cycleId / layout / label / renderPreview / thumbnailWidth / previewHeight`；layout 为 `strip / grid`，方向键及 Home / End 选择可用帧，横向模式平滑显露选中帧，两端有未显示的帧时边缘渐隐                                                                                                                                                                       |
+| AnimatedNumber      | `value / precision / locale / useGrouping / groupSeparator / animate / placeholder`；只对变化的数字位播放动效，默认精度 2；`groupSeparator` 指定千分位字符（如空格），给出时默认启用分组                                                                                                                                                                                                                        |
+| MeasurementReading  | 数字属性加 `label / unit / status / stale / limits / description / pendingLabel / size`；value 可为数字或文字；limits 为 `{min?,max?}`，status 为 `neutral / ok / ng / warn / fault`；`pendingLabel` 默认「未测」，设为 `null` 时无值只显示占位横线                                                                                                                                                             |
+| MeasurementReadings | `items / label / minWidth`；items 为带唯一 id 的 MeasurementReading 属性，自适应读数组                                                                                                                                                                                                                                                                                                                          |
+| StatCounter         | `label / value / unit / tone / toneWhenZero / precision / description / span / size`，以及 AnimatedNumber 的格式属性；tone 为 `neutral / ok / ng / warn / fault`，值为 0 或缺失时默认保持中性色；precision 默认 0                                                                                                                                                                                               |
+| KpiGroup            | `items / label / columns / minWidth`；items 为带唯一 id 的 StatCounter 属性；给出 `columns` 时按固定列数排布，配合 item 的 `span` 跨列，否则按 `minWidth`（默认 112）自适应                                                                                                                                                                                                                                     |
 
 ```tsx
 import { VerdictCard, InspectionStages, MeasurementReading } from 'qing-steel';
@@ -199,17 +201,76 @@ import { VerdictCard, InspectionStages, MeasurementReading } from 'qing-steel';
 
 ### 结果、帧与工件身份
 
-应用应传入当前 `cycleId`，并为每次新结果提供唯一 `result.id`。不匹配当前工件的判定被隐藏；设备 `state="fault"` 优先于已有产品判定，使用紫色 ERR，与红色 NG 区分。新 NG 结果强调一次，普通重绘不会重复强调；初次挂载不播放入场动画，`emphasize={false}` 可关闭强调。
+应用应传入当前 `cycleId`，并为每次新结果提供唯一 `result.id`。不匹配当前工件的判定被隐藏；设备 `state="fault"` 默认优先于已有产品判定，使用紫色 ERR，与红色 NG 区分。`keepResultOnFault` 开启时，本件已有有效判定继续显示（根元素 `data-device-state="fault"` 供宿主标记），没有本件判定时仍显示 ERR。
 
-CameraFrame 包含 `id / cameraId / label / state`，可选 `cycleId / src / alt / preview / detail / channel / disabled`。state 支持 `waiting / capturing / ok / ng / warn / fault / missing / skipped`；channel 为 1–8。src 提供图片，preview 可提供 SVG 等只读内容，请勿嵌套按钮或链接。缺图、跳过、等待和采集中均显示明确占位；图片加载失败显示错误文字，同时保留检测结果状态。
+判定切换时新内容自下方 6 px 淡入（medium / decel，依次错开 short 的四分之一），背景色同步过渡。只有新的 NG 结果 ID 到达时整卡放大到 1.02 再回落一次（long，前段 decel、后段 standard，无回弹）；同一结果的重绘、故障覆盖后恢复都不会再次强调，连续到达时取消旧动效、不排队。初次挂载不播放，`emphasize={false}` 可关闭强调，减少动态效果时直接切换。
 
-CameraStrip 传入 cycleId 时，仅展示 cycleId 匹配的帧内容，其余显示等待当前工件。帧 id 应唯一且稳定，选择以 id 保存；非受控选择仅对其所属工件生效。受控模式下，应用在切换工件时应同步清空 value，并忽略过期的异步结果。
+`result.code` / `result.title` 覆盖大字与副标题，用于产线语义：局部超差传 `verdict: 'warn', code: 'OK', title: '局部超差'`，NG 细分传 `title: '断胶'` 等。无结果时的文案用 `stateContent` 覆盖，`faultMessage` 仍优先作为故障描述。`serialPlacement="header"` 把 SN 放到头部并写入可访问名称（`判定结果 · SN …`，过长时单行省略、悬停显示全文）；`meta` 的函数形式只收到当前展示的有效结果，被隐藏或被故障覆盖时为 `null`，避免把上一件的 PLC 码带到本件。
+
+```tsx
+<VerdictCard
+  label="判定结果"
+  cycleId={part.cycleId}
+  state={phase === 'FAULT' ? 'fault' : running ? 'running' : 'idle'}
+  keepResultOnFault
+  serialPlacement="header"
+  showFooter={false}
+  meta={(shown) => (shown ? `PLC ${plcCode}` : 'PLC —')}
+  stateContent={{
+    running: { title: '检测中…', description: `SN ${part.sn} · 帧 ${part.received} / ${part.n}` },
+  }}
+  result={{
+    id: resultId,
+    cycleId: part.cycleId,
+    verdict: 'warn',
+    code: 'OK',
+    title: '局部超差',
+    description: reason,
+    serialNumber: part.sn,
+  }}
+/>
+```
+
+CameraFrame 包含 `id / cameraId / label / state`，可选 `cycleId / stateLabel / src / alt / preview / keepPreview / detail / channel / disabled`。state 支持 `waiting / capturing / ok / ng / warn / fault / missing / skipped`；channel 为 1–8；`stateLabel` 替换状态文案（如「局部超差」「断胶」「未示教」），同时用于可访问名称，颜色仍由 state 决定。src 提供图片，preview 可提供 SVG 等只读内容，请勿嵌套按钮或链接。缺图、跳过、等待和采集中默认显示明确占位；`keepPreview` 开启时保留预览、降低不透明度并叠加状态文字。图片加载失败显示错误文字，同时保留检测结果状态。
+
+`renderPreview(frame)` 为宿主渲染槽，优先于 src / preview，适合挂载自行绘制的 canvas 实时预览；请用 `useCallback` 保持引用稳定，组件按引用与帧字段跳过无关重绘。尺寸默认宽 176 px、预览高 88 px，可用 `width / previewHeight`（CameraStrip 为 `thumbnailWidth / previewHeight`）或 CSS 变量 `--qs-camera-w / --qs-camera-preview-h` 调整，网格模式以宽度作为最小列宽。
+
+CameraStrip 传入 cycleId 时，仅展示 cycleId 匹配的帧内容，其余显示等待当前工件，也不会为旧帧调用 `renderPreview`。帧 id 应唯一且稳定，选择以 id 保存；非受控选择仅对其所属工件生效。受控模式下，应用在切换工件时应同步清空 value，并忽略过期的异步结果。
+
+缩略图状态用胶囊标签：OK、待复核、故障、采集中取对应容器色，NG 用实色，远处也能区分；悬停、按压叠加 `--state-hover / --state-pressed`，按压缩放到 .98，选中为 primary 描边加 8% primary 底色，禁用使用 `--on-surface-disabled`。
+
+检测阶段推进时，完成项的序号以缩放淡入换成勾，连接线自左向右填满（medium / decel），新的当前阶段延迟 short 再点亮，读出推进方向；各状态内边距一致，切换不改变宽度。故障阶段显示感叹号，不依赖颜色区分。
 
 ### 读数与动效
 
 `null / undefined / NaN / Infinity` 显示占位，不冒充零或合格；显式 fault 仍显示 ERR。`stale` 将读数标记为历史值。精度限定在 0–20，小数舍入后消除负零。limits 仅展示参考范围，组件不计算业务判定，status 应来自应用的检测逻辑。
 
-数字采用等宽字形，单位紧随读数。动效使用现有时长 token，遵循 `prefers-reduced-motion`；数值变化不通过 live region 高频播报。展示页可模拟新工件、NG、设备故障、缺图、读数缺失及历史值，不连接真实设备。
+数字采用等宽字形，单位紧随读数。动效使用现有时长 token，遵循 `prefers-reduced-motion`；数值变化不通过 live region 高频播报。变化位按数值方向（增大自下、减小自上）位移 40% 并淡入（medium / decel）；同一位两次变化间隔小于 medium + short 时直接显示新值，并取消仍在进行的动效，高频读数不排队、不反复淡出。展示页可模拟新工件、NG、设备故障、缺图、读数缺失及历史值，不连接真实设备。
+
+value 为文字时（如「刚刚」「3 秒前」）按有效值显示，不播放数字动效。读数状态用胶囊标签，NG 为实色，其余取容器色。
+
+StatCounter / KpiGroup 用于产量、OK / NG / ERR 计数和良率：标签只出现一次，不复用测量状态标签；数值为 0 或缺失时保持中性色（`toneWhenZero` 可改），不会把 0 件 NG 标红。
+
+```tsx
+<KpiGroup
+  label="今日统计"
+  columns={6}
+  items={[
+    { id: 'total', label: '今日', value: total, span: 3, groupSeparator: ' ' },
+    {
+      id: 'yield',
+      label: '良率',
+      value: total ? (ok / total) * 100 : null,
+      precision: 1,
+      unit: '%',
+      span: 3,
+    },
+    { id: 'ok', label: 'OK', value: ok, tone: 'ok', span: 2 },
+    { id: 'ng', label: 'NG', value: ng, tone: 'ng', span: 2 },
+    { id: 'err', label: 'ERR', value: err, tone: 'fault', span: 2 },
+  ]}
+/>
+```
 
 ## 参考来源
 
