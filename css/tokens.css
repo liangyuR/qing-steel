@@ -158,6 +158,7 @@
   --ease-spatial: cubic-bezier(.38, 1.21, .22, 1);
   --ease-standard: cubic-bezier(.2, 0, 0, 1);
   --ease-decel: cubic-bezier(.05, .7, .1, 1);
+  --ease-accel: cubic-bezier(.3, 0, 1, 1);
 }
 
 /* 减少动态效果：时长归零，引用 token 的过渡与动画随之失效；components.css 另有兜底 */
