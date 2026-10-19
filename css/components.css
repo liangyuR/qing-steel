@@ -128,7 +128,8 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
 
 /* ---------- 输入框 ---------- */
 .qs-field { display: grid; gap: 6px; min-width: 0; }
-.qs-field label { font-size: 12px; color: var(--on-surface-variant); }
+.qs-field label,
+label.qs-field > span:first-child:not(.qs-input) { font-size: 12px; color: var(--on-surface-variant); }
 .qs-input {
   height: var(--ctl-h); border-radius: var(--r-md); border: 1px solid var(--outline-variant);
   background: var(--surface-lowest); color: var(--on-surface); padding: 0 12px;
