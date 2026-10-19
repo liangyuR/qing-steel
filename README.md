@@ -11,6 +11,7 @@
 - **组件样式**：[`css/components.css`](css/components.css)
 - **动效脚本（可选）**：[`js/qs-motion.js`](js/qs-motion.js)
 - **JSON token**：[`tokens.json`](tokens.json)（由 `css/tokens.css` 生成）
+- **React 工业扩展**：OK/NG 判定大卡、检测阶段、相机缩略图与测量读数，包含工件隔离、键盘选帧和数字动效；见 [接入文档](docs/react.md#工业扩展组件)，本地展示页 `/showcase/#industrial-verdict`。
 
 ---
 
@@ -223,6 +224,28 @@
 ---
 
 ## 使用
+
+### React + TypeScript 组件
+
+提供两批通用 React 组件及可交互的组件展示页，包含主题、排版、布局、按钮、表单、选择、导航、浮层与反馈组件。第二批新增滑块、搜索选择、日期时间、折叠面板、锚点浮层、表格分页、应用导航、骨架屏和浮动操作按钮。
+
+```sh
+npm install
+npm run dev
+```
+
+打开 `http://127.0.0.1:5173/showcase/`，可切换深浅主题、搜索组件并操作示例。
+
+```tsx
+import { ThemeProvider, Button } from "qing-steel";
+import "qing-steel/react.css";
+
+<ThemeProvider defaultTheme="dark">
+  <Button variant="filled">开始操作</Button>
+</ThemeProvider>
+```
+
+`npm run build` 生成组件 ESM 与类型声明；`npm run build:demo` 生成静态展示站点。完整接口、验证命令和接入方式见 [React 组件文档](docs/react.md)。
 
 ### 作为依赖安装
 

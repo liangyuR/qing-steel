@@ -1,0 +1,263 @@
+.qs-industrial-verdict .qs-verdict-header {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-8);
+  margin-bottom: var(--space-12);
+  font: var(--text-label);
+}
+.qs-industrial-verdict .qs-verdict-header > span,
+.qs-industrial-verdict .foot > span {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.qs-industrial-verdict.xl {
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+}
+.qs-industrial-verdict .big {
+  overflow-wrap: anywhere;
+}
+.qs-inspection-stages {
+  display: grid;
+  gap: var(--space-12);
+}
+.qs-inspection-stages ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.qs-inspection-stages li {
+  display: inline-flex;
+  align-items: center;
+}
+.qs-inspection-stages .ph.fault {
+  margin-left: 0;
+}
+.qs-cycle .ph.cur .g .pulse.qs-no-pulse {
+  animation: none;
+}
+.qs-camera-strip {
+  display: flex;
+  gap: var(--space-12);
+  width: 100%;
+  overflow-x: auto;
+  padding: 4px;
+  scroll-padding-inline: 4px;
+  min-width: 0;
+}
+.qs-camera-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 168px), 1fr));
+  overflow: visible;
+}
+.qs-camera-thumbnail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: 8px;
+  border: 2px solid transparent;
+  background: var(--surface-mid);
+  border-radius: var(--r-md);
+  color: var(--on-surface);
+  text-align: left;
+  width: 176px;
+  min-width: 0;
+  flex: 0 0 176px;
+  transition:
+    border-color var(--dur-short) var(--ease-standard),
+    background var(--dur-short) var(--ease-standard);
+}
+button.qs-camera-thumbnail {
+  cursor: pointer;
+}
+button.qs-camera-thumbnail:not(:disabled):hover {
+  background: var(--surface-high);
+}
+.qs-camera-thumbnail:disabled {
+  opacity: 0.5;
+}
+.qs-camera-grid .qs-camera-thumbnail {
+  width: 100%;
+}
+.qs-camera-thumbnail.qs-camera-selected {
+  border-color: var(--primary);
+}
+.qs-camera-heading,
+.qs-camera-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font: var(--text-label);
+}
+.qs-camera-heading {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.qs-camera-heading > span {
+  overflow-wrap: anywhere;
+}
+.qs-camera-preview {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 88px;
+  border-radius: var(--r-sm);
+  background: var(--surface-lowest);
+  color: var(--on-surface-variant);
+  overflow: hidden;
+  font: var(--text-label);
+}
+.qs-camera-preview > :is(img, svg) {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.qs-camera-meta {
+  flex-wrap: wrap;
+  font-size: 10px;
+  color: var(--on-surface-variant);
+}
+.qs-camera-meta > span {
+  overflow-wrap: anywhere;
+}
+.qs-channel-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-full);
+  flex: none;
+}
+.qs-camera-frame-id {
+  margin-left: auto;
+  font-family: var(--font-mono);
+}
+.qs-camera-detail {
+  font: var(--text-label);
+  font-size: 11px;
+  color: var(--on-surface-variant);
+  overflow-wrap: anywhere;
+}
+.qs-camera-detail.qs-error {
+  color: var(--warn);
+}
+.qs-frame-state {
+  font-size: 11px;
+}
+.qs-frame-ok {
+  color: var(--ok);
+}
+.qs-frame-ng {
+  color: var(--ng);
+  font-weight: 700;
+}
+.qs-frame-warn {
+  color: var(--warn);
+}
+.qs-frame-fault,
+.qs-frame-missing {
+  color: var(--fault);
+}
+.qs-frame-capturing {
+  color: var(--primary);
+}
+.qs-frame-waiting,
+.qs-frame-skipped {
+  color: var(--on-surface-variant);
+}
+.qs-measurement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--measurement-min, 160px)), 1fr));
+  gap: var(--space-12);
+  min-width: 0;
+}
+.qs-measurement {
+  display: grid;
+  align-content: start;
+  gap: var(--space-8);
+  min-width: 0;
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  background: var(--surface-mid);
+}
+.qs-measurement-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  color: var(--on-surface-variant);
+  font: var(--text-label);
+}
+.qs-measurement-value {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font: var(--text-data-lg);
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.qs-measurement-md .qs-measurement-value {
+  font: var(--text-data);
+}
+.qs-measurement-unit {
+  font: var(--text-label);
+  color: var(--on-surface-variant);
+  flex: none;
+}
+.qs-animated-number {
+  white-space: nowrap;
+}
+.qs-reading-character {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.qs-reading-character > span {
+  display: inline-block;
+}
+.qs-measurement-limits,
+.qs-measurement-description {
+  font: var(--text-label);
+  font-size: 11px;
+  color: var(--on-surface-variant);
+  overflow-wrap: anywhere;
+}
+.qs-measurement-state {
+  font-family: var(--font-mono);
+}
+.qs-measurement-ok .qs-measurement-state,
+.qs-measurement-ok .qs-measurement-value {
+  color: var(--ok);
+}
+.qs-measurement-ng {
+  background: var(--ng-container);
+}
+.qs-measurement-ng .qs-measurement-value,
+.qs-measurement-ng .qs-measurement-state {
+  color: var(--ng);
+}
+.qs-measurement-warn .qs-measurement-value,
+.qs-measurement-warn .qs-measurement-state {
+  color: var(--warn);
+}
+.qs-measurement-fault .qs-measurement-value,
+.qs-measurement-fault .qs-measurement-state {
+  color: var(--fault);
+}
+.qs-measurement-stale .qs-measurement-value,
+.qs-measurement-pending .qs-measurement-value {
+  color: var(--on-surface-variant);
+}
+@media (max-width: 580px) {
+  .qs-industrial-verdict.xl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .qs-industrial-verdict .big {
+    grid-row: auto;
+    font-size: 64px;
+    line-height: 1;
+  }
+}

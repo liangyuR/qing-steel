@@ -3,6 +3,13 @@
   "version": "0.6.0",
   "description": "青钢 QING / STEEL：面向工业视觉软件的 Material 3 风格设计语言（tokens + 组件样式 + 动效脚本）",
   "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": [
+    "**/*.css",
+    "./js/qs-motion.js"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/liangyuR/qing-steel.git"
@@ -10,10 +17,16 @@
   "files": [
     "css",
     "js",
-    "tokens.json"
+    "tokens.json",
+    "dist"
   ],
   "style": "css/tokens.css",
   "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./react.css": "./css/react.css",
     "./tokens.css": "./css/tokens.css",
     "./components.css": "./css/components.css",
     "./qs-motion.js": "./js/qs-motion.js",
@@ -22,6 +35,45 @@
   },
   "scripts": {
     "tokens": "node scripts/build-tokens-json.mjs",
-    "check": "node scripts/build-tokens-json.mjs --check"
+    "check": "node scripts/build-tokens-json.mjs --check",
+    "dev": "vite --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "build": "vite build --mode library && tsc -p tsconfig.build.json",
+    "build:demo": "vite build && node scripts/copy-legacy-demo.mjs",
+    "preview": "vite preview --outDir dist-demo --host 127.0.0.1",
+    "test": "vitest run",
+    "test:browser": "playwright test",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@radix-ui/react-accordion": "^1.3.1",
+    "@radix-ui/react-dialog": "^1.3.1",
+    "@radix-ui/react-dropdown-menu": "^2.2.1",
+    "@radix-ui/react-popover": "^1.3.1",
+    "@radix-ui/react-select": "^2.4.1",
+    "@radix-ui/react-slider": "^1.6.1",
+    "@radix-ui/react-tabs": "^1.2.1",
+    "@radix-ui/react-tooltip": "^1.4.1",
+    "react-day-picker": "^10.0.2"
+  },
+  "peerDependencies": {
+    "react": ">=18.2.0 <20",
+    "react-dom": ">=18.2.0 <20"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "jsdom": "^30.1.3",
+    "prettier": "^3.9.10",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
   }
 }

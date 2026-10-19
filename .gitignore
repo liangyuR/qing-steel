@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist-demo/
+.reference/
+ly-reference.zip
+test-results/
+playwright-report/
+.npm-cache-temp/
