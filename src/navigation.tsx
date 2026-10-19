@@ -78,6 +78,13 @@ function capture(nav: HTMLElement, content?: HTMLElement | null): Snapshot {
   };
 }
 
+function release(animations: Animation[]) {
+  for (const animation of animations) {
+    animation.onfinish = animation.oncancel = null;
+    animation.cancel();
+  }
+}
+
 function play(
   nav: HTMLElement,
   before: Snapshot,
@@ -106,6 +113,7 @@ function play(
   const frame = nav.querySelector<HTMLElement>('.qs-navigation-surface');
   const fill = frame?.firstElementChild;
   const width = nav.getBoundingClientRect().width;
+  if (frame) frame.style.width = '';
   if (frame && fill instanceof HTMLElement && Math.abs(before.edge - width) >= 0.5) {
     const span = Math.max(before.edge, width);
     frame.style.width = `${span}px`;
@@ -172,14 +180,14 @@ function useCollapseMotion(
     const before = snapshot.current;
     snapshot.current = null;
     if (!nav || !before) return;
-    for (const animation of animations.current) animation.cancel();
+    release(animations.current);
     animations.current = play(nav, before, contentRef?.current, motionMs(nav, '--dur-medium'));
   }, [shown, navRef, contentRef]);
 
   useEffect(
     () => () => {
       window.clearTimeout(timer.current);
-      for (const animation of animations.current) animation.cancel();
+      release(animations.current);
     },
     [],
   );

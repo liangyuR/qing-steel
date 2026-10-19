@@ -202,7 +202,13 @@ const { pathname } = useLocation();
 - `collapsedLabels` 默认 `tooltip`（收起后标签仅供辅助技术，悬停显示提示）；`visible` 时收起态在图标下显示小字标签，不再弹出提示。NavigationRail 同样适用。
 - `expandLabel / collapseLabel` 设置切换按钮的可访问名称，默认「展开导航 / 收起导航」；`aria-expanded` 与名称随请求状态立即变化。
 - 展开收起：文字、组名、徽标先淡出，布局宽度一次切换，导航底板、图标和切换按钮用 transform 从原位置移到新位置，再淡入文字；切换中再次点击会从当前视觉位置反向，不排队。`contentRef` 指向相邻的主内容区时，主内容同步做反向位移，宽度变化不再表现为跳动；不传时主内容在宽度切换那一帧直接到位。系统减少动态效果时直接切换。
+- 使用 `contentRef` 时，主内容的父级需要裁剪横向溢出（`overflow-x: clip` 或 `hidden`）：展开时主内容右缘会在 240 ms 内露出宿主背景，收起时主内容在布局变宽后被反向位移推出父级右侧，没有裁剪会短暂撑出水平滚动条。
 - header / footer 中加 `qs-navigation-text` 类的元素随标签一起淡出淡入，收起后隐藏，适合品牌文字和状态文字；底板颜色可用 `--navigation-surface` 覆盖，默认 `--surface-mid`。
+
+从 0.8.0 升级时，即使不传任何新属性，默认样式也有两处变化：
+
+- 底板由内部层 `.qs-navigation-surface > span` 绘制，不再是 `.qs-navigation` 自身的 `background`。宿主原先用 `.qs-navigation { background: … }`（包括 `transparent`）覆写底板的，改用 `--navigation-surface`，例如 `--navigation-surface: transparent`。
+- footer 由横排换行改为纵向排列（`footerItems` → `footer` → 切换按钮），收起时子元素居中。原先在 footer 里并排放多个 IconButton 的，需要自行包一层横向容器。
 
 ## 工业扩展组件
 

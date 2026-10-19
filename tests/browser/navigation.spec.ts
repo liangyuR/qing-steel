@@ -42,6 +42,8 @@ test('收起导航抽屉 → 布局宽度只切换一次，图标列不横移，
     const widths = new Set<number>();
     const iconCenters: number[] = [];
     const contentLefts: number[] = [];
+    let overflow = 0;
+    const root = document.documentElement;
     nav.querySelector<HTMLButtonElement>('.qs-navigation-toggle')!.click();
     const start = performance.now();
     while (performance.now() - start < 900) {
@@ -50,10 +52,12 @@ test('收起导航抽屉 → 布局宽度只切换一次，图标列不横移，
       const box = icon.getBoundingClientRect();
       iconCenters.push(box.left + box.width / 2);
       contentLefts.push(content.getBoundingClientRect().left);
+      overflow = Math.max(overflow, root.scrollWidth - root.clientWidth);
     }
-    return { widths: [...widths], iconCenters, contentLefts };
+    return { widths: [...widths], iconCenters, contentLefts, overflow };
   });
   expect(trace.widths.sort((a, b) => a - b)).toEqual([72, 220]);
+  expect(trace.overflow).toBe(0);
   expect(Math.max(...trace.iconCenters) - Math.min(...trace.iconCenters)).toBeLessThan(1.5);
   const jumps = trace.contentLefts
     .slice(1)
@@ -96,6 +100,41 @@ test('切换过程中再次点击 → 立即反向并停在最后请求的状态
   for (let i = 0; i < 3; i++) await toggle.click();
   await settled(page);
   expect(await drawer.evaluate((el) => (el as HTMLElement).offsetWidth)).toBe(72);
+  expect(errors).toEqual([]);
+});
+
+test('展开途中反向收起 → 可见底板右缘从当前位置单调回到 72，不塌缩到 rail 以内', async ({
+  page,
+}) => {
+  const { drawer, errors } = await open(page);
+  const toggle = drawer.locator('.qs-navigation-toggle');
+  await toggle.click();
+  await settled(page);
+  const edges = await drawer.evaluate(async (nav) => {
+    const button = nav.querySelector<HTMLButtonElement>('.qs-navigation-toggle')!;
+    const frame = nav.querySelector('.qs-navigation-surface')!;
+    const fill = frame.firstElementChild!;
+    const edge = () =>
+      Math.min(fill.getBoundingClientRect().right, frame.getBoundingClientRect().right) -
+      nav.getBoundingClientRect().left;
+    const next = () => new Promise(requestAnimationFrame);
+    button.click();
+    const deadline = performance.now() + 1000;
+    while (edge() < 110 && performance.now() < deadline) await next();
+    const samples = [edge()];
+    button.click();
+    samples.push(edge());
+    const start = performance.now();
+    while (performance.now() - start < 700) {
+      await next();
+      samples.push(edge());
+    }
+    return samples;
+  });
+  expect(edges[0]).toBeGreaterThan(100);
+  expect(Math.min(...edges)).toBeGreaterThanOrEqual(71);
+  edges.slice(1).forEach((value, i) => expect(value).toBeLessThanOrEqual(edges[i] + 0.5));
+  expect(edges[edges.length - 1]).toBeCloseTo(72, 0);
   expect(errors).toEqual([]);
 });
 
