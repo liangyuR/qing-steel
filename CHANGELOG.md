@@ -1,5 +1,78 @@
 # 版本记录
 
+## 0.9.0
+
+补齐 ly-gluesight 迁移到 React 组件时发现的能力缺口，并按统一的动效与样式约定逐组打磨。新参数均为可选，默认行为与 0.8.0 一致，例外见文末「升级注意」。
+
+### 新增能力
+
+- Button / IconButton：`href` 渲染为原生链接，`asChild` 包住路由 Link（支持 NavLink 的函数式 `className / style / children`）；禁用或加载时不导航、移出 Tab 序列并标记 `aria-disabled`。新增 `tone="warn"`，`danger` 等同于 `tone="danger"`。IconButton 新增 `size="xs"`（24 px），用于标题行。
+- Chip：静态模式透传 `title` 等原生属性；新增 `label`（键 + 值两段）、`tone=ok / warn / ng / fault`、`size="sm"`。StatusBadge 新增 `neutral`（空心点），表示未亮、空闲、未开始。
+- Card / Surface：`as` 指定元素，非 div 或带 `role` 时以标题命名区域；Card 新增 `description`、`headingLevel`，头部拆为标题、说明与右对齐的操作区。EmptyState 透传 `className` 等属性。
+- Select：触发按钮带 `data-value`；选项 `label` 可为节点，并带 `textValue / aria-label`；位于禁用的 `<fieldset>` 内时不能打开。SegmentedControl、RadioGroup、Autocomplete 的选项支持节点标签或 `aria-label`。
+- NumberField：`clamp={false}` 保留越界输入并标记无效，`rangeError` 自定义提示，`step` 支持 `'any'`。新增 FileInput：保留原生文件输入，支持拖放区、受控 `files`、表单重置与文件名、大小显示。
+- SnackbarProvider：`placement`（top / bottom）、`container`（挂进宿主容器）、`max`（大于 1 时堆叠）。`useSnackbar` 在没有 Provider 时不再抛错，开发环境警告一次。
+- Alert：`tertiary` 色调与 `className / role / icon`。Dialog / Drawer：`size`（sm / md / lg / xl）、`width`、`initialFocus`（ref、选择器或 `first-field`）。Tooltip：`pinnable`，点击后固定。
+- Table：`getRowProps`（行级原生属性与 `tone` 语义色）；列的 `rowHeader / nowrap / colSpan`；`keepRowsWhileLoading` 刷新时保留上一次结果。行点击不响应行内控件，可聚焦的行支持 Enter / 空格。Pagination：`showPageSize={false}`。
+- Accordion：`forceMount`（整组或单项）与 `ignoreFieldsetDisabled`。Popover：`openOn="hover"`、`role="tooltip"`、`delay`、`label`，`title` 改为可选。
+- NavigationRail / NavigationDrawer：
+  - `renderLink` 交给宿主路由链接渲染；
+  - `collapsedLabels="visible"` 收起后显示小字标签；
+  - `footerItems` 提供底部带选中态的导航项；
+  - 分组带以组名命名的 `role="group"`，收起后显示分隔线；
+  - `expandLabel / collapseLabel` 自定义切换按钮名称；
+  - `contentRef` 让主内容随宽度切换做反向位移。
+
+  AppBar `sticky` 吸顶后标记 `data-stuck`。
+- 工业组件：
+  - VerdictCard：结果可覆盖大字与副标题（局部超差显示大字 OK，NG 可细分副标题）；SN 进入头部和可访问名称，头部可放 PLC 码等信息；无结果文案可定制；`keepResultOnFault` 控制设备故障是否覆盖本件判定。
+  - 新增 StatCounter / KpiGroup，用于产量、OK / NG / ERR 计数和良率：0 件不着色，标签不重复。
+  - MeasurementReading：支持文字值、占位横线（`pendingLabel={null}`）和自定义千分位字符。
+  - CameraThumbnail：
+    - `keepPreview` 在待测、跳过时叠加状态，不替换预览；
+    - `stateLabel` 自定义状态文案；
+    - `width / previewHeight` 调整尺寸；
+    - `renderPreview` 渲染宿主内容（如实时 canvas）；
+    - 透传 `aria-*` 等原生属性。
+- 新增令牌 `--ease-accel`，用于退出动效。
+
+### 动效与样式
+
+- 退出统一用 accel 缓动，且比进入更短；浮层、抽屉、遮罩、菜单、提示气泡、提示条退出一致；提示条替换改为交叉淡出淡入。
+- 按钮与 Chip 按压只缩放 .98，不改圆角、不回弹。减少动态效果时不缩放，触屏不残留悬停层。
+- 修正 React 下按钮与链接形态字重、字号不一致。
+- 禁用态统一用禁用色角色，不再整体降低透明度。
+- 输入、下拉、文本域、文件输入的悬停、聚焦、错误态统一；错误提示带图标；聚焦时标签变为主色。复选与单选改为自绘外观（保留原生 input）。分段控件、Tabs、Menu 的焦点环改为内嵌，键盘高亮与指针悬停区分。
+- 表格：
+  - 行悬停、按压加状态层；
+  - 语义行有色条和浅底；
+  - 排序指示改为双三角，整格表头可点；
+  - 修复吸顶表头的分隔线；
+  - 加载态改为主色线加行淡化。
+- 折叠展开改为可打断的行高过渡，内容只做透明度与小位移。
+- 导航展开收起只动 transform / opacity，过程可打断，导航项不重新挂载。
+- 工业组件：
+  - 判定切换时依次淡入，新 NG 只强调一次；
+  - 检测阶段推进时，连接线先填满再点亮新阶段；
+  - 读数数字随增减方向滚动，高频时直接显示最新值；
+  - 帧带平滑显露选中帧，两端边缘渐隐。
+- 不确定进度改为匀速平移或旋转；减少动态效果时显示静态段。
+
+### 修复
+
+- DatePicker / TimePicker 关闭动效期间打开另一个选择器时，焦点不再被拉回旧输入框导致新弹层关闭。
+- 浏览器测试的定位与采样不再受展示页其他示例和并行负载影响。
+
+### 升级注意
+
+以下默认样式有变化，宿主覆写过相关样式的需要调整：
+
+- 导航：
+  - 底板改由内部层绘制，原先用 `.qs-navigation { background: … }` 覆写的，改用 `--navigation-surface`；
+  - footer 改为纵向排列，原先在 footer 里并排放多个按钮的，需要自行包一层横向容器。
+- 按钮：React 按钮字重统一为 500；IconButton `sm` 改为 30 px 正圆。
+- 复选与单选改为自绘外观；禁用控件不再整体降低透明度。
+
 ## 0.8.0
 
 - 统一浮层进入与退出、按钮按压及快速切换指示器动效，支持减少动态效果设置；滑块位置直接跟随输入。
