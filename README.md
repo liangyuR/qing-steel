@@ -252,7 +252,7 @@ QingSteel.setTheme('light', { storageKey: 'my-app-theme' });  // '' / 'dark' / '
 | `bindNav(el)` / `navUpdate(el)` / `navToggleRail(el)` | 导航胶囊指示器、展开 ⇄ rail 分步切换，派发 `qs-change` |
 | `setOdo(el, text)` | 数值只滚变化的字符位 |
 | `swapVerdict(el, render, toNg)` | 判定卡淡出 → `render(el)` → 滑入，变 NG 时强调一次 |
-| `snackbar(text, opts)` / `dismissSnackbar(el)` | 全局提示：`opts.tone`、`opts.top`、`opts.host`、`opts.action = { label, onClick }`、`opts.close`、`opts.duration`；默认时长 `snackDuration(text)`（4–10 s，随文字变长） |
+| `snackbar(text, opts)` / `dismissSnackbar(el)` | 全局提示，整页同一时刻一条：`opts.tone`、`opts.top`、`opts.action = { label, onClick }`、`opts.close`；`opts.duration` 为毫秒，取值限制在 1–2147483647，不传或非数字时取 `snackDuration(text)`（4–10 s，随文字变长）；`opts.persistent` 不自动消失，用关闭按钮或返回的 `dismiss()` 关闭；`opts.host` 只用于把定位层放进模态 `<dialog>` 这类顶层元素内部，不改变显示位置（仍按视口定位）；离开时焦点在提示内则还给 `opts.returnFocus`，默认为打开提示时的焦点元素 |
 | `setTheme(value, opts)` / `restoreTheme(key)` | 主题切换（View Transition）与恢复 |
 | `relayout(scope)` | 尺寸变化后重算指示器（字体加载与 resize 已自动调用） |
 
