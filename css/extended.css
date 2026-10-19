@@ -739,78 +739,195 @@
   min-width: 115px;
   height: var(--ctl-h-sm);
 }
+/* 导航：图标列固定在 rail 中线，展开收起时布局宽度只切换一次，底板与内容用 transform 跟随 */
 .qs-navigation {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   width: var(--sidebar-w);
   flex: none;
   max-width: 100%;
   min-height: 260px;
-  background: var(--surface-mid);
   border-radius: var(--r-lg);
   padding: 12px;
   gap: var(--space-12);
-  transition: width var(--dur-medium) var(--ease-standard);
 }
 .qs-navigation-rail {
   width: var(--sidebar-w-rail);
   padding: 12px 8px;
 }
-.qs-navigation-header,
-.qs-navigation-footer {
+.qs-navigation-surface {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.qs-navigation-surface > span {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--navigation-surface, var(--surface-mid));
+}
+.qs-navigation-header {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-8);
 }
-.qs-navigation-rail .qs-navigation-header,
-.qs-navigation-rail .qs-navigation-footer {
+.qs-navigation-footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-top: auto;
+}
+.qs-navigation-rail .qs-navigation-header {
   justify-content: center;
+}
+.qs-navigation-rail .qs-navigation-footer > :not(.qs-navigation-footer-items) {
+  align-self: center;
 }
 .qs-navigation-items {
   display: grid;
   gap: 4px;
+  min-height: 0;
+  margin: -6px;
+  padding: 6px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--outline-variant) transparent;
+}
+.qs-navigation-rail .qs-navigation-items {
+  scrollbar-width: none;
+}
+.qs-navigation-section,
+.qs-navigation-footer-items {
+  display: grid;
+  gap: 4px;
 }
 .qs-navigation-group {
+  display: flex;
+  align-items: flex-end;
+  height: 28px;
+  padding: 0 15px 4px;
   color: var(--on-surface-variant);
   font: var(--text-label);
-  padding: 12px 12px 6px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.qs-navigation-group > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qs-navigation-rail .qs-navigation-group {
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.qs-navigation-rail .qs-navigation-group > span {
+  display: none;
+}
+.qs-navigation-rail .qs-navigation-group::after {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--outline-variant);
 }
 .qs-navigation-item {
-  display: flex;
   position: relative;
+  isolation: isolate;
+  display: flex;
   align-items: center;
   gap: var(--space-12);
-  min-height: var(--row-h);
   width: 100%;
+  min-height: var(--row-h);
   padding: 0 12px;
   border: 0;
+  border-radius: var(--r-full);
   background: transparent;
   color: var(--on-surface-variant);
-  border-radius: var(--r-full);
+  text-align: left;
   text-decoration: none;
   cursor: pointer;
-  text-align: left;
+  -webkit-tap-highlight-color: transparent;
 }
-.qs-navigation-item:not(:disabled):hover {
+.qs-navigation .qs-navigation-item {
+  font: var(--text-body);
+  font-weight: 500;
+}
+.qs-navigation-item::before,
+.qs-navigation-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-standard);
+}
+.qs-navigation-item::before {
+  background: var(--primary-container);
+}
+.qs-navigation-item::after {
   background: var(--state-hover);
 }
-.qs-navigation-item[aria-current] {
-  background: var(--primary-container);
+.qs-navigation-item:hover::after {
+  opacity: 1;
+}
+.qs-navigation-item:active::after {
+  background: var(--state-pressed);
+  opacity: 1;
+}
+.qs-navigation .qs-navigation-item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+.qs-navigation-item[aria-current='page'] {
   color: var(--on-primary-container);
+}
+.qs-navigation-item[aria-current='page']::before {
+  opacity: 1;
+}
+.qs-navigation-items[data-selection-ready] .qs-navigation-item[aria-current='page']::before {
+  opacity: 0;
+  transition: none;
 }
 .qs-navigation-item:disabled {
   color: var(--on-surface-disabled);
+  cursor: not-allowed;
+}
+.qs-navigation-item:disabled::after {
+  display: none;
+}
+.qs-navigation-icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
 }
 .qs-navigation-label {
   flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.qs-navigation-icon {
-  display: inline-flex;
+.qs-navigation-item .qs-count {
   flex: none;
+}
+.qs-navigation-items > .selection-track-indicator {
+  animation: qs-navigation-fade-in var(--dur-short) var(--ease-decel);
 }
 .qs-navigation-rail .qs-navigation-item {
   justify-content: center;
@@ -818,17 +935,116 @@
 }
 .qs-navigation-rail .qs-count {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 4px;
+  left: calc(50% + 4px);
   height: 16px;
   min-width: 16px;
-  font-size: 9px;
   padding: 0 4px;
+  font-size: 10px;
+  line-height: 16px;
 }
-.qs-navigation-footer {
-  margin-top: auto;
+.qs-navigation-rail .qs-navigation-text {
+  display: none;
+}
+
+/* 收起态显示小字标签：图标居于 44×28 指示胶囊内，标签在下方 */
+.qs-navigation-labeled
+  :is(.qs-navigation-items, .qs-navigation-section, .qs-navigation-footer-items) {
+  gap: 8px;
+}
+.qs-navigation-labeled .qs-navigation-item {
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 4px;
+  min-height: 56px;
+  padding: 4px 2px;
+  border-radius: var(--r-md);
+}
+.qs-navigation-labeled .qs-navigation-icon {
+  width: 44px;
+  height: 28px;
+}
+.qs-navigation-labeled .qs-navigation-item::before,
+.qs-navigation-labeled .qs-navigation-item::after,
+.qs-navigation-labeled .qs-navigation-items > .selection-track-indicator::before {
+  inset: 4px auto auto 50%;
+  width: 44px;
+  height: 28px;
+  margin-left: -22px;
+  border-radius: var(--r-full);
+}
+.qs-navigation-labeled .qs-navigation-items > .selection-track-indicator {
+  background: transparent;
+  border-radius: 0;
+}
+.qs-navigation-labeled .qs-navigation-items > .selection-track-indicator::before {
+  content: '';
+  position: absolute;
+  background: var(--primary-container);
+}
+.qs-navigation-labeled .qs-navigation-label {
+  flex: none;
+  max-width: 100%;
+  font: var(--text-label);
+  font-weight: 500;
+  text-align: center;
+}
+.qs-navigation-labeled .qs-navigation-item[aria-current='page'] {
+  color: var(--on-surface);
+}
+.qs-navigation-labeled .qs-navigation-item[aria-current='page'] .qs-navigation-icon {
+  color: var(--on-primary-container);
+}
+.qs-navigation-labeled .qs-count {
+  top: 0;
+  left: calc(50% + 6px);
+}
+
+.qs-navigation-toggle {
+  align-self: flex-start;
+  margin-inline-start: 6px;
+}
+.qs-navigation-rail .qs-navigation-footer > .qs-navigation-toggle {
+  margin-inline-start: 0;
+}
+.qs-navigation-toggle svg {
+  transition: transform var(--dur-medium) var(--ease-standard);
+}
+.qs-navigation-rail .qs-navigation-toggle svg {
+  transform: rotate(180deg);
+}
+
+/* 展开收起：文字先淡出，布局切换后图标位移到位，再淡入 */
+.qs-navigation
+  :is(
+    .qs-navigation-label,
+    .qs-navigation-group,
+    .qs-navigation-item .qs-count,
+    .qs-navigation-text
+  ),
+.qs-navigation-items > .selection-track-indicator {
+  transition: opacity var(--dur-medium) var(--ease-decel);
+}
+.qs-navigation[data-motion]
+  :is(
+    .qs-navigation-label,
+    .qs-navigation-group,
+    .qs-navigation-item .qs-count,
+    .qs-navigation-text,
+    .qs-navigation-items > .selection-track-indicator
+  ),
+.qs-navigation[data-motion] .qs-navigation-item[aria-current='page']::before {
+  opacity: 0;
+  transition: opacity var(--dur-short) var(--ease-accel, cubic-bezier(0.3, 0, 0.8, 0.15));
+}
+@keyframes qs-navigation-fade-in {
+  from {
+    opacity: 0;
+  }
 }
 .qs-appbar {
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   gap: var(--space-12);
@@ -837,6 +1053,20 @@
   background: var(--surface-mid);
   color: var(--on-surface);
   border-radius: var(--r-lg);
+}
+.qs-appbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--surface-high);
+  box-shadow: inset 0 -1px 0 var(--outline-variant);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-medium) var(--ease-standard);
+}
+.qs-appbar[data-stuck]::before {
+  opacity: 1;
 }
 .qs-appbar-sticky {
   position: sticky;
@@ -890,19 +1120,28 @@
 }
 .qs-breadcrumbs a,
 .qs-breadcrumbs button {
+  margin: -2px -3px;
+  padding: 2px 3px;
   background: none;
   border: 0;
-  padding: 0;
   color: inherit;
+  font: inherit;
   text-decoration: none;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
   cursor: pointer;
   border-radius: var(--r-xs);
 }
 .qs-breadcrumbs :is(a, button):hover {
-  text-decoration: underline;
+  color: var(--on-surface);
+  text-decoration-line: underline;
+}
+.qs-root .qs-breadcrumbs :is(a, button):focus-visible {
+  outline-offset: 0;
 }
 .qs-breadcrumbs [aria-current] {
   color: var(--on-surface);
+  font-weight: 500;
   overflow-wrap: anywhere;
 }
 .qs-breadcrumb-separator {
@@ -931,24 +1170,45 @@
   flex: none;
 }
 .qs-react-fab {
+  --fab-r: var(--r-lg);
   width: 48px;
   height: 48px;
   padding: 0;
   justify-content: center;
   flex-shrink: 0;
+  border-radius: var(--fab-r);
+  transition: transform var(--dur-short) var(--ease-standard);
+  animation: qs-fab-enter var(--dur-medium) var(--ease-decel) backwards;
+}
+.qs-react-fab:active {
+  border-radius: var(--fab-r);
+}
+.qs-react-fab:active:not(:disabled) {
+  transform: scale(0.96);
 }
 .qs-fab-icon {
   display: inline-flex;
 }
 .qs-fab-sm {
+  --fab-r: var(--r-md);
   width: 40px;
   height: 40px;
-  border-radius: var(--r-md);
 }
 .qs-fab-lg {
+  --fab-r: var(--r-xl);
   width: 64px;
   height: 64px;
-  border-radius: var(--r-xl);
+}
+@keyframes qs-fab-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qs-react-fab:active:not(:disabled) {
+    transform: none;
+  }
 }
 .qs-fab-extended {
   width: auto;

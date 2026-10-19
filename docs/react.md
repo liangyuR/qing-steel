@@ -207,13 +207,13 @@ const main = useRef<HTMLElement>(null);
 | Popover          | `trigger / title / children / open / defaultOpen / onOpenChange / side / align`；锚点定位、边缘避让、外部点击和 Escape 关闭；关闭后返回触发按钮                                                                                        |
 | Table            | 泛型行数据；`rows / columns / rowKey / caption`；`sort / defaultSort / onSortChange / manualSorting`；`selectable / selectedKeys / defaultSelectedKeys / onSelectionChange / isRowSelectable / getRowLabel`；`loading / emptyState`    |
 | Pagination       | `total` 为总条数，`page / defaultPage / onPageChange` 页码从 1 开始；`pageSize / defaultPageSize / onPageSizeChange / pageSizeOptions / disabled / label`                                                                              |
-| NavigationRail   | `label / items / value / defaultValue / onValueChange / header / footer`；固定紧凑宽度，图标导航带提示与可访问名称                                                                                                                     |
-| NavigationDrawer | NavigationRail 的通用属性，增加 `collapsed / defaultCollapsed / onCollapsedChange / collapsible`；组名、徽标、展开收起；为页面内导航容器，遮罩式导航可放入第一批 Drawer                                                                |
-| AppBar           | `title / subtitle / navigation / actions / sticky`，其余原生 header 属性透传；窄屏操作区换行                                                                                                                                           |
+| NavigationRail   | `label / items / value / defaultValue / onValueChange / header / footer / footerItems / renderLink / collapsedLabels`；固定紧凑宽度，图标导航带提示与可访问名称，可显示小字标签；路由接入见「导航与路由」                              |
+| NavigationDrawer | NavigationRail 的通用属性，增加 `collapsed / defaultCollapsed / onCollapsedChange / collapsible / expandLabel / collapseLabel / contentRef`；分组、徽标、底部导航项、展开收起；为页面内导航容器，遮罩式导航可放入第一批 Drawer         |
+| AppBar           | `title / subtitle / navigation / actions / sticky`，其余原生 header 属性透传；`sticky` 时内容滚到下方会升一级表面并显示底部分隔线（`data-stuck`）；窄屏操作区换行                                                                       |
 | Toolbar          | `label` 必填；子元素作为操作组，左右方向键、Home / End 在可用操作间移动，不拦截输入框光标操作                                                                                                                                          |
 | Breadcrumbs      | `items=[{label,href?,onClick?}] / label`；末项为当前位置文本，前置项可使用链接或回调                                                                                                                                                   |
 | Skeleton         | `variant=text / rectangular / circular`、`width / height`；装饰性静态占位，不向辅助技术暴露，加载容器可设置 `aria-busy`                                                                                                                |
-| FAB              | `icon / label / size=sm或md或lg` 与原生按钮属性；图标型必须提供 `aria-label`；带文字型使用 `label`；定位由应用布局决定                                                                                                                 |
+| FAB              | `icon / label / size=sm或md或lg` 与原生按钮属性；图标型必须提供 `aria-label`；带文字型使用 `label`；定位由应用布局决定；挂载时淡入并从 0.92 缩放到原尺寸，按下缩放 0.96，不改圆角                                                       |
 
 ### 输入与异步建议
 
@@ -269,6 +269,48 @@ const columns: TableColumn<Row>[] = [
 分页数据应在完整数据上筛选和排序后再切片，或由服务端返回。此时给 Table 设置 `manualSorting`，监听 `onSortChange`；不要在每页切片之后使用局部排序冒充全表排序。展示页提供了完整受控组合示例。Pagination 不请求或切片数据，切换每页条数会回到第一页；数据总数缩小时应用应同步校正自己的 page 状态，组件会对可见页码做边界保护。
 
 行键必须唯一且稳定。表头全选只改变当前 `rows` 中允许选择的行，保留其它页已选键；`isRowSelectable` 排除不可选行。数据删除或筛选后是否清理隐藏选择，由应用决定。空数据、加载状态与选择数量均有展示示例。
+
+### 导航与路由
+
+```tsx
+import { Link, useLocation } from 'react-router-dom';
+
+const main = useRef<HTMLElement>(null);
+const { pathname } = useLocation();
+
+<NavigationDrawer
+  label="操作导航"
+  items={[
+    { value: '/guide', href: '/guide', label: '总览', icon: <LayoutDashboard size={18} /> },
+    { value: '/inspect', href: '/inspect', label: '在线检测', icon: <ScanEye size={18} />, group: '生产' },
+  ]}
+  footerItems={[{ value: '/settings', href: '/settings', label: '系统设置', icon: <Settings size={18} /> }]}
+  value={matchRoute(pathname)}
+  renderLink={({ href, ...props }) => <Link to={href} {...props} />}
+  collapsedLabels="visible"
+  expandLabel="展开侧边栏"
+  collapseLabel="折叠侧边栏"
+  contentRef={main}
+  header={<Brand />}
+  footer={<StatusList />}
+/>
+<main ref={main}>…</main>
+```
+
+- 带 `href` 且未禁用的项交给 `renderLink` 渲染；回调收到 `href / className / aria-current / data-value / onClick / children`，必须原样传给链接元素（Tooltip 还会合并指针与焦点事件，链接组件需要转发 ref 与其余属性）。不传时渲染原生 `a[href]`；无 `href` 或禁用的项仍是 `button`。
+- 当前项有两种来源：传 `value`（例如按路由最长前缀匹配）；或不传 `value`、改用 NavLink 等自带 `aria-current` 的链接，组件以 DOM 中的 `aria-current="page"` 为准，指示器随之移动。使用 NavLink 时，父级路由要设 `end`，避免多个项同时为当前项。
+- `footerItems` 渲染在底部，与主列表共用 `value / onValueChange`，同一时刻只有一个当前项；底部项使用静态选中底，不参与主列表指示器的滑动。
+- 同组相邻项包在 `role="group"` 内，以组名为可访问名称；展开时显示组名，收起时同一位置显示分隔线，高度不变。
+- `collapsedLabels` 默认 `tooltip`（收起后标签仅供辅助技术，悬停显示提示）；`visible` 时收起态在图标下显示小字标签，不再弹出提示。NavigationRail 同样适用。
+- `expandLabel / collapseLabel` 设置切换按钮的可访问名称，默认「展开导航 / 收起导航」；`aria-expanded` 与名称随请求状态立即变化。
+- 展开收起：文字、组名、徽标先淡出，布局宽度一次切换，导航底板、图标和切换按钮用 transform 从原位置移到新位置，再淡入文字；切换中再次点击会从当前视觉位置反向，不排队。`contentRef` 指向相邻的主内容区时，主内容同步做反向位移，宽度变化不再表现为跳动；不传时主内容在宽度切换那一帧直接到位。系统减少动态效果时直接切换。
+- 使用 `contentRef` 时，主内容的父级需要裁剪横向溢出（`overflow-x: clip` 或 `hidden`）：展开时主内容右缘会在 240 ms 内露出宿主背景，收起时主内容在布局变宽后被反向位移推出父级右侧，没有裁剪会短暂撑出水平滚动条。
+- header / footer 中加 `qs-navigation-text` 类的元素随标签一起淡出淡入，收起后隐藏，适合品牌文字和状态文字；底板颜色可用 `--navigation-surface` 覆盖，默认 `--surface-mid`。
+
+从 0.8.0 升级时，即使不传任何新属性，默认样式也有两处变化：
+
+- 底板由内部层 `.qs-navigation-surface > span` 绘制，不再是 `.qs-navigation` 自身的 `background`。宿主原先用 `.qs-navigation { background: … }`（包括 `transparent`）覆写底板的，改用 `--navigation-surface`，例如 `--navigation-surface: transparent`。
+- footer 由横排换行改为纵向排列（`footerItems` → `footer` → 切换按钮），收起时子元素居中。原先在 footer 里并排放多个 IconButton 的，需要自行包一层横向容器。
 
 ### 行级属性、单元格与保留结果刷新
 

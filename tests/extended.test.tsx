@@ -7,6 +7,7 @@ import {
   Autocomplete,
   Button,
   NavigationDrawer,
+  NavigationRail,
   Pagination,
   Popover,
   Slider,
@@ -14,6 +15,7 @@ import {
   TextField,
   ThemeProvider,
   Toolbar,
+  type NavigationLinkProps,
   type TableColumn,
 } from '../src';
 
@@ -331,6 +333,103 @@ describe('导航与内容', () => {
     expect(screen.getByRole('button', { name: '记录' })).toHaveAttribute('aria-current', 'page');
     await user.click(screen.getByRole('button', { name: '展开导航' }));
     expect(screen.getByRole('button', { name: '记录' })).toHaveAttribute('aria-current', 'page');
+  });
+  it('renderLink 交给宿主链接 → 链接收到地址、当前项与选中回调，禁用项仍为按钮', async () => {
+    const user = userEvent.setup();
+    const visits: string[] = [];
+    function RouterLink({ href, onClick, ...props }: NavigationLinkProps) {
+      return (
+        <a
+          {...props}
+          href={`/app${href}`}
+          onClick={(event) => {
+            event.preventDefault();
+            visits.push(href);
+            onClick(event);
+          }}
+        />
+      );
+    }
+    render(
+      <ThemeProvider>
+        <NavigationRail
+          label="主导航"
+          defaultValue="/a"
+          renderLink={(props) => <RouterLink {...props} />}
+          items={[
+            { value: '/a', href: '/a', label: '概览', icon: '◇' },
+            { value: '/b', href: '/b', label: '记录', icon: '▤' },
+            { value: '/c', href: '/c', label: '锁定', icon: '×', disabled: true },
+          ]}
+        />
+      </ThemeProvider>,
+    );
+    await user.click(screen.getByRole('link', { name: '记录' }));
+    expect(visits).toEqual(['/b']);
+    expect(screen.getByRole('link', { name: '记录' })).toHaveAttribute('href', '/app/b');
+    expect(screen.getByRole('link', { name: '记录' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: '锁定' })).toBeDisabled();
+  });
+  it('分组导航收起 → 每组仍是以组名命名的 group，未分组项不在组内', () => {
+    render(
+      <ThemeProvider>
+        <NavigationDrawer
+          label="主导航"
+          defaultCollapsed
+          items={[
+            { value: 'guide', label: '总览', icon: '□' },
+            { value: 'inspect', label: '在线检测', icon: '◇', group: '生产' },
+            { value: 'history', label: '历史记录', icon: '▤', group: '生产' },
+            { value: 'camera', label: '相机', icon: '○', group: '设备' },
+          ]}
+        />
+      </ThemeProvider>,
+    );
+    const [inspect, history, ...rest] = within(
+      screen.getByRole('group', { name: '生产' }),
+    ).getAllByRole('button');
+    expect(inspect).toHaveAccessibleName('在线检测');
+    expect(history).toHaveAccessibleName('历史记录');
+    expect(rest).toEqual([]);
+    expect(
+      within(screen.getByRole('group', { name: '设备' })).getByRole('button', { name: '相机' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '总览' }).closest('[role="group"]')).toBeNull();
+  });
+  it('点击底部导航项 → 与主列表共用选中值，只有它是当前项', async () => {
+    const user = userEvent.setup();
+    render(
+      <ThemeProvider>
+        <NavigationDrawer
+          label="主导航"
+          defaultValue="guide"
+          items={[{ value: 'guide', label: '总览', icon: '□' }]}
+          footerItems={[{ value: 'settings', label: '系统设置', icon: '⚙' }]}
+        />
+      </ThemeProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: '系统设置' }));
+    const current = screen.getAllByRole('button', { current: 'page' });
+    expect(current).toHaveLength(1);
+    expect(current[0]).toHaveAccessibleName('系统设置');
+  });
+  it('自定义收起展开名称 → 切换按钮名称与展开状态随请求切换', async () => {
+    const user = userEvent.setup();
+    render(
+      <ThemeProvider>
+        <NavigationDrawer
+          label="主导航"
+          items={[{ value: 'guide', label: '总览', icon: '□' }]}
+          expandLabel="展开侧边栏"
+          collapseLabel="折叠侧边栏"
+        />
+      </ThemeProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: '折叠侧边栏' }));
+    expect(screen.getByRole('button', { name: '展开侧边栏' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
   });
   it('工具栏方向键 → 跳过禁用操作，不拦截输入框的方向键', async () => {
     const user = userEvent.setup();
