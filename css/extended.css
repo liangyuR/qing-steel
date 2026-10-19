@@ -277,6 +277,18 @@
 }
 .qs-slider[data-disabled] .qs-slider-thumb {
   cursor: not-allowed;
+  background:
+    linear-gradient(var(--on-surface-disabled), var(--on-surface-disabled)), var(--surface-low);
+  box-shadow: none;
+}
+.qs-slider[data-disabled] .qs-slider-range {
+  background: var(--on-surface-disabled);
+}
+.qs-slider[data-disabled] .qs-slider-track {
+  background: var(--disabled-container);
+}
+.qs-slider-field.qs-disabled :is(.qs-slider-label, .qs-slider-label output, .qs-slider-marks) {
+  color: var(--on-surface-disabled);
 }
 .qs-slider-marks {
   position: relative;
@@ -315,17 +327,37 @@
   border-radius: var(--r-sm);
   cursor: pointer;
   overflow-wrap: anywhere;
+  transition: background-color var(--dur-short) var(--ease-standard);
 }
 .qs-autocomplete-option.active {
-  background: var(--state-hover);
+  background-image: linear-gradient(var(--state-hover), var(--state-hover));
+}
+[data-nav='keyboard'] > .qs-autocomplete-option.active {
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+.qs-autocomplete-option:not([aria-disabled='true']):active {
+  background-image: linear-gradient(var(--state-pressed), var(--state-pressed));
 }
 .qs-autocomplete-option[aria-selected='true'] {
-  background: var(--secondary-container);
-  color: var(--on-secondary-container);
+  background-color: var(--primary-container);
+  color: var(--on-primary-container);
+  font-weight: 500;
 }
 .qs-autocomplete-option[aria-disabled='true'] {
   color: var(--on-surface-disabled);
   cursor: not-allowed;
+}
+.qs-autocomplete-check {
+  flex: none;
+}
+.qs-autocomplete-chevron {
+  flex: none;
+  color: var(--on-surface-variant);
+  transition: transform var(--dur-medium) var(--ease-standard);
+}
+.qs-autocomplete[data-state='open'] .qs-autocomplete-chevron {
+  color: var(--primary);
+  transform: rotate(180deg);
 }
 .qs-autocomplete-message {
   color: var(--on-surface-variant);

@@ -3,6 +3,7 @@ import * as SliderPrimitive from '@radix-ui/react-slider';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import { cx, useControllable, useTheme } from './core';
 import { TextField, type SelectOption } from './fields';
+import { CheckMark, ChevronMark } from './internal/marks';
 
 interface SliderBase {
   label: string;
@@ -171,6 +172,7 @@ export function Autocomplete({
   );
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<string | null>(null);
+  const [keyboard, setKeyboard] = useState(false);
   const [editing, setEditing] = useState(defaultInputValue !== undefined);
   const input = useRef<HTMLInputElement>(null);
   const [selectedOption, setSelectedOption] = useState<SelectOption | undefined>();
@@ -213,6 +215,7 @@ export function Autocomplete({
   };
   const move = (direction: 1 | -1) => {
     setOpen(true);
+    setKeyboard(true);
     const index = enabled.findIndex((option) => option.value === active);
     const next =
       index < 0
@@ -229,7 +232,7 @@ export function Autocomplete({
         if (!next) dismiss();
       }}
     >
-      <div className={cx('qs-autocomplete', className)}>
+      <div className={cx('qs-autocomplete', className)} data-state={expanded ? 'open' : 'closed'}>
         <PopoverPrimitive.Anchor asChild>
           <div>
             <TextField
@@ -281,11 +284,7 @@ export function Autocomplete({
                   dismiss();
                 } else if (event.key === 'Tab') dismiss();
               }}
-              trailing={
-                <span aria-hidden="true" className="qs-muted">
-                  ⌄
-                </span>
-              }
+              trailing={<ChevronMark className="qs-autocomplete-chevron" />}
             />
           </div>
         </PopoverPrimitive.Anchor>
@@ -304,7 +303,13 @@ export function Autocomplete({
           onEscapeKeyDown={dismiss}
           role="presentation"
         >
-          <div role="listbox" id={listId} aria-label={`${label}建议`} aria-busy={loading}>
+          <div
+            role="listbox"
+            id={listId}
+            aria-label={`${label}建议`}
+            aria-busy={loading}
+            data-nav={keyboard ? 'keyboard' : 'pointer'}
+          >
             {!loading &&
               candidates.map((option, index) => (
                 <div
@@ -313,8 +318,10 @@ export function Autocomplete({
                   role="option"
                   aria-selected={selected === option.value}
                   aria-disabled={option.disabled || undefined}
+                  aria-label={option['aria-label']}
                   className={cx('qs-autocomplete-option', active === option.value && 'active')}
                   onPointerMove={() => {
+                    setKeyboard(false);
                     if (!option.disabled) setActive(option.value);
                   }}
                   onPointerDown={(event) => event.preventDefault()}
@@ -323,7 +330,7 @@ export function Autocomplete({
                   }}
                 >
                   <span>{option.label}</span>
-                  {selected === option.value && <span aria-hidden="true">✓</span>}
+                  {selected === option.value && <CheckMark className="qs-autocomplete-check" />}
                 </div>
               ))}
           </div>
