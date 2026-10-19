@@ -83,6 +83,8 @@ Select 的单选菜单使用 Radix Select，统一 Qing Steel 的深浅主题、
 
 ## 交互与视觉约定
 
+动效遵循现有短／中／长时长令牌；浮层支持退出反馈，分段、Tabs 与导航指示器可连续切换。高频读数自动取消重叠动效，优先显示最新值。性能场景与实测边界见 [动效与性能验证](performance.md)。表格和相机数据应采用不可变更新，未变化项尽量保留引用。
+
 - 默认深色，使用 Qing Steel 现有色彩、字号、圆角、控件高度和间距。
 - 数值使用等宽 tabular 数字；数字输入可附单位并右对齐。
 - Dialog、Drawer、Menu、Tooltip、Tabs、Slider、Accordion、Popover 使用 Radix 的无障碍交互基础，封装青钢样式。

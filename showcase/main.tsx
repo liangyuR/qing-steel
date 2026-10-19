@@ -1,4 +1,4 @@
-import { StrictMode, useState, type ReactNode } from 'react';
+import { StrictMode, Suspense, lazy, useState, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import {
   ThemeProvider,
@@ -42,8 +42,13 @@ import {
 } from '../src';
 import '../css/react.css';
 import './showcase.css';
-import { extendedSections, ExtendedExamples } from './extended';
-import { industrialSections, IndustrialExamples } from './industrial';
+import { extendedSections, industrialSections } from './sections';
+const ExtendedExamples = lazy(() =>
+  import('./extended').then((module) => ({ default: module.ExtendedExamples })),
+);
+const IndustrialExamples = lazy(() =>
+  import('./industrial').then((module) => ({ default: module.IndustrialExamples })),
+);
 
 function Glyph({ name = 'grid', size = 18 }: { name?: string; size?: number }) {
   const paths: Record<string, ReactNode> = {
@@ -865,12 +870,27 @@ function App() {
             </>,
           )}
           {extendedSections.map((section) => (
-            <div key={section.id}>{group(section.id, <ExtendedExamples id={section.id} />)}</div>
+            <div key={section.id}>
+              {group(
+                section.id,
+                <Suspense fallback={<p role="status">正在加载组件…</p>}>
+                  <ExtendedExamples id={section.id} />
+                </Suspense>,
+              )}
+            </div>
           ))}
           {industrialSections.map((section) => (
-            <div key={section.id}>{group(section.id, <IndustrialExamples id={section.id} />)}</div>
+            <div key={section.id}>
+              {group(
+                section.id,
+                <Suspense fallback={<p role="status">正在加载组件…</p>}>
+                  <IndustrialExamples id={section.id} />
+                </Suspense>,
+              )}
+            </div>
           ))}
           <footer className="page-footer">
+            <a href="./performance.html">性能场景 ↗</a>
             <span>
               QING / STEEL <span className="footer-dot">·</span> 精确，也可以温和。
             </span>

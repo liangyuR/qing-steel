@@ -1,4 +1,12 @@
-import { useMemo, type ReactNode, type CSSProperties } from 'react';
+import {
+  memo,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+  type CSSProperties,
+} from 'react';
 import { cx, useControllable } from './core';
 import { Checkbox, Select } from './fields';
 import { Button, EmptyState } from './primitives';
@@ -36,6 +44,52 @@ export interface TableProps<T> {
   loading?: boolean;
   className?: string;
 }
+const selectableRow = () => true;
+const collator = new Intl.Collator('zh-CN', { numeric: true });
+function TableRow<T>({
+  row,
+  id,
+  columns,
+  selectable,
+  selected,
+  disabled,
+  label,
+  toggle,
+}: {
+  row: T;
+  id: string;
+  columns: TableColumn<T>[];
+  selectable?: boolean;
+  selected: boolean;
+  disabled: boolean;
+  label: string;
+  toggle: (key: string, checked: boolean) => void;
+}) {
+  return (
+    <tr data-selected={selected || undefined}>
+      {selectable && (
+        <td className="qs-table-checkbox">
+          <Checkbox
+            label={<span className="qs-sr-only">选择 {label}</span>}
+            checked={selected}
+            disabled={disabled}
+            onCheckedChange={(checked) => toggle(id, checked)}
+          />
+        </td>
+      )}
+      {columns.map((column) => (
+        <td
+          key={column.key}
+          style={{ textAlign: column.align }}
+          className={column.align === 'right' ? 'qs-num' : undefined}
+        >
+          {column.render ? column.render(row) : column.accessor?.(row)}
+        </td>
+      ))}
+    </tr>
+  );
+}
+const MemoRow = memo(TableRow) as typeof TableRow;
 export function Table<T>({
   columns,
   rows,
@@ -49,7 +103,7 @@ export function Table<T>({
   selectedKeys,
   defaultSelectedKeys = [],
   onSelectionChange,
-  isRowSelectable = () => true,
+  isRowSelectable = selectableRow,
   getRowLabel,
   emptyState,
   loading,
@@ -74,16 +128,34 @@ export function Table<T>({
         if (bv == null) return -1;
         return typeof av === 'number' && typeof bv === 'number'
           ? av - bv
-          : String(av).localeCompare(String(bv), 'zh-CN', { numeric: true });
+          : collator.compare(String(av), String(bv));
       });
     return [...rows].sort((a, b) => compare(a, b) * (currentSort.direction === 'asc' ? 1 : -1));
   }, [rows, columns, currentSort, manualSorting]);
-  const pageKeys = rows.filter(isRowSelectable).map(rowKey);
-  const selectedOnPage = pageKeys.filter((key) => selection.includes(key)).length;
+  const pageKeys = useMemo(
+    () => rows.filter(isRowSelectable).map(rowKey),
+    [rows, isRowSelectable, rowKey],
+  );
+  const pageSet = useMemo(() => new Set(pageKeys), [pageKeys]);
+  const selectedSet = useMemo(() => new Set(selection), [selection]);
+  const selectionRef = useRef(selection);
+  useLayoutEffect(() => {
+    selectionRef.current = selection;
+  }, [selection]);
+  const toggleRow = useCallback(
+    (key: string, checked: boolean) => {
+      const current = selectionRef.current;
+      setSelection(
+        checked ? [...new Set([...current, key])] : current.filter((item) => item !== key),
+      );
+    },
+    [setSelection],
+  );
+  const selectedOnPage = pageKeys.filter((key) => selectedSet.has(key)).length;
   const togglePage = () =>
     setSelection(
       selectedOnPage === pageKeys.length
-        ? selection.filter((key) => !pageKeys.includes(key))
+        ? selection.filter((key) => !pageSet.has(key))
         : [...new Set([...selection, ...pageKeys])],
     );
   return (
@@ -166,33 +238,17 @@ export function Table<T>({
             sorted.map((row) => {
               const key = rowKey(row);
               return (
-                <tr key={key} data-selected={selection.includes(key) || undefined}>
-                  {selectable && (
-                    <td className="qs-table-checkbox">
-                      <Checkbox
-                        label={<span className="qs-sr-only">选择 {getRowLabel?.(row) ?? key}</span>}
-                        checked={selection.includes(key)}
-                        disabled={!isRowSelectable(row)}
-                        onCheckedChange={(checked) =>
-                          setSelection(
-                            checked
-                              ? [...selection, key]
-                              : selection.filter((item) => item !== key),
-                          )
-                        }
-                      />
-                    </td>
-                  )}
-                  {columns.map((column) => (
-                    <td
-                      key={column.key}
-                      style={{ textAlign: column.align }}
-                      className={column.align === 'right' ? 'qs-num' : undefined}
-                    >
-                      {column.render ? column.render(row) : column.accessor?.(row)}
-                    </td>
-                  ))}
-                </tr>
+                <MemoRow
+                  key={key}
+                  row={row}
+                  id={key}
+                  columns={columns}
+                  selectable={selectable}
+                  selected={selectedSet.has(key)}
+                  disabled={!isRowSelectable(row)}
+                  label={getRowLabel?.(row) ?? key}
+                  toggle={toggleRow}
+                />
               );
             })
           ) : (

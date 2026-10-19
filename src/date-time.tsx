@@ -5,6 +5,7 @@ import { zhCN } from 'react-day-picker/locale/zh-CN';
 import { TextField, type TextFieldProps } from './fields';
 import { Button } from './primitives';
 import { useControllable, useTheme } from './core';
+import { timeOptions } from './internal/time-options';
 
 export interface DateTimePickerProps extends Omit<
   TextFieldProps,
@@ -51,6 +52,8 @@ const Picker = forwardRef<HTMLInputElement, DateTimePickerProps & { kind: 'date'
   ) {
     const { container } = useTheme();
     const input = useRef<HTMLInputElement | null>(null);
+    const popup = useRef<HTMLDivElement>(null);
+    const validation = useRef<{ key: string; input: HTMLInputElement } | null>(null);
     const [current, setCurrent] = useControllable(value, defaultValue, onValueChange);
     const latestValue = useRef(current);
     latestValue.current = current;
@@ -87,9 +90,22 @@ const Picker = forwardRef<HTMLInputElement, DateTimePickerProps & { kind: 'date'
     }, [props.disabled, props.readOnly]);
     function valid(candidate: string) {
       if (!input.current || !candidate) return false;
-      const probe = input.current.cloneNode() as HTMLInputElement;
-      probe.disabled = false;
-      probe.readOnly = false;
+      const source = input.current;
+      const key = [
+        source.type,
+        source.min,
+        source.max,
+        source.step,
+        source.defaultValue,
+        source.required,
+      ].join('|');
+      if (validation.current?.key !== key) {
+        const probe = source.cloneNode() as HTMLInputElement;
+        probe.disabled = false;
+        probe.readOnly = false;
+        validation.current = { key, input: probe };
+      }
+      const probe = validation.current.input;
       probe.value = candidate;
       return !!probe.value && probe.validity.valid;
     }
@@ -101,22 +117,34 @@ const Picker = forwardRef<HTMLInputElement, DateTimePickerProps & { kind: 'date'
       if (value !== undefined) el.value = value;
       setOpen(false);
     }
-    const slots = useMemo(() => {
-      if (!isTime) return [];
+    const options = useMemo(() => {
+      if (!isTime)
+        return {
+          slots: [],
+          hours: new Map<number, number[]>(),
+          minutes: new Map<number, number[]>(),
+        };
       const min = props.min ? seconds(String(props.min)) : 0;
       const max = props.max ? seconds(String(props.max)) : 86399;
       const base = props.min ? min : initial.current ? seconds(initial.current) : 0;
       const interval = step === 'any' ? 1 : Number(step) > 0 ? Number(step) : 60;
-      const result: number[] = [];
-      for (let n = 0; n < 86400; n++) {
-        if (
-          (min <= max ? n >= min && n <= max : n >= min || n <= max) &&
-          Math.abs((n - base) / interval - Math.round((n - base) / interval)) < 1e-7
-        )
-          result.push(n);
-      }
-      return result;
+      return timeOptions(min, max, base, interval);
     }, [isTime, props.min, props.max, step]);
+    const { slots } = options;
+    useEffect(() => {
+      if (!open || !isTime) return;
+      const frame = requestAnimationFrame(() => {
+        popup.current?.querySelectorAll<HTMLElement>('.qs-time-options').forEach((column) => {
+          const selected = column.querySelector<HTMLElement>('[aria-checked="true"]');
+          if (!selected) return;
+          const a = selected.getBoundingClientRect(),
+            b = column.getBoundingClientRect();
+          if (a.top < b.top) column.scrollTop -= b.top - a.top;
+          else if (a.bottom > b.bottom) column.scrollTop += a.bottom - b.bottom;
+        });
+      });
+      return () => cancelAnimationFrame(frame);
+    }, [open, isTime, draft]);
     function changeOpen(next: boolean) {
       if (next && (props.disabled || props.readOnly)) return;
       if (next) {
@@ -201,6 +229,7 @@ const Picker = forwardRef<HTMLInputElement, DateTimePickerProps & { kind: 'date'
         </Popover.Anchor>
         <Popover.Portal container={container}>
           <Popover.Content
+            ref={popup}
             className="qs-datetime-popup"
             sideOffset={8}
             align="start"
@@ -220,19 +249,22 @@ const Picker = forwardRef<HTMLInputElement, DateTimePickerProps & { kind: 'date'
                 <div className="qs-time-columns">
                   {['时', '分', ...(withSeconds ? ['秒'] : [])].map((unit, index) => {
                     const selected = index === 0 ? hour : index === 1 ? minute : draftSeconds % 60;
-                    const candidates = slots.filter(
-                      (n) =>
-                        index === 0 ||
-                        (Math.floor(n / 3600) === hour &&
-                          (index === 1 || Math.floor(n / 60) % 60 === minute)),
-                    );
+                    const candidates =
+                      index === 0
+                        ? slots
+                        : index === 1
+                          ? (options.hours.get(hour) ?? [])
+                          : (options.minutes.get(hour * 60 + minute) ?? []);
                     const getUnit = (n: number) =>
                       index === 0
                         ? Math.floor(n / 3600)
                         : index === 1
                           ? Math.floor(n / 60) % 60
                           : n % 60;
-                    const enabled = new Set(candidates.map(getUnit));
+                    const enabled =
+                      index === 0
+                        ? new Set(options.hours.keys())
+                        : new Set(candidates.map(getUnit));
                     return (
                       <div className="qs-time-column" key={unit}>
                         <span>{unit}</span>
@@ -278,11 +310,11 @@ const Picker = forwardRef<HTMLInputElement, DateTimePickerProps & { kind: 'date'
                                   ? 0
                                   : -1
                               }
-                              ref={(el) => {
-                                if (el && selected === n) el.scrollIntoView({ block: 'nearest' });
-                              }}
                               onClick={() => {
-                                const choices = candidates.filter((slot) => getUnit(slot) === n);
+                                const choices =
+                                  index === 0
+                                    ? options.hours.get(n)!
+                                    : candidates.filter((slot) => getUnit(slot) === n);
                                 const desired =
                                   index === 0
                                     ? n * 3600 + minute * 60 + (draftSeconds % 60)

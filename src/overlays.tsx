@@ -3,7 +3,8 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import * as MenuPrimitive from '@radix-ui/react-dropdown-menu';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
-import { cx, useTheme } from './core';
+import { cx, useTheme, useControllable } from './core';
+import SelectionTrack from './internal/SelectionTrack';
 import { CloseIcon, IconButton } from './primitives';
 
 export interface DialogProps {
@@ -199,24 +200,27 @@ export function Tabs({
   defaultValue?: string;
   onValueChange?: (value: string) => void;
 }) {
+  const [current, setCurrent] = useControllable(
+    value,
+    defaultValue ?? items.find((item) => !item.disabled)?.value ?? '',
+    onValueChange,
+  );
   return (
-    <TabsPrimitive.Root
-      value={value}
-      defaultValue={defaultValue ?? items.find((item) => !item.disabled)?.value}
-      onValueChange={onValueChange}
-    >
-      <TabsPrimitive.List className="qs-tabs" aria-label={label}>
-        {items.map((item) => (
-          <TabsPrimitive.Trigger
-            key={item.value}
-            value={item.value}
-            disabled={item.disabled}
-            className="qs-tab"
-          >
-            {item.icon}
-            {item.label}
-          </TabsPrimitive.Trigger>
-        ))}
+    <TabsPrimitive.Root value={current} onValueChange={setCurrent}>
+      <TabsPrimitive.List asChild aria-label={label}>
+        <SelectionTrack className="qs-tabs" activeKey={current}>
+          {items.map((item) => (
+            <TabsPrimitive.Trigger
+              key={item.value}
+              value={item.value}
+              disabled={item.disabled}
+              className="qs-tab"
+            >
+              {item.icon}
+              {item.label}
+            </TabsPrimitive.Trigger>
+          ))}
+        </SelectionTrack>
       </TabsPrimitive.List>
       {items.map((item) => (
         <TabsPrimitive.Content className="qs-tab-panel" key={item.value} value={item.value}>

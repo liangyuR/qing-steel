@@ -14,5 +14,8 @@ export default defineConfig(({ mode }) => ({
               /^(react(?:-dom)?(?:\/|$)|@radix-ui\/|react-day-picker(?:\/|$))/.test(id),
           },
         }
-      : { outDir: 'dist-demo', rollupOptions: { input: 'showcase/index.html' } },
+      : {
+          outDir: 'dist-demo',
+          rollupOptions: { input: ['showcase/index.html', 'showcase/performance.html'] },
+        },
 }));

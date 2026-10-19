@@ -1,12 +1,23 @@
-import { useLayoutEffect, useRef, useState, type HTMLAttributes, type ReactNode } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type HTMLAttributes,
+  type ReactNode,
+} from 'react';
 
 type Placement = { x: number; y: number; width: number; height: number };
 type Layout = { width: number; height: number; items: Placement[] };
 type Handoff = { placement: Placement; layout: Layout };
 const handoffs = new Map<string, Handoff>();
 
-function bounds(element: HTMLElement, container: HTMLElement): Placement {
-  const parent = container.getBoundingClientRect();
+function bounds(
+  element: HTMLElement,
+  container: HTMLElement,
+  parent = container.getBoundingClientRect(),
+): Placement {
   const rect = element.getBoundingClientRect();
   return {
     x: rect.left - parent.left - container.clientLeft + container.scrollLeft,
@@ -40,27 +51,35 @@ const frame = (position: Placement) => ({
   height: `${position.height}px`,
 });
 
-export default function SelectionTrack({
-  as: Tag = 'div',
-  activeKey,
-  trackId,
-  className = '',
-  children,
-  ...props
-}: HTMLAttributes<HTMLElement> & {
-  as?: 'div' | 'nav';
-  activeKey: string;
-  trackId?: string;
-  children: ReactNode;
-}) {
+const SelectionTrack = forwardRef<
+  HTMLElement,
+  HTMLAttributes<HTMLElement> & {
+    as?: 'div' | 'nav';
+    activeKey: string;
+    trackId?: string;
+    children: ReactNode;
+  }
+>(function SelectionTrack(
+  { as: Tag = 'div', activeKey, trackId, className = '', children, ...props },
+  forwardedRef,
+) {
   const ref = useRef<HTMLDivElement & HTMLElement>(null);
   const indicator = useRef<HTMLSpanElement>(null);
+  const setRef = useCallback(
+    (node: (HTMLDivElement & HTMLElement) | null) => {
+      ref.current = node;
+      if (typeof forwardedRef === 'function') forwardedRef(node);
+      else if (forwardedRef) forwardedRef.current = node;
+    },
+    [forwardedRef],
+  );
   const previousKey = useRef(activeKey);
   const currentPlacement = useRef<Placement | null>(null);
   const currentLayout = useRef<Layout | null>(null);
   const pending = useRef<{ from: Placement; to: Placement } | null>(null);
   const animation = useRef<Animation | null>(null);
   const [placement, setPlacement] = useState<Placement | null>(null);
+  const remeasure = useRef<() => void>(() => {});
 
   useLayoutEffect(() => {
     const container = ref.current;
@@ -71,7 +90,7 @@ export default function SelectionTrack({
     if (trackId) handoffs.delete(trackId);
     const measure = (animate = false, handoff?: Handoff) => {
       const active = container.querySelector<HTMLElement>(
-        ":scope > button.active, :scope > a[aria-current='page']",
+        ":scope > button.active, :scope > a[aria-current='page'], :scope > button[data-state='active'], .qs-navigation-item[aria-current='page']",
       );
       if (!active) {
         animation.current?.cancel();
@@ -80,7 +99,7 @@ export default function SelectionTrack({
         return;
       }
       const parent = container.getBoundingClientRect();
-      const next = bounds(active, container);
+      const next = bounds(active, container, parent);
       if (!next.width || !next.height) {
         currentPlacement.current = null;
         setPlacement(null);
@@ -89,12 +108,12 @@ export default function SelectionTrack({
       const layout = {
         width: parent.width,
         height: parent.height,
-        items: Array.from(container.children)
+        items: Array.from(container.querySelectorAll('button, a'))
           .filter(
             (child): child is HTMLElement =>
               child instanceof HTMLElement && child.matches('button, a'),
           )
-          .map((child) => bounds(child, container)),
+          .map((child) => bounds(child, container, parent)),
       };
       const previous = currentPlacement.current;
       const unchanged = previous && samePlacement(previous, next);
@@ -104,28 +123,47 @@ export default function SelectionTrack({
         handoff && sameLayout(handoff.layout, layout)
           ? handoff.placement
           : animate && previous && indicator.current
-            ? bounds(indicator.current, container)
+            ? bounds(indicator.current, container, parent)
             : null;
       animation.current?.cancel();
-      pending.current =
-        from && !samePlacement(from, next) && Math.abs(from.y - next.y) < 1
-          ? { from, to: next }
-          : null;
+      pending.current = from && !samePlacement(from, next) ? { from, to: next } : null;
       currentPlacement.current = next;
       setPlacement(next);
     };
     measure(changed, inherited);
-    const resize = () => measure();
+    remeasure.current = () => measure();
+  }, [activeKey, trackId]);
+
+  useLayoutEffect(() => {
+    const container = ref.current;
+    if (!container) return;
+    let frame = 0;
+    const resize = () => {
+      if (!frame)
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          remeasure.current();
+        });
+    };
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(resize);
     observer?.observe(container);
-    for (const child of container.children)
+    for (const child of container.querySelectorAll('button, a'))
       if (child.matches('button, a')) observer?.observe(child);
+    const mutations = new MutationObserver(() => {
+      observer?.disconnect();
+      observer?.observe(container);
+      for (const child of container.querySelectorAll('button, a')) observer?.observe(child);
+      resize();
+    });
+    mutations.observe(container, { childList: true, subtree: true });
     window.addEventListener('resize', resize);
     return () => {
+      cancelAnimationFrame(frame);
       observer?.disconnect();
+      mutations.disconnect();
       window.removeEventListener('resize', resize);
     };
-  }, [activeKey, trackId]);
+  }, []);
 
   useLayoutEffect(() => {
     const move = pending.current;
@@ -169,7 +207,7 @@ export default function SelectionTrack({
   return (
     <Tag
       {...props}
-      ref={ref}
+      ref={setRef}
       className={`${className} selection-track`}
       data-selection-ready={placement ? 'true' : undefined}
     >
@@ -184,4 +222,5 @@ export default function SelectionTrack({
       {children}
     </Tag>
   );
-}
+});
+export default SelectionTrack;

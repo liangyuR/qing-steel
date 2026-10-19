@@ -4,6 +4,8 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  memo,
+  useCallback,
   type ReactNode,
   type CSSProperties,
 } from 'react';
@@ -225,7 +227,7 @@ export interface CameraThumbnailProps {
   onSelect?: (id: string) => void;
   className?: string;
 }
-export function CameraThumbnail({ frame, selected, onSelect, className }: CameraThumbnailProps) {
+function CameraThumbnailView({ frame, selected, onSelect, className }: CameraThumbnailProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const imageFailed = !!frame.src && failedSrc === frame.src;
   const unavailable =
@@ -295,6 +297,15 @@ export function CameraThumbnail({ frame, selected, onSelect, className }: Camera
     </div>
   );
 }
+export const CameraThumbnail = memo(
+  CameraThumbnailView,
+  (a, b) =>
+    a.selected === b.selected &&
+    a.onSelect === b.onSelect &&
+    a.className === b.className &&
+    Object.keys(a.frame).length === Object.keys(b.frame).length &&
+    (Object.keys(a.frame) as (keyof CameraFrame)[]).every((key) => a.frame[key] === b.frame[key]),
+);
 export interface CameraStripProps {
   frames: CameraFrame[];
   value?: string | null;
@@ -318,10 +329,13 @@ export function CameraStrip({
   const [localSelection, setLocalSelection] = useState({ cycleId, id: defaultValue });
   const selected =
     value === undefined ? (localSelection.cycleId === cycleId ? localSelection.id : null) : value;
-  const setSelected = (id: string) => {
-    if (value === undefined) setLocalSelection({ cycleId, id });
-    onValueChange?.(id);
-  };
+  const setSelected = useCallback(
+    (id: string) => {
+      if (value === undefined) setLocalSelection({ cycleId, id });
+      onValueChange?.(id);
+    },
+    [value, cycleId, onValueChange],
+  );
   const root = useRef<HTMLDivElement>(null);
   const shown = frames.map((frame) =>
     cycleId !== undefined && frame.cycleId !== cycleId
@@ -346,10 +360,21 @@ export function CameraStrip({
       else if (rect.right > parent.right) container.scrollLeft += rect.right - parent.right;
     };
     reveal();
-    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(reveal);
+    let frame = 0;
+    const schedule = () => {
+      if (!frame)
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          reveal();
+        });
+    };
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
     if (container) observer?.observe(container);
-    return () => observer?.disconnect();
-  }, [selected, cycleId, layout, frames]);
+    return () => {
+      observer?.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [selected, cycleId, layout, frames.map((frame) => frame.id).join('\0')]);
   if (!frames.length)
     return <EmptyState title="暂无相机帧" description="收到采集帧后将在此显示。" />;
   return (
@@ -388,6 +413,8 @@ export function CameraStrip({
   );
 }
 
+const numberFormats = new Map<string, Intl.NumberFormat>();
+const decimalMarks = new Map<string, string>();
 function formatNumber(
   value: number | null | undefined,
   precision: number,
@@ -397,20 +424,40 @@ function formatNumber(
   if (value == null || !Number.isFinite(value)) return null;
   const digits = Number.isFinite(precision) ? Math.max(0, Math.min(20, Math.trunc(precision))) : 2;
   const normalized = Number(value.toFixed(digits)) === 0 ? 0 : value;
-  return new Intl.NumberFormat(locale, {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-    useGrouping,
-  }).format(normalized);
+  const key = JSON.stringify([locale, digits, useGrouping]);
+  let formatter = numberFormats.get(key);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+      useGrouping,
+    });
+    if (numberFormats.size >= 32) numberFormats.delete(numberFormats.keys().next().value!);
+    numberFormats.set(key, formatter);
+  }
+  return formatter.format(normalized);
 }
-function NumberCharacter({ character, animate }: { character: string; animate: boolean }) {
+const NumberCharacter = memo(function NumberCharacter({
+  character,
+  animate,
+}: {
+  character: string;
+  animate: boolean;
+}) {
   const ref = useRef<HTMLSpanElement>(null);
   const previous = useRef(character);
+  const lastChange = useRef<number | null>(null);
   useLayoutEffect(() => {
     const old = previous.current;
     previous.current = character;
     if (!animate || old === character || !/\d/.test(old) || !/\d/.test(character) || !ref.current)
       return;
+    const now = performance.now();
+    const token = getComputedStyle(ref.current).getPropertyValue('--dur-short').trim();
+    const minimum = parseFloat(token) * (token.endsWith('ms') ? 1 : 1000);
+    const rapid = lastChange.current !== null && now - lastChange.current < minimum;
+    lastChange.current = now;
+    if (rapid) return; // Streaming values stay legible instead of repeatedly fading to 25%.
     const animation = motion(
       ref.current,
       [
@@ -426,7 +473,7 @@ function NumberCharacter({ character, animate }: { character: string; animate: b
       <span ref={ref}>{character}</span>
     </span>
   );
-}
+});
 export interface AnimatedNumberProps {
   value: number | null | undefined;
   precision?: number;
@@ -446,9 +493,14 @@ export function AnimatedNumber({
   className,
 }: AnimatedNumberProps) {
   const text = formatNumber(value, precision, locale, useGrouping);
-  const decimal =
-    new Intl.NumberFormat(locale).formatToParts(1.1).find((part) => part.type === 'decimal')
-      ?.value ?? '.';
+  let decimal = decimalMarks.get(locale);
+  if (!decimal) {
+    decimal =
+      new Intl.NumberFormat(locale).formatToParts(1.1).find((part) => part.type === 'decimal')
+        ?.value ?? '.';
+    if (decimalMarks.size >= 32) decimalMarks.delete(decimalMarks.keys().next().value!);
+    decimalMarks.set(locale, decimal);
+  }
   const decimalIndex = text?.indexOf(decimal) ?? -1;
   return (
     <span className={cx('qs-animated-number', 'qs-num', className)}>
@@ -476,7 +528,7 @@ export interface MeasurementReadingProps extends AnimatedNumberProps {
   description?: ReactNode;
   size?: 'md' | 'lg';
 }
-export function MeasurementReading({
+function MeasurementReadingView({
   label,
   unit,
   status = 'neutral',
@@ -539,6 +591,7 @@ export function MeasurementReading({
     </div>
   );
 }
+export const MeasurementReading = memo(MeasurementReadingView);
 export interface MeasurementItem extends MeasurementReadingProps {
   id: string;
 }
