@@ -53,9 +53,9 @@ export function App() {
 | Text / Heading                 | `variant=body / label / data / data-lg`、`mono`、`muted`；Heading 的 `level=1…6`                                                          |
 | Icon                           | SVG 内容作为 children；`size`、`label`；装饰图标默认不向辅助技术暴露                                                                      |
 | Stack / Grid                   | Stack 的 `direction / gap / align / justify / wrap`；Grid 的 `minWidth / gap`                                                             |
-| Surface / Card                 | `level=lowest / low / mid / high / highest`；Card 支持 `title / actions`                                                                  |
+| Surface / Card                 | `level=lowest / low / mid / high / highest`、`as=div / section / article / aside`；Card 支持 `title / description / actions / headingLevel`，非 div 或带 `role` 时以标题命名 |
 | Divider                        | `vertical` 切换方向                                                                                                                       |
-| Button / IconButton            | `variant=filled / tonal / outlined / text`、`size=sm / md`、`danger / loading / disabled`；图标按钮必须提供 `aria-label`，支持 `selected` |
+| Button / IconButton            | `variant=filled / tonal / outlined / text`、`size=sm / md`、`tone=danger / warn`（`danger` 等同 `tone="danger"`）、`loading / disabled`；`href` 渲染为链接，`asChild` 合并到唯一子元素（如路由 Link）；图标按钮必须提供 `aria-label`，支持 `selected` 与 `size="xs"` |
 | FormField                      | `label / description / error / required / id`；自动关联内部输入控件；显式指定子控件 id 时应与 FormField id 相同                           |
 | TextField / TextArea           | 原生 input / textarea 属性，加 `label / description / error`；TextField 支持 `leading / trailing`                                         |
 | NumberField                    | `value / defaultValue` 为 number 或空字符串；`onValueChange`、`min / max / step / precision / unit`；失焦时校正范围和精度                 |
@@ -64,8 +64,8 @@ export function App() {
 | Switch                         | 原生 checkbox 属性、`label / onCheckedChange`，使用 switch 语义                                                                           |
 | RadioGroup                     | `label / name / options / value / defaultValue / onValueChange / disabled / required / direction`                                         |
 | SegmentedControl               | `label / options / value / defaultValue / onValueChange / size / disabled`；`multiple` 时值为字符串数组，否则为字符串                     |
-| Chip                           | 无操作时为静态标签；`onClick` 为操作；`selected` 为筛选；`onRemove / removeLabel` 添加独立移除按钮                                        |
-| Badge / StatusBadge            | Badge 的 `count / max / label`；StatusBadge 的 `tone=info / ok / warn / ng / fault / off`                                                 |
+| Chip                           | 无操作时为静态标签并透传 `title` 等原生属性；`onClick` 为操作；`selected` 为筛选；`onRemove / removeLabel` 添加独立移除按钮；`label` 与 children 组成「键 + 值」；`tone=ok / warn / ng / fault`、`size=sm / md` |
+| Badge / StatusBadge            | Badge 的 `count / max / label`；StatusBadge 的 `tone=info / ok / warn / ng / fault / off / neutral`，`neutral` 表示灯未亮、空闲、未开始 |
 | List / ListItem                | ListItem 的 `title / description / leading / trailing / selected / onClick / disabled`；尾部操作独立于行按钮                              |
 | Tabs                           | `label / items / value / defaultValue / onValueChange`；items 为 `{value,label,icon?,disabled?,content}`                                  |
 | Tooltip                        | 包裹单个支持 ref 的交互元素；`content / side / delay`                                                                                     |
@@ -75,9 +75,35 @@ export function App() {
 | Snackbar                       | `duration / onDismiss / tone / action`；duration 为 0 时保持显示；内容作为 children                                                       |
 | SnackbarProvider / useSnackbar | 自动渲染全局提示层；`show(string或{text,tone?,duration?,action?})`、`clear()`；同一时间一条提示                                           |
 | Progress                       | `value / max / variant=linear或circular / label / tone`；省略 value 表示不确定进度                                                        |
-| EmptyState                     | `title / description / icon / action`                                                                                                     |
+| EmptyState                     | `title / description / icon / action`，其余原生 div 属性（含 `className`）透传                                                            |
 
 表单控件沿用原生 `value / defaultValue` 或 `checked / defaultChecked` 规则；不要在挂载后切换受控与非受控模式。按钮默认 `type="button"`，需要提交表单时显式设置 `type="submit"`。
+
+### 按钮的链接形态、色调与卡片头部
+
+```tsx
+import { Link } from 'react-router-dom';
+
+<Button variant="filled" asChild trailingIcon={<ArrowRight size={15} />}>
+  <Link to="/recipe/capture">前往整圈采集</Link>
+</Button>
+<Button href="/docs/guide.pdf" variant="text">操作手册</Button>
+<IconButton asChild aria-label="返回历史列表"><Link to="/history"><ArrowLeft /></Link></IconButton>
+<Button tone="warn" size="sm" onClick={openDiagnostics}>检测图异常 3</Button>
+
+<Card as="section" title="触发接线" description="保存后由设备确认"
+  actions={<IconButton size="xs" aria-label="刷新"><RefreshCw size={14} /></IconButton>}>
+  …
+</Card>
+<Chip label="轮次">R-0012</Chip>
+<StatusBadge tone="neutral">空闲</StatusBadge>
+```
+
+- `asChild` 把按钮样式、`leadingIcon / trailingIcon` 与事件合并到唯一子元素：子元素自己的属性优先，`className` 与 `style` 合并，同名事件先执行子元素的再执行按钮的；`ref` 同时交给按钮调用方与子元素。子元素需转发 ref 与原生属性（react-router 的 `Link` / `NavLink` 满足）。
+- `disabled` 或 `loading` 的链接形态：`href` 模式去掉 `href` 并标 `role="link"`、`aria-disabled="true"`；`asChild` 模式标 `aria-disabled="true"`、移出 Tab 序列并阻止点击与中键打开，子元素自身的点击回调也不执行。链接形态没有 `aria-pressed`，`IconButton` 的 `selected` 只改变外观。
+- `tone="warn"` 用于需要留意但不危险的操作（检测图异常、强制复位等），与 `danger` 的 NG 红区分；在 `outlined / text` 与图标按钮上只染文字与描边。
+- `IconButton size="xs"` 为 24 px，放进卡片或面板标题行不撑高；`sm` 为 30 px 正圆。
+- Card 的标题槽位为 `.qs-card-title`（`headingLevel` 时渲染为对应标题元素），说明为 `.qs-card-description`，操作为右对齐的 `.qs-card-actions`；`as` 为 section / article / aside 或带 `role` 时，未显式命名则以标题命名，可用 `getByRole('region', { name })` 查询。
 
 Select 的单选菜单使用 Radix Select，统一 Qing Steel 的深浅主题、圆角浮层、分组标题、选中勾选和禁用样式。支持方向键、Home / End、文字快速定位与 Escape 关闭；保留 `name / required / form`、原生 `onChange`、表单提交与重置。`multiple` 或 `size > 1` 仍为原生列表框。浮层挂载在 ThemeProvider 内，跟随局部主题。
 

@@ -325,9 +325,11 @@ main {
 .demo-card.wide {
   grid-column: 1 / -1;
 }
-.demo-card .qs-card-heading {
-  font-size: 12px;
+.demo-card > .qs-card-heading {
   margin-bottom: 20px;
+}
+.demo-card > .qs-card-heading .qs-card-title {
+  font-size: 12px;
 }
 .demo-card code {
   font: 10px var(--font-mono);
