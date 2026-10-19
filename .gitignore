@@ -6,3 +6,5 @@ ly-reference.zip
 test-results/
 playwright-report/
 .npm-cache-temp/
+dist-baseline/
+performance-results/

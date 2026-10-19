@@ -615,3 +615,213 @@ h2.qs-heading {
     transition: none !important;
   }
 }
+
+/* Motion: immediate tracking, short feedback, medium spatial changes. */
+@keyframes qs-overlay-enter {
+  from {
+    opacity: 0;
+    transform: translate(var(--qs-enter-x, 0), var(--qs-enter-y, 6px)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+@keyframes qs-overlay-exit {
+  from {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--qs-enter-x, 0), var(--qs-enter-y, 6px)) scale(0.98);
+  }
+}
+@keyframes qs-modal-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 10px)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes qs-modal-exit {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 6px)) scale(0.98);
+  }
+}
+@keyframes qs-drawer-enter {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes qs-drawer-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+@keyframes qs-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.qs-root
+  :is(
+    .qs-select-content,
+    .qs-menu,
+    .qs-popover,
+    .qs-datetime-popup,
+    .qs-autocomplete-popup,
+    .qs-tooltip
+  ) {
+  transform-origin: var(--radix-popper-transform-origin, center);
+  animation: qs-overlay-enter var(--dur-medium) var(--ease-decel) both;
+}
+.qs-root
+  :is(
+    .qs-select-content,
+    .qs-menu,
+    .qs-popover,
+    .qs-datetime-popup,
+    .qs-autocomplete-popup,
+    .qs-tooltip
+  )[data-side='top'] {
+  --qs-enter-y: -6px;
+}
+.qs-root :is(.qs-menu, .qs-popover, .qs-tooltip)[data-side='left'] {
+  --qs-enter-x: -6px;
+  --qs-enter-y: 0px;
+}
+.qs-root :is(.qs-menu, .qs-popover, .qs-tooltip)[data-side='right'] {
+  --qs-enter-x: 6px;
+  --qs-enter-y: 0px;
+}
+.qs-root
+  :is(
+    .qs-select-content,
+    .qs-menu,
+    .qs-popover,
+    .qs-datetime-popup,
+    .qs-autocomplete-popup,
+    .qs-tooltip
+  )[data-state='closed'] {
+  animation: qs-overlay-exit var(--dur-short) var(--ease-standard) both;
+  pointer-events: none;
+}
+.qs-root .qs-modal-content {
+  animation: qs-modal-enter var(--dur-medium) var(--ease-decel) both;
+}
+.qs-root .qs-modal-content[data-state='closed'] {
+  animation: qs-modal-exit var(--dur-short) var(--ease-standard) both;
+  pointer-events: none;
+}
+.qs-root .qs-drawer-content {
+  animation: qs-drawer-enter var(--dur-medium) var(--ease-decel) both;
+}
+.qs-root .qs-drawer-content[data-state='closed'] {
+  animation: qs-drawer-exit var(--dur-short) var(--ease-standard) both;
+}
+.qs-root .qs-modal-overlay[data-state='closed'] {
+  animation: qs-fade-out var(--dur-short) var(--ease-standard) both;
+  pointer-events: none;
+}
+.qs-root
+  :is(
+    .qs-btn,
+    .qs-chip,
+    .qs-menu-item,
+    .qs-select-item,
+    .qs-list-item,
+    .qs-picker-trigger,
+    .qs-camera-thumbnail
+  ) {
+  transition:
+    background-color var(--dur-short) var(--ease-standard),
+    color var(--dur-short) var(--ease-standard);
+}
+.qs-root :is(.qs-btn, .qs-chip):not(:disabled):not([aria-disabled='true']):active {
+  transform: scale(0.98);
+}
+.qs-root :is(.qs-select-item, .qs-menu-item):not([data-disabled]):active {
+  background-image: linear-gradient(var(--state-pressed), var(--state-pressed));
+}
+.qs-root .qs-list-item:has(> button:not(:disabled)):active {
+  background-image: linear-gradient(var(--state-pressed), var(--state-pressed));
+}
+.qs-root .qs-slider-value {
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--dur-short) var(--ease-standard),
+    visibility var(--dur-short);
+}
+.qs-root .qs-slider[data-dragging] .qs-slider-thumb:focus .qs-slider-value,
+.qs-root .qs-slider:not([data-disabled]) .qs-slider-thumb:focus-visible .qs-slider-value {
+  opacity: 1;
+  visibility: visible;
+}
+.qs-root .qs-slider-thumb {
+  transition: box-shadow var(--dur-short) var(--ease-standard);
+}
+.qs-root .qs-slider[data-dragging] .qs-slider-thumb:focus {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+.qs-tabs > .selection-track-indicator {
+  background: transparent;
+  border-bottom: 3px solid var(--primary);
+}
+.qs-tabs[data-selection-ready] > .qs-tab[data-state='active'] {
+  border-bottom-color: transparent;
+}
+.qs-snackbar-exit {
+  grid-area: 1 / 1;
+  pointer-events: none;
+}
+.qs-root .qs-snackbar-exit .qs-snackbar {
+  animation: qs-overlay-exit var(--dur-short) var(--ease-standard) both;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .qs-root *,
+  .qs-root *::before,
+  .qs-root *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .qs-root :is(.qs-btn, .qs-chip):active {
+    transform: none;
+  }
+}
+
+.qs-navigation-items > .selection-track-indicator {
+  background: var(--primary-container);
+  border-radius: var(--r-full);
+}
+.qs-root .qs-navigation-items[data-selection-ready] .qs-navigation-item[aria-current='page'] {
+  background: transparent;
+}
+.qs-root .qs-navigation {
+  transition: none;
+}

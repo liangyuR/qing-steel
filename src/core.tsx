@@ -3,6 +3,10 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
   type CSSProperties,
   type ReactNode,
 } from 'react';
@@ -25,13 +29,15 @@ export function useControllable<T>(
 ) {
   const [internal, setInternal] = useState(defaultValue);
   const current = value === undefined ? internal : value;
-  return [
-    current,
-    (next: T) => {
-      if (value === undefined) setInternal(next);
-      onChange?.(next);
-    },
-  ] as const;
+  const latest = useRef({ value, onChange });
+  useLayoutEffect(() => {
+    latest.current = { value, onChange };
+  });
+  const setValue = useCallback((next: T) => {
+    if (latest.current.value === undefined) setInternal(next);
+    latest.current.onChange?.(next);
+  }, []);
+  return [current, setValue] as const;
 }
 
 export function ThemeProvider({
@@ -60,8 +66,12 @@ export function ThemeProvider({
     return () => query.removeEventListener('change', update);
   }, []);
   const resolved = current === 'system' ? system : current;
+  const context = useMemo(
+    () => ({ theme: current, setTheme, container }),
+    [current, setTheme, container],
+  );
   return (
-    <ThemeContext.Provider value={{ theme: current, setTheme, container }}>
+    <ThemeContext.Provider value={context}>
       <div
         ref={setContainer}
         className={cx('qs-root', `qs-scheme-${resolved}`, className)}

@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useMemo,
   type ReactNode,
   type CSSProperties,
 } from 'react';
@@ -182,18 +183,57 @@ const SnackbarContext = createContext<{
   show: (message: string | SnackbarMessage) => void;
   clear: () => void;
 } | null>(null);
+function LeavingSnackbar({ item, done }: { item: SnackbarMessage; done: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const token = ref.current
+      ? getComputedStyle(ref.current).getPropertyValue('--dur-short').trim()
+      : '0';
+    const duration = parseFloat(token) * (token.endsWith('ms') ? 1 : 1000);
+    const timer = setTimeout(done, reduced || !Number.isFinite(duration) ? 0 : duration + 50);
+    return () => clearTimeout(timer);
+  }, [done]);
+  return (
+    <div ref={ref} className="qs-snackbar-exit" aria-hidden="true" inert onAnimationEnd={done}>
+      <div className={cx('qs-snackbar', item.tone ?? 'ok')}>
+        <span className="msg">{item.text}</span>
+        {item.action && (
+          <Button variant="text" disabled>
+            {item.action.label}
+          </Button>
+        )}
+        <IconButton aria-label="关闭提示" disabled>
+          <CloseIcon />
+        </IconButton>
+      </div>
+    </div>
+  );
+}
 export function SnackbarProvider({ children }: { children: ReactNode }) {
   const [item, setItem] = useState<(SnackbarMessage & { id: number }) | null>(null);
   const serial = useRef(0);
-  const clear = useCallback(() => setItem(null), []);
+  const [leaving, setLeaving] = useState<SnackbarMessage | null>(null);
+  const active = useRef(item);
+  active.current = item;
+  const clear = useCallback(() => {
+    setLeaving(active.current);
+    setItem(null);
+  }, []);
+  const finish = useCallback(() => setLeaving(null), []);
   const show = useCallback((message: string | SnackbarMessage) => {
     const next = typeof message === 'string' ? { text: message } : message;
-    if (next.text) setItem({ ...next, id: ++serial.current });
+    if (next.text) {
+      setLeaving(null);
+      setItem({ ...next, id: ++serial.current });
+    }
   }, []);
+  const context = useMemo(() => ({ show, clear }), [show, clear]);
   return (
-    <SnackbarContext.Provider value={{ show, clear }}>
+    <SnackbarContext.Provider value={context}>
       {children}
       <div className="qs-snackbars">
+        {leaving && <LeavingSnackbar item={leaving} done={finish} />}
         {item && (
           <Snackbar
             key={item.id}

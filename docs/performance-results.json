@@ -1,0 +1,188 @@
+{
+  "before": {
+    "environment": {
+      "browser": "155.0.8059.81",
+      "platform": "win32",
+      "cpu": "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+      "logicalCpus": 8,
+      "viewport": "1440x1000",
+      "timestamp": "2026-10-19T11:59:56.906Z"
+    },
+    "summary": [
+      {
+        "frameMedian": 16.600000000000023,
+        "frameP95": 17,
+        "interactionMedian": 9,
+        "interactionP95": 20.30000001192093,
+        "longTasks": 0,
+        "maxLongTask": 0,
+        "timeOpen": 82.89999997615814,
+        "timeOpenLongTasks": [],
+        "selectionCellRenders": 200,
+        "counters": {
+          "tableCells": 800,
+          "cameraTicks": 20,
+          "readingTicks": 83
+        }
+      },
+      {
+        "frameMedian": 16.600000000000023,
+        "frameP95": 16.90000000000009,
+        "interactionMedian": 9.699999988079071,
+        "interactionP95": 19.80000001192093,
+        "longTasks": 0,
+        "maxLongTask": 0,
+        "timeOpen": 73.80000001192093,
+        "timeOpenLongTasks": [],
+        "selectionCellRenders": 200,
+        "counters": {
+          "tableCells": 800,
+          "cameraTicks": 21,
+          "readingTicks": 84
+        }
+      },
+      {
+        "frameMedian": 16.600000000000023,
+        "frameP95": 16.900000000000546,
+        "interactionMedian": 9.400000035762787,
+        "interactionP95": 19.69999998807907,
+        "longTasks": 0,
+        "maxLongTask": 0,
+        "timeOpen": 72.59999996423721,
+        "timeOpenLongTasks": [],
+        "selectionCellRenders": 200,
+        "counters": {
+          "tableCells": 800,
+          "cameraTicks": 21,
+          "readingTicks": 84
+        }
+      },
+      {
+        "frameMedian": 16.600000000000023,
+        "frameP95": 16.90000000000009,
+        "interactionMedian": 9.600000023841858,
+        "interactionP95": 19.399999976158142,
+        "longTasks": 0,
+        "maxLongTask": 0,
+        "timeOpen": 74,
+        "timeOpenLongTasks": [],
+        "selectionCellRenders": 200,
+        "counters": {
+          "tableCells": 800,
+          "cameraTicks": 20,
+          "readingTicks": 83
+        }
+      },
+      {
+        "frameMedian": 16.600000000000136,
+        "frameP95": 16.900000000000546,
+        "interactionMedian": 9.399999976158142,
+        "interactionP95": 18.899999976158142,
+        "longTasks": 0,
+        "maxLongTask": 0,
+        "timeOpen": 70.60000002384186,
+        "timeOpenLongTasks": [],
+        "selectionCellRenders": 200,
+        "counters": {
+          "tableCells": 800,
+          "cameraTicks": 20,
+          "readingTicks": 83
+        }
+      }
+    ],
+    "initialStaticJsBytes": 531272
+  },
+  "after": {
+    "environment": {
+      "browser": "155.0.8059.81",
+      "platform": "win32",
+      "cpu": "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+      "logicalCpus": 8,
+      "viewport": "1440x1000",
+      "timestamp": "2026-10-19T12:00:26.507Z"
+    },
+    "summary": [
+      {
+        "frameMedian": 16.600000000000023,
+        "frameP95": 16.90000000000009,
+        "interactionMedian": 10.699999988079071,
+        "interactionP95": 18.69999998807907,
+        "longTasks": 0,
+        "maxLongTask": 0,
+        "timeOpen": 89.89999997615814,
+        "timeOpenLongTasks": [],
+        "selectionCellRenders": 2,
+        "counters": {
+          "tableCells": 202,
+          "cameraTicks": 20,
+          "readingTicks": 83
+        }
+      },
+      {
+        "frameMedian": 16.600000000000023,
+        "frameP95": 16.899999999999977,
+        "interactionMedian": 11.199999988079071,
+        "interactionP95": 16.19999998807907,
+        "longTasks": 0,
+        "maxLongTask": 0,
+        "timeOpen": 70.80000001192093,
+        "timeOpenLongTasks": [],
+        "selectionCellRenders": 2,
+        "counters": {
+          "tableCells": 202,
+          "cameraTicks": 20,
+          "readingTicks": 82
+        }
+      },
+      {
+        "frameMedian": 16.600000000000136,
+        "frameP95": 16.90000000000009,
+        "interactionMedian": 11.700000047683716,
+        "interactionP95": 19,
+        "longTasks": 0,
+        "maxLongTask": 0,
+        "timeOpen": 71.60000002384186,
+        "timeOpenLongTasks": [],
+        "selectionCellRenders": 2,
+        "counters": {
+          "tableCells": 202,
+          "cameraTicks": 21,
+          "readingTicks": 86
+        }
+      },
+      {
+        "frameMedian": 16.600000000000136,
+        "frameP95": 16.90000000000009,
+        "interactionMedian": 9.699999988079071,
+        "interactionP95": 17.200000047683716,
+        "longTasks": 0,
+        "maxLongTask": 0,
+        "timeOpen": 86.60000002384186,
+        "timeOpenLongTasks": [],
+        "selectionCellRenders": 2,
+        "counters": {
+          "tableCells": 202,
+          "cameraTicks": 20,
+          "readingTicks": 83
+        }
+      },
+      {
+        "frameMedian": 16.600000000000136,
+        "frameP95": 17,
+        "interactionMedian": 11.199999988079071,
+        "interactionP95": 17,
+        "longTasks": 0,
+        "maxLongTask": 0,
+        "timeOpen": 78,
+        "timeOpenLongTasks": [],
+        "selectionCellRenders": 2,
+        "counters": {
+          "tableCells": 202,
+          "cameraTicks": 21,
+          "readingTicks": 85
+        }
+      }
+    ],
+    "initialStaticJsBytes": 388669
+  }
+}

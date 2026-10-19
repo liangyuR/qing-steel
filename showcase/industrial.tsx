@@ -21,26 +21,6 @@ import {
   type InspectionVerdict,
 } from '../src';
 
-export const industrialSections = [
-  {
-    id: 'industrial-verdict',
-    name: '工业判定与阶段',
-    icon: 'check',
-    tags: 'VerdictCard InspectionStages',
-  },
-  {
-    id: 'industrial-cameras',
-    name: '相机与采集帧',
-    icon: 'grid',
-    tags: 'CameraThumbnail CameraStrip',
-  },
-  {
-    id: 'industrial-readings',
-    name: '测量与数字读数',
-    icon: 'sliders',
-    tags: 'MeasurementReading MeasurementReadings AnimatedNumber',
-  },
-];
 function Example({
   title,
   name,

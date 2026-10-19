@@ -35,22 +35,6 @@ import {
   type NavigationItem,
 } from '../src';
 
-export const extendedSections = [
-  {
-    id: 'advanced-inputs',
-    name: '高级输入',
-    icon: 'sliders',
-    tags: 'Slider Autocomplete DatePicker TimePicker',
-  },
-  { id: 'data-display', name: '数据展示', icon: 'grid', tags: 'Table Pagination Skeleton' },
-  {
-    id: 'app-navigation',
-    name: '应用导航',
-    icon: 'layers',
-    tags: 'NavigationRail NavigationDrawer AppBar Toolbar Breadcrumbs FAB',
-  },
-  { id: 'content-overlays', name: '内容与浮层', icon: 'box', tags: 'Accordion Popover' },
-];
 function Mark({ type = 'grid' }: { type?: 'grid' | 'plus' | 'file' | 'settings' | 'back' }) {
   return (
     <Icon>

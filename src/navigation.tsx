@@ -8,6 +8,7 @@ import {
 import { cx, useControllable } from './core';
 import { Badge, Icon, IconButton } from './primitives';
 import { Tooltip } from './overlays';
+import SelectionTrack from './internal/SelectionTrack';
 
 export interface NavigationItem {
   value: string;
@@ -47,7 +48,7 @@ function Navigation({
       className={cx('qs-navigation', collapsed && 'qs-navigation-rail', className)}
     >
       {header && <div className="qs-navigation-header">{header}</div>}
-      <div className="qs-navigation-items">
+      <SelectionTrack className="qs-navigation-items" activeKey={active}>
         {items.map((item, index) => {
           const content = (
             <>
@@ -90,7 +91,7 @@ function Navigation({
             </div>
           );
         })}
-      </div>
+      </SelectionTrack>
       {(footer || toggle) && (
         <div className="qs-navigation-footer">
           {footer}
