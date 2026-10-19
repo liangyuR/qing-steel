@@ -27,12 +27,13 @@ test('第二批桌面交互 → 建议选择、全表排序分页和设置浮层
   const table = page.getByRole('table', { name: '检测记录示例' });
   await table.getByRole('checkbox', { name: '选择本页全部' }).check();
   await expect(page.getByText('已选择 5 条记录')).toBeVisible();
-  await page.getByRole('button', { name: '下一页' }).click();
+  const pager = page.getByRole('navigation', { name: '分页', exact: true });
+  await pager.getByRole('button', { name: '下一页' }).click();
   await expect(table.getByRole('cell', { name: 'QS-006', exact: true })).toBeVisible();
   await table.getByRole('checkbox', { name: '选择 QS-006' }).check();
   await expect(page.getByText('已选择 6 条记录')).toBeVisible();
   await table.getByRole('button', { name: '测量值 / mm' }).click();
-  await expect(page.getByRole('button', { name: '第 1 页' })).toHaveAttribute(
+  await expect(pager.getByRole('button', { name: '第 1 页' })).toHaveAttribute(
     'aria-current',
     'page',
   );
