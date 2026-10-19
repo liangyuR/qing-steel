@@ -1,5 +1,11 @@
 # 版本记录
 
+## 0.5.0
+
+- 新增原生数据表 `.qs-table`：表头、排序按钮、悬浮/选中行、等宽读数和语义颜色；排序、分页、虚拟滚动行为继续由宿主管理。
+- 新增原生树行 `.qs-tree .item` 的选中、焦点与悬浮状态，宿主提供 ARIA 语义、键盘、层级与展开行为。
+- 新增 `.qs-check` 原生复选/单选控件令牌配色，补充原生输入框禁用与错误状态；保留浏览器原生交互。
+
 ## 0.4.0
 
 - 新增组件：`.qs-snackbars` / `.qs-snackbar` 全局提示（snackbar），用于瞬时的操作结果，浮在页面之上、不占布局。默认视口底部居中，`.top` 顶部居中；默认 inverse-surface，`ok` / `info` / `warn` / `ng` / `fault` 取对应 container 色，阴影取 `--shadow-2`。进入自外侧 12 px、.98 缩放淡入（medium / decel），加 `.out` 后回退淡出（short / standard），只动 transform 与 opacity；减少动态效果时由令牌归零与现有兜底关闭。

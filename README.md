@@ -14,6 +14,16 @@
 
 ---
 
+## 原生数据控件
+
+原生表格、树行与选择控件的浅深主题静态示例见 [`demo/native-data.html`](demo/native-data.html)。示例展示视觉状态；真实排序、树键盘与选择逻辑由接入应用提供。
+
+`table.qs-table` 直接用于原生表格，使用 `thead/th` 和 `tbody/td`；排序标题使用 `th > button`，当前顺序写在 `th` 的 `aria-sort`。行选择使用 `tr[aria-selected="true"]`，数字列可用 `td.num`。分页、列宽、滚动容器及虚拟行由应用管理，表格样式不持有数据或事件。
+
+树容器使用 `.qs-tree`，每行使用 `.item`，可直接在树行上声明 `role="treeitem"`、`aria-selected` 和 `aria-expanded`；树层级、焦点顺序、方向键与上下文菜单由应用提供。
+
+复选框和单选框可直接添加 `.qs-check`，或放在 `.qs-field` 内；保留原生 input，不隐藏后重画皮肤。输入框容器 `.qs-input` 会呈现内部原生输入的禁用态和 `aria-invalid` 状态。所有控件颜色直接跟随同一份浅/深主题令牌。
+
 ## 五条原则
 
 1. **分层靠明度，不靠边框。**

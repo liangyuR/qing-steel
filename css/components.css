@@ -448,6 +448,47 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
 @keyframes qs-dialog-in { from { opacity: 0; transform: translateY(8px) scale(.98); } }
 @keyframes qs-sheet-in { from { opacity: 0; transform: translateX(24px); } }
 
+/* ---------- 原生表单选择控件 ----------
+ * 浏览器负责 checkbox/radio 的键盘、焦点和禁用行为；不隐藏 input，不另造开关皮肤。
+ * .qs-check 直接放在原生 input 上，也支持 qs-field 内的原生选择控件。
+ */
+.qs-check,
+.qs-field input:is([type="checkbox"], [type="radio"]) { accent-color: var(--primary); cursor: pointer; }
+.qs-check:disabled,
+.qs-field input:is([type="checkbox"], [type="radio"]):disabled { cursor: not-allowed; }
+.qs-input:has(input:disabled, select:disabled) { color: var(--on-surface-disabled); background: var(--disabled-container); }
+.qs-input:has([aria-invalid="true"]) { border-color: var(--ng); }
+
+/* ---------- 原生数据表 ----------
+ * 语义和行为保留在 table / th / button 中；排序、分页、列宽、虚拟行由宿主管理。
+ * 外层滚动区域由业务布局提供，sticky 表头自然跟随最近的滚动区域。
+ */
+.qs-table { width: 100%; border-collapse: separate; border-spacing: 0; color: var(--on-surface); font: var(--text-body); }
+.qs-table :is(th, td) { padding: var(--space-12) var(--space-16); border-bottom: 1px solid var(--outline-variant); text-align: left; vertical-align: middle; }
+.qs-table thead th { position: sticky; top: 0; z-index: 1; background: var(--surface-high); color: var(--on-surface-variant); font: var(--text-label); white-space: nowrap; }
+.qs-table th > button { display: inline-flex; align-items: center; gap: var(--space-8); padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.qs-table th > button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.qs-table tbody tr { background: var(--surface-low); }
+.qs-table tbody tr:hover { background: var(--surface-mid); }
+.qs-table tbody tr[aria-selected="true"] { background: var(--primary-container); color: var(--on-primary-container); }
+.qs-table td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.qs-table td:is([data-tone="ok"], [data-tone="pass"]) { color: var(--ok); }
+.qs-table td:is([data-tone="ng"], [data-tone="fail"]) { color: var(--ng); }
+.qs-table td[data-tone="warn"] { color: var(--warn); }
+.qs-table td[data-tone="fault"] { color: var(--fault); }
+
+/* ---------- 原生树行 ----------
+ * 宿主提供 tree/treeitem/group 语义与键盘行为、缩进及展开按钮；这里仅定义同一设计语言。
+ */
+.qs-tree { min-width: 0; color: var(--on-surface); font: var(--text-body); }
+.qs-tree .item { display: flex; align-items: center; gap: var(--space-8); min-height: var(--ctl-h); padding: var(--space-4) var(--space-8); border: 0; border-radius: var(--r-md); background: transparent; color: var(--on-surface-variant); font: inherit; text-align: left; cursor: pointer; }
+.qs-tree .item:hover { background: var(--state-hover); color: var(--on-surface); }
+.qs-tree .item[aria-selected="true"],
+.qs-tree [role="treeitem"][aria-selected="true"] > .item { background: var(--primary-container); color: var(--on-primary-container); }
+.qs-tree .item:focus-visible,
+.qs-tree [role="treeitem"]:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.qs-tree .item .qs-ic { width: var(--space-16); height: var(--space-16); }
+
 /* ---------- 减少动态效果：兜底关闭全部过渡与动画 ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
