@@ -31,6 +31,6 @@ export const industrialSections = [
     id: 'industrial-readings',
     name: '测量与数字读数',
     icon: 'sliders',
-    tags: 'MeasurementReading MeasurementReadings AnimatedNumber',
+    tags: 'MeasurementReading MeasurementReadings AnimatedNumber StatCounter KpiGroup',
   },
 ];

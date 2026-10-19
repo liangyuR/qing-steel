@@ -11,6 +11,13 @@ test('工业组件 → 判定切换、阶段故障与工件隔离可交互', asy
   await page
     .locator('#industrial-verdict')
     .screenshot({ path: 'test-results/industrial-verdict-dark.png' });
+  await page.getByRole('button', { name: '局部超差', exact: true }).click();
+  await expect(verdict).toHaveAttribute('data-verdict', 'warn');
+  await expect(verdict.locator('.big')).toHaveText('OK');
+  await page.getByRole('switch', { name: '产线头部（SN 与 PLC 码）' }).check();
+  await expect(
+    page.getByRole('region', { name: '判定结果 · SN P-20261019-1042', exact: true }),
+  ).toBeVisible();
   await page.getByRole('button', { name: '下一件（保留旧结果）' }).click();
   await expect(verdict).toHaveAttribute('data-verdict', 'running');
   await expect(verdict.getByText('NG', { exact: true })).toHaveCount(0);
@@ -39,6 +46,19 @@ test('工业组件 → 判定切换、阶段故障与工件隔离可交互', asy
   await page.getByRole('button', { name: '读数 +0.01' }).click();
   await page.getByRole('switch', { name: '标记历史读数' }).check();
   await expect(reading).toHaveAttribute('data-state', 'stale');
+  const ngCount = page.getByRole('group', { name: 'NG', exact: true });
+  const valueColor = (name: string) =>
+    page
+      .getByRole('group', { name, exact: true })
+      .locator('.qs-stat-counter-value')
+      .evaluate((node) => getComputedStyle(node).color);
+  expect(await valueColor('NG')).toBe(await valueColor('今日'));
+  await page.getByRole('button', { name: '记一件 NG' }).click();
+  await expect(ngCount).toHaveAttribute('data-tone', 'ng');
+  await expect(ngCount.locator('.qs-stat-counter-value')).not.toHaveCSS(
+    'color',
+    await valueColor('今日'),
+  );
   await page.getByRole('combobox', { name: '主题', exact: true }).click();
   await page.getByRole('option', { name: '浅色主题', exact: true }).click();
   await page
@@ -55,12 +75,16 @@ test('工业组件窄屏 → 长标识、帧带与减少动效正确呈现', asy
   await frame.focus();
   await page.keyboard.press('End');
   await expect(page.getByRole('button', { name: '轮廓 · 采集中', exact: true })).toBeFocused();
-  expect(
-    await page
-      .locator('#industrial-cameras .qs-camera-strip')
-      .first()
-      .evaluate((node) => node.scrollLeft),
-  ).toBeGreaterThan(0);
+  const strip = page.locator('#industrial-cameras .qs-camera-strip').first();
+  expect(await strip.evaluate((node) => node.scrollLeft)).toBeGreaterThan(0);
+  await expect(strip).toHaveAttribute('data-overflow-start', '');
+  const side = page.getByRole('button', { name: '侧面 · NG', exact: true });
+  await side.scrollIntoViewIfNeeded();
+  const box = (await side.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  expect(await side.evaluate((node) => getComputedStyle(node).transform)).toBe('none');
+  await page.mouse.up();
   await page.getByRole('button', { name: '网格', exact: true }).click();
   await page
     .locator('#industrial-cameras')
