@@ -43,6 +43,7 @@ import {
 import '../css/react.css';
 import './showcase.css';
 import { extendedSections, industrialSections } from './sections';
+import { ButtonLinkExamples, CardRegionExamples, ChipKeyValueExamples } from './primitives';
 const ExtendedExamples = lazy(() =>
   import('./extended').then((module) => ({ default: module.ExtendedExamples })),
 );
@@ -257,6 +258,7 @@ function App() {
   const [name, setName] = useState('标准检测方案');
   const [attempted, setAttempted] = useState(false);
   const [chip, setChip] = useState(true);
+  const [compactTag, setCompactTag] = useState(true);
   const [filter, setFilter] = useState(false);
   const [dialog, setDialog] = useState(false);
   const [drawer, setDrawer] = useState(false);
@@ -477,6 +479,14 @@ function App() {
                   </Text>
                 </Stack>
               </DemoCard>
+              <DemoCard
+                title="卡片标题与操作"
+                name="Card · region"
+                description="as=section 时以标题命名区域；标题、说明与操作同处头部，紧凑图标按钮不撑高标题行。"
+                wide
+              >
+                <CardRegionExamples />
+              </DemoCard>
             </>,
           )}
           {group(
@@ -550,9 +560,20 @@ function App() {
                     仅显示异常
                   </Chip>
                   {chip ? (
-                    <Chip onRemove={() => setChip(false)} removeLabel="移除标签 A">
-                      标签 A
-                    </Chip>
+                    <>
+                      <Chip onRemove={() => setChip(false)} removeLabel="移除标签 A">
+                        标签 A
+                      </Chip>
+                      <Chip
+                        size="sm"
+                        selected={compactTag}
+                        onClick={() => setCompactTag(!compactTag)}
+                        onRemove={() => setChip(false)}
+                        removeLabel="移除紧凑标签"
+                      >
+                        紧凑标签
+                      </Chip>
+                    </>
                   ) : (
                     <Button size="sm" variant="text" onClick={() => setChip(true)}>
                       恢复标签
@@ -563,6 +584,20 @@ function App() {
                     禁用筛选
                   </Chip>
                 </Stack>
+              </DemoCard>
+              <DemoCard
+                title="链接形态与色调"
+                name="Button asChild · href"
+                description="asChild 合并到路由 Link 等子元素，href 渲染原生链接；禁用时不导航、不可聚焦。警告色调用于需要留意但不危险的操作。"
+              >
+                <ButtonLinkExamples />
+              </DemoCard>
+              <DemoCard
+                title="键值标签与中性状态"
+                name="Chip · StatusBadge"
+                description="键值两段用于采集核对等读数；中性色调表达灯未亮、空闲与未开始。静态标签透传 title 等原生属性。"
+              >
+                <ChipKeyValueExamples />
               </DemoCard>
             </>,
           )}
