@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   Accordion,
   AppBar,
@@ -15,6 +15,7 @@ import {
   IconButton,
   NavigationDrawer,
   NavigationRail,
+  NumberField,
   Pagination,
   Popover,
   Select,
@@ -35,7 +36,11 @@ import {
   type NavigationItem,
 } from '../src';
 
-function Mark({ type = 'grid' }: { type?: 'grid' | 'plus' | 'file' | 'settings' | 'back' }) {
+function Mark({
+  type = 'grid',
+}: {
+  type?: 'grid' | 'plus' | 'file' | 'settings' | 'back' | 'help';
+}) {
   return (
     <Icon>
       {type === 'plus' ? (
@@ -50,6 +55,12 @@ function Mark({ type = 'grid' }: { type?: 'grid' | 'plus' | 'file' | 'settings' 
           <path d="M4 7h16M4 17h16" />
           <circle cx="8" cy="7" r="2" />
           <circle cx="16" cy="17" r="2" />
+        </>
+      ) : type === 'help' ? (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.7" />
+          <path d="M12 17h.01" />
         </>
       ) : type === 'back' ? (
         <path d="m14 6-6 6 6 6" />
@@ -255,6 +266,242 @@ const columns: TableColumn<RecordRow>[] = [
     ),
   },
 ];
+type Verdict = 'ok' | 'warn' | 'ng' | 'fault';
+type CycleRow = {
+  id: string;
+  time: string;
+  sn: string;
+  verdict: Verdict;
+  reason: string;
+  frames: string;
+};
+const verdictText: Record<Verdict, string> = {
+  ok: 'OK',
+  warn: '局部超差',
+  ng: 'NG',
+  fault: '故障',
+};
+const verdictReason: Record<Verdict, string> = {
+  ok: '—',
+  warn: '胶宽局部超上限 0.12 mm',
+  ng: '断胶 3.4 mm',
+  fault: '相机 2 少 1 帧',
+};
+const cycleRows = (offset: number): CycleRow[] =>
+  Array.from({ length: 17 }, (_, i) => {
+    const n = i + offset;
+    const verdict: Verdict =
+      n % 11 === 8 ? 'fault' : n % 7 === 3 ? 'ng' : n % 5 === 2 ? 'warn' : 'ok';
+    const seconds = 3600 * 9 + 47 * (60 - n);
+    const hh = String(Math.floor(seconds / 3600)).padStart(2, '0');
+    const mm = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+    const ss = String(seconds % 60).padStart(2, '0');
+    return {
+      id: `cycle-${n}`,
+      time: `10-19 ${hh}:${mm}:${ss}`,
+      sn: `GS2610${String(4200 - n).padStart(5, '0')}`,
+      verdict,
+      reason: verdictReason[verdict],
+      frames: verdict === 'fault' ? '7/8' : '8/8',
+    };
+  });
+const cycleColumns: TableColumn<CycleRow>[] = [
+  { key: 'time', header: '时间', accessor: (row) => row.time, nowrap: true },
+  { key: 'sn', header: 'SN', accessor: (row) => row.sn, rowHeader: true, nowrap: true },
+  {
+    key: 'verdict',
+    header: '结果',
+    render: (row) => <StatusBadge tone={row.verdict}>{verdictText[row.verdict]}</StatusBadge>,
+  },
+  { key: 'reason', header: '原因', accessor: (row) => row.reason },
+  { key: 'frames', header: '帧', accessor: (row) => row.frames, align: 'right', nowrap: true },
+];
+function CycleHistory() {
+  const { show } = useSnackbar();
+  const [offset, setOffset] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const rows = useMemo(() => cycleRows(offset), [offset]);
+  useEffect(() => {
+    if (!loading) return;
+    const timer = setTimeout(() => {
+      setOffset((value) => value + 3);
+      setLoading(false);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [loading]);
+  const getRowProps = useCallback(
+    (row: CycleRow) => ({
+      tone: row.verdict === 'ok' ? undefined : row.verdict,
+      tabIndex: 0,
+      'aria-label': `查看 SN ${row.sn} 的记录`,
+      title: row.verdict === 'ok' ? undefined : row.reason,
+      onClick: () => show(`打开 ${row.sn} 的检测记录`),
+    }),
+    [show],
+  );
+  return (
+    <Example
+      title="行级属性、语义色与保留结果刷新"
+      name="Table · getRowProps · keepRowsWhileLoading"
+      wide
+      description="整行可点击或用 Tab 聚焦后按 Enter 打开；异常行带语义色条与浅底。刷新时保留上一页结果并标记为更新中，分页隐藏每页条数选择。"
+    >
+      <Stack direction="column" align="stretch" gap={12} data-shot="table-rows">
+        <Stack justify="space-between">
+          <Text variant="label" muted>
+            最近 {rows.length} 件 · 每页 6 件
+          </Text>
+          <Button size="sm" variant="tonal" disabled={loading} onClick={() => setLoading(true)}>
+            {loading ? '正在刷新…' : '刷新'}
+          </Button>
+        </Stack>
+        <Table
+          caption="检测历史示例"
+          columns={cycleColumns}
+          rows={rows.slice((page - 1) * 6, page * 6)}
+          rowKey={(row) => row.id}
+          getRowProps={getRowProps}
+          loading={loading}
+          keepRowsWhileLoading
+        />
+        <Pagination
+          label="检测历史分页"
+          total={rows.length}
+          page={page}
+          pageSize={6}
+          showPageSize={false}
+          disabled={loading}
+          onPageChange={setPage}
+        />
+      </Stack>
+    </Example>
+  );
+}
+type LimitRow = {
+  key: 'position' | 'width' | 'continuity';
+  name: string;
+  enabled: boolean;
+  nominal: number | '';
+  lower: number | '';
+  upper: number | '';
+};
+function LimitsEditor() {
+  const [limits, setLimits] = useState<LimitRow[]>([
+    { key: 'position', name: '位置', enabled: true, nominal: 0, lower: 0.5, upper: 0.5 },
+    { key: 'width', name: '胶宽', enabled: false, nominal: 2.4, lower: 0.3, upper: 0.4 },
+    { key: 'continuity', name: '连续性', enabled: true, nominal: 1.5, lower: 92, upper: '' },
+  ]);
+  const [active, setActive] = useState<LimitRow['key']>('position');
+  const update = useCallback(
+    (key: LimitRow['key'], patch: Partial<LimitRow>) =>
+      setLimits((rows) => rows.map((row) => (row.key === key ? { ...row, ...patch } : row))),
+    [],
+  );
+  const columns = useMemo<TableColumn<LimitRow>[]>(() => {
+    const field = (key: 'nominal' | 'lower' | 'upper', label: string) => (row: LimitRow) => (
+      <NumberField
+        aria-label={`${row.name} · ${label}`}
+        value={row[key]}
+        step={0.05}
+        precision={2}
+        unit="mm"
+        onValueChange={(value) => update(row.key, { [key]: value } as Partial<LimitRow>)}
+      />
+    );
+    return [
+      {
+        key: 'name',
+        header: '判定项',
+        rowHeader: true,
+        nowrap: true,
+        render: (row) =>
+          row.key === 'continuity' ? (
+            row.name
+          ) : (
+            <Switch
+              label={row.name}
+              checked={row.enabled}
+              onCheckedChange={(enabled) => update(row.key, { enabled })}
+            />
+          ),
+      },
+      {
+        key: 'nominal',
+        header: '名义值',
+        width: 148,
+        colSpan: (row) => (row.key === 'continuity' || !row.enabled ? 4 : undefined),
+        render: (row) =>
+          row.key === 'continuity' ? (
+            <Stack gap={16}>
+              <span style={{ width: 160 }}>
+                <NumberField
+                  aria-label="允许断胶长度"
+                  value={row.nominal}
+                  step={0.1}
+                  precision={1}
+                  unit="mm"
+                  onValueChange={(nominal) => update(row.key, { nominal })}
+                />
+              </span>
+              <span style={{ width: 160 }}>
+                <NumberField
+                  aria-label="最低有胶比例"
+                  value={row.lower}
+                  step={1}
+                  unit="%"
+                  onValueChange={(lower) => update(row.key, { lower })}
+                />
+              </span>
+            </Stack>
+          ) : !row.enabled ? (
+            <Text muted>不判{row.name}</Text>
+          ) : (
+            field('nominal', '名义值')(row)
+          ),
+      },
+      { key: 'lower', header: '下公差', width: 148, render: field('lower', '下公差') },
+      { key: 'upper', header: '上公差', width: 148, render: field('upper', '上公差') },
+      {
+        key: 'band',
+        header: '合格区间',
+        align: 'right',
+        nowrap: true,
+        render: (row) =>
+          [row.nominal, row.lower, row.upper].every((v) => v !== '')
+            ? `${(Number(row.nominal) - Number(row.lower)).toFixed(2)} ~ ${(
+                Number(row.nominal) + Number(row.upper)
+              ).toFixed(2)}`
+            : '—',
+      },
+    ];
+  }, [update]);
+  const getRowProps = useCallback(
+    (row: LimitRow) => ({
+      'aria-selected': row.key === active,
+      onClick: () => setActive(row.key),
+    }),
+    [active],
+  );
+  return (
+    <Example
+      title="行头、跨列与可编辑单元格"
+      name="Table · rowHeader · colSpan"
+      wide
+      description="首列为行头；关闭的判定项与连续性行跨列显示。点击行空白处选中该行，在输入框和开关内操作不会触发行点击。"
+    >
+      <div data-shot="table-editable">
+        <Table
+          caption="判定限值示例"
+          columns={columns}
+          rows={limits}
+          rowKey={(row) => row.key}
+          getRowProps={getRowProps}
+        />
+      </div>
+    </Example>
+  );
+}
 function DataDisplay() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
@@ -316,6 +563,8 @@ function DataDisplay() {
           pageSizeOptions={[5, 10, 20]}
         />
       </Example>
+      <CycleHistory />
+      <LimitsEditor />
       <Example title="空数据与加载" name="Table">
         <Switch label="显示加载状态" checked={loading} onCheckedChange={setLoading} />
         <Table
@@ -474,6 +723,59 @@ function AppNavigation() {
     </>
   );
 }
+function LockedParameters() {
+  const [locked, setLocked] = useState(true);
+  return (
+    <Example
+      title="锁定表单内的折叠区"
+      name="Accordion · forceMount · ignoreFieldsetDisabled"
+      wide
+      description="外层 fieldset 锁定时，折叠标题仍可展开查看，参数保持禁用；折叠后内容不卸载，未保存的输入值保留。"
+    >
+      <Switch label="锁定参数（模拟检测运行中）" checked={locked} onCheckedChange={setLocked} />
+      <fieldset
+        disabled={locked}
+        data-shot="accordion-fieldset"
+        style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
+      >
+        <Accordion
+          multiple
+          forceMount
+          ignoreFieldsetDisabled
+          defaultValue={['exposure']}
+          items={[
+            {
+              value: 'exposure',
+              title: '曝光与增益',
+              content: (
+                <Grid minWidth={160} gap={12}>
+                  <NumberField label="曝光" defaultValue={1200} unit="μs" step={50} />
+                  <NumberField label="增益" defaultValue={6} unit="dB" step={0.5} precision={1} />
+                </Grid>
+              ),
+            },
+            {
+              value: 'debug',
+              title: '高级参数（调试）',
+              content: (
+                <Grid minWidth={160} gap={12}>
+                  <NumberField
+                    label="搜索半宽"
+                    defaultValue={2.5}
+                    unit="mm"
+                    step={0.1}
+                    precision={1}
+                  />
+                  <TextField label="调试备注" defaultValue="" placeholder="仅本次会话" />
+                </Grid>
+              ),
+            },
+          ]}
+        />
+      </fieldset>
+    </Example>
+  );
+}
 function ContentOverlays() {
   const [open, setOpen] = useState(false);
   const [density, setDensity] = useState('comfortable');
@@ -516,6 +818,44 @@ function ContentOverlays() {
             },
           ]}
         />
+      </Example>
+      <LockedParameters />
+      <Example
+        title="上下文帮助"
+        name="Popover · openOn=hover · role=tooltip"
+        description="悬停或键盘聚焦即显示，点击后固定展开；Escape 或点击外部关闭。说明内容以 tooltip 角色关联到触发按钮。"
+      >
+        <Stack gap={8} data-shot-help="">
+          <Text>复位条件</Text>
+          <Popover
+            openOn="hover"
+            role="tooltip"
+            side="bottom"
+            trigger={
+              <IconButton size="sm" variant="text" aria-label="复位条件说明">
+                <Mark type="help" />
+              </IconButton>
+            }
+          >
+            真机由 PLC 发 faultReset 复位；PLC 已连接、心跳正常且设备就绪时，也可在本页手动复位。
+          </Popover>
+        </Stack>
+        <Stack gap={8}>
+          <Text>曲线读法</Text>
+          <Popover
+            openOn="hover"
+            role="tooltip"
+            title="曲线读法"
+            side="right"
+            trigger={
+              <IconButton size="sm" variant="text" aria-label="曲线读法说明">
+                <Mark type="help" />
+              </IconButton>
+            }
+          >
+            横轴按检测段展开，绿色带为公差，红虚线为绝对限；方向键可逐点查看对应原图。
+          </Popover>
+        </Stack>
       </Example>
       <Example
         title="锚点浮层"
