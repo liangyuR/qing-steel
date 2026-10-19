@@ -112,7 +112,7 @@ const main = useRef<HTMLElement>(null);
 
 - `SnackbarProvider`：`placement` 为 `bottom`（默认）或 `top`。`container` 接受元素或 ref，提示层通过 portal 挂进该容器并改为 `position: absolute`，容器需自行设置定位且不滚动（如主区外壳）；ref 由子树挂载时在挂载后生效，未就绪时退回默认的视口定位。`max` 默认 1：新提示替换旧提示，新旧两条交叉淡出淡入；大于 1 时堆叠，最新一条靠近 `placement` 边缘，超出上限时最早的一条离开，其余提示用可打断的位移补位。
 - `useSnackbar`：没有 Provider 时返回空操作的 `show / clear`，第一次调用 `show` 时在非生产环境警告一次，不再抛错；宿主单元测试不必为此挂 Provider。
-- `Dialog / Drawer`：`size` 为 `sm / md / lg / xl`，对话框依次为 420 / 520 / 720 / 960 px，抽屉为 360 / 440 / 560 / 720 px；`width` 接受数字（px）或 CSS 长度，优先于 `size`；不传时保持原宽度（对话框 520 px、抽屉 440 px），始终不超出视口。`initialFocus` 接受 ref、浮层内的 CSS 选择器或 `'first-field'`（第一个未禁用、非只读、可聚焦的输入 / 文本域 / 下拉）；找不到目标时沿用默认焦点，关闭后焦点仍回到打开前的元素。
+- `Dialog / Drawer`：`size` 为 `sm / md / lg / xl`，对话框依次为 420 / 520 / 720 / 960 px，抽屉为 360 / 440 / 560 / 720 px；`width` 接受数字（px）或 CSS 长度，优先于 `size`；不传时保持原宽度（对话框 520 px、抽屉 440 px），始终不超出视口。`initialFocus` 接受 ref、浮层内的 CSS 选择器或 `'first-field'`（第一个未禁用、非只读、可聚焦的输入 / 文本域 / 下拉）；找不到目标、目标不可见（折叠区、`display: none`）或无法聚焦时沿用默认焦点，`'first-field'` 会跳过不可见的字段；关闭后焦点仍回到打开前的元素。
 - `Tooltip`：`pinnable` 时触发元素带 `aria-expanded`，固定状态下内容带 `data-pinned`；指针移开或失焦不收起。宿主应只在说明类按钮上使用，内容仍是非交互的提示文本。
 - `Alert`：`role` 覆盖默认的播报方式（默认 `ng / fault` 为 `alert`，其余为 `status`）；`icon` 替换语义图标，传 `null` 隐藏；`tertiary` 用于离线、候选调试等非常规模式。
 - 展示页所有操作仅作用于示例状态，不访问设备或后端。

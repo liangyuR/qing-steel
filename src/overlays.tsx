@@ -36,23 +36,29 @@ export interface DialogProps {
 const dialogWidths: Record<DialogSize, number> = { sm: 420, md: 520, lg: 720, xl: 960 };
 const drawerWidths: Record<DialogSize, number> = { sm: 360, md: 440, lg: 560, xl: 720 };
 const fields = 'input:not([type="hidden"]), textarea, select, [role="combobox"]';
-function findInitialFocus(content: HTMLElement, initialFocus: DialogInitialFocus) {
-  if (typeof initialFocus !== 'string') return initialFocus.current;
+function initialFocusCandidates(content: HTMLElement, initialFocus: DialogInitialFocus) {
+  if (typeof initialFocus !== 'string') return [initialFocus.current];
   if (initialFocus !== 'first-field') {
     try {
-      return content.querySelector<HTMLElement>(initialFocus);
+      return [content.querySelector<HTMLElement>(initialFocus)];
     } catch {
-      return null;
+      return [];
     }
   }
-  return (
-    Array.from(content.querySelectorAll<HTMLElement>(fields)).find(
-      (field) =>
-        !field.matches(':disabled, [readonly], [aria-disabled="true"]') &&
-        field.tabIndex >= 0 &&
-        !field.closest('[aria-hidden="true"], [inert]'),
-    ) ?? null
+  return Array.from(content.querySelectorAll<HTMLElement>(fields)).filter(
+    (field) =>
+      !field.matches(':disabled, [readonly], [aria-disabled="true"]') &&
+      field.tabIndex >= 0 &&
+      !field.closest('[aria-hidden="true"], [inert]'),
   );
+}
+function focusInitial(content: HTMLElement, initialFocus: DialogInitialFocus) {
+  for (const target of initialFocusCandidates(content, initialFocus)) {
+    if (!target || !content.contains(target)) continue;
+    target.focus({ preventScroll: true });
+    if (target.ownerDocument.activeElement === target) return true;
+  }
+  return false;
 }
 function Modal({
   trigger,
@@ -102,14 +108,8 @@ function Modal({
           onOpenAutoFocus={(event) => {
             previousFocus.current =
               document.activeElement instanceof HTMLElement ? document.activeElement : null;
-            const target =
-              initialFocus && content.current
-                ? findInitialFocus(content.current, initialFocus)
-                : null;
-            if (target && content.current?.contains(target)) {
+            if (initialFocus && content.current && focusInitial(content.current, initialFocus))
               event.preventDefault();
-              target.focus({ preventScroll: true });
-            }
           }}
           onCloseAutoFocus={(event) => {
             if (previousFocus.current?.isConnected) {
@@ -304,7 +304,7 @@ export function Tabs({
   return (
     <TabsPrimitive.Root value={current} onValueChange={setCurrent}>
       <TabsPrimitive.List asChild aria-label={label}>
-        <SelectionTrack className="qs-tabs" activeKey={current}>
+        <SelectionTrack className="qs-tabs" activeKey={current} morph="size">
           {items.map((item) => (
             <TabsPrimitive.Trigger
               key={item.value}

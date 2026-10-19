@@ -110,6 +110,9 @@ describe('对话框初始焦点', () => {
         <TextField label="编号" defaultValue="SHOT-03" readOnly />
         <NumberField label="曝光" defaultValue={1200} />
         <NumberField label="增益" id="gain" defaultValue={2} />
+        <Button id="locked" disabled>
+          锁定
+        </Button>
         <Button ref={confirm}>确认</Button>
       </>
     );
@@ -131,6 +134,11 @@ describe('对话框初始焦点', () => {
     [
       '选择器无匹配时回退默认',
       () => 'textarea',
+      () => screen.getByRole('button', { name: '关闭' }),
+    ],
+    [
+      '选择器指向无法聚焦的禁用按钮时回退默认',
+      () => '#locked',
       () => screen.getByRole('button', { name: '关闭' }),
     ],
   ])('initialFocus 为%s → 聚焦目标，关闭后回到触发按钮', async (_, focus, expected) => {

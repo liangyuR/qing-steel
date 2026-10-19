@@ -405,7 +405,7 @@ export function SnackbarProvider({
       moves.current.set(id, move);
     }
     tops.current = next;
-  });
+  }, [entries, placement, stacked, target]);
   const view = (entry: SnackbarEntry) =>
     entry.leaving ? (
       <LeavingSnackbar key={`${entry.id}-out`} item={entry} onDone={finish} />
