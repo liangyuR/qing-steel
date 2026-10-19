@@ -68,12 +68,12 @@ export function App() {
 | Badge / StatusBadge            | Badge 的 `count / max / label`；StatusBadge 的 `tone=info / ok / warn / ng / fault / off / neutral`，`neutral` 表示灯未亮、空闲、未开始 |
 | List / ListItem                | ListItem 的 `title / description / leading / trailing / selected / onClick / disabled`；尾部操作独立于行按钮                              |
 | Tabs                           | `label / items / value / defaultValue / onValueChange`；items 为 `{value,label,icon?,disabled?,content}`                                  |
-| Tooltip                        | 包裹单个支持 ref 的交互元素；`content / side / delay`                                                                                     |
-| Menu                           | `trigger / items / align / label`；items 支持操作、label 与 separator；操作项支持 `disabled / danger / onSelect`                          |
-| Dialog / Drawer                | `trigger / open / defaultOpen / onOpenChange / title / description / footer / closeOnOutside / closeDisabled`                             |
-| Alert                          | `tone / title / action / onClose`；需处理的异常使用持续提示                                                                               |
-| Snackbar                       | `duration / onDismiss / tone / action`；duration 为 0 时保持显示；内容作为 children                                                       |
-| SnackbarProvider / useSnackbar | 自动渲染全局提示层；`show(string或{text,tone?,duration?,action?})`、`clear()`；同一时间一条提示                                           |
+| Tooltip                        | 包裹单个支持 ref 的交互元素；`content / side / delay / pinnable`；`pinnable` 时点击固定展开，再次点击、外部点击或 Escape 收起              |
+| Menu                           | `trigger / items / align / label`；items 支持操作、label 与 separator；操作项支持 `icon / shortcut / disabled / danger / onSelect`         |
+| Dialog / Drawer                | `trigger / open / defaultOpen / onOpenChange / title / description / footer / closeOnOutside / closeDisabled / size / width / initialFocus` |
+| Alert                          | `tone=info/ok/warn/ng/fault/tertiary / title / action / onClose / icon / role / className`，其余 div 属性透传；需处理的异常使用持续提示   |
+| Snackbar                       | `duration / onDismiss / tone / action / className`；duration 为 0 时保持显示；内容作为 children                                          |
+| SnackbarProvider / useSnackbar | 自动渲染全局提示层；`placement / container / max`；`show(string或{text,tone?,duration?,action?})`、`clear()`；默认同一时间一条提示         |
 | Progress                       | `value / max / variant=linear或circular / label / tone`；省略 value 表示不确定进度                                                        |
 | EmptyState                     | `title / description / icon / action`，其余原生 div 属性（含 `className`）透传                                                            |
 
@@ -116,7 +116,31 @@ Select 的单选菜单使用 Radix Select，统一 Qing Steel 的深浅主题、
 - Dialog、Drawer、Menu、Tooltip、Tabs、Slider、Accordion、Popover 使用 Radix 的无障碍交互基础，封装青钢样式。
 - 键盘焦点可见；浮层支持 Escape、焦点限制与关闭后恢复；`closeDisabled` 适用于暂时不能中断的操作。
 - Snackbar 新消息替换旧消息，悬停或聚焦任一状态存在时暂停自动关闭；操作反馈可以提供撤销。
-- 遵循 `prefers-reduced-motion`。不确定进度使用静态弧段或条段表达等待，不引入装饰性循环动画。
+- 遵循 `prefers-reduced-motion`。不确定进度以匀速平移的条段与旋转的弧段表达“仍在运行”；减少动态效果时退回静态条段或弧段，不引入其他装饰性循环动画。
+- 进入用 decel、退出用 accel 且短于进入；浮层带 4–8 px 位移与 .98 缩放，提示气泡用 short 时长；Tabs 指示器可被连续切换打断。
+
+### 反馈与浮层的宿主接口
+
+```tsx
+const main = useRef<HTMLElement>(null);
+
+<SnackbarProvider placement="top" container={main} max={3}>
+  <main ref={main} style={{ position: 'relative', overflow: 'hidden' }}>…</main>
+</SnackbarProvider>
+
+<Dialog title="编辑点位" size="lg" initialFocus="first-field" open={open} onOpenChange={setOpen}>…</Dialog>
+<Drawer title="诊断" width={600}>…</Drawer>
+<Tooltip pinnable content="曝光时长决定单帧进光量">
+  <IconButton aria-label="曝光时长说明">?</IconButton>
+</Tooltip>
+<Alert tone="tertiary" role="status" className="debug-banner" title="候选配方调试">未发布</Alert>
+```
+
+- `SnackbarProvider`：`placement` 为 `bottom`（默认）或 `top`。`container` 接受元素或 ref，提示层通过 portal 挂进该容器并改为 `position: absolute`，容器需自行设置定位且不滚动（如主区外壳）；ref 由子树挂载时在挂载后生效，未就绪时退回默认的视口定位。`max` 默认 1：新提示替换旧提示，新旧两条交叉淡出淡入；大于 1 时堆叠，最新一条靠近 `placement` 边缘，超出上限时最早的一条离开，其余提示用可打断的位移补位。
+- `useSnackbar`：没有 Provider 时返回空操作的 `show / clear`，第一次调用 `show` 时在非生产环境警告一次，不再抛错；宿主单元测试不必为此挂 Provider。
+- `Dialog / Drawer`：`size` 为 `sm / md / lg / xl`，对话框依次为 420 / 520 / 720 / 960 px，抽屉为 360 / 440 / 560 / 720 px；`width` 接受数字（px）或 CSS 长度，优先于 `size`；不传时保持原宽度（对话框 520 px、抽屉 440 px），始终不超出视口。`initialFocus` 接受 ref、浮层内的 CSS 选择器或 `'first-field'`（第一个未禁用、非只读、可聚焦的输入 / 文本域 / 下拉）；找不到目标、目标不可见（折叠区、`display: none`）或无法聚焦时沿用默认焦点，`'first-field'` 会跳过不可见的字段；关闭后焦点仍回到打开前的元素。
+- `Tooltip`：`pinnable` 时触发元素带 `aria-expanded`，固定状态下内容带 `data-pinned`；指针移开或失焦不收起。宿主应只在说明类按钮上使用，内容仍是非交互的提示文本。
+- `Alert`：`role` 覆盖默认的播报方式（默认 `ng / fault` 为 `alert`，其余为 `status`）；`icon` 替换语义图标，传 `null` 隐藏；`tertiary` 用于离线、候选调试等非常规模式。
 - 展示页所有操作仅作用于示例状态，不访问设备或后端。
 
 ## 第二批组件

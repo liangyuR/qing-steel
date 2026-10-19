@@ -1,4 +1,4 @@
-import { StrictMode, Suspense, lazy, useState, type ReactNode } from 'react';
+import { StrictMode, Suspense, lazy, useRef, useState, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import {
   ThemeProvider,
@@ -162,6 +162,88 @@ function DemoCard({
       <div className="demo-stage">{children}</div>
       {description && <p className="demo-caption">{description}</p>}
     </Card>
+  );
+}
+function ParameterDialogDemo() {
+  const { show } = useSnackbar();
+  const [open, setOpen] = useState(false);
+  return (
+    <Dialog
+      trigger={<Button variant="text">参数编辑</Button>}
+      open={open}
+      onOpenChange={setOpen}
+      size="lg"
+      initialFocus="first-field"
+      title="编辑拍照点参数"
+      description="size=lg 为 720 px；打开后焦点落在第一个可编辑输入。"
+      footer={
+        <>
+          <Button variant="text" onClick={() => setOpen(false)}>
+            取消
+          </Button>
+          <Button
+            variant="filled"
+            onClick={() => {
+              setOpen(false);
+              show({ text: '拍照点参数已保存', tone: 'ok' });
+            }}
+          >
+            保存
+          </Button>
+        </>
+      }
+    >
+      <Grid minWidth={180} gap={16}>
+        <TextField label="拍照点编号" defaultValue="SHOT-03" readOnly />
+        <NumberField label="曝光时长" defaultValue={1200} unit="μs" min={100} max={5000} />
+        <NumberField label="增益" defaultValue={2.5} precision={1} unit="dB" min={0} max={24} />
+      </Grid>
+    </Dialog>
+  );
+}
+const stackMessages = [
+  { text: '相机 2 曝光已更新', tone: 'info' },
+  { text: '拍照点 SHOT-03 已保存', tone: 'ok' },
+  { text: '离线工况已切换为慢速节拍', tone: 'info' },
+  { text: '标定结果超过 7 天，建议复核', tone: 'warn' },
+] as const;
+function SnackbarStackButtons() {
+  const { show, clear } = useSnackbar();
+  const [next, setNext] = useState(0);
+  return (
+    <Stack gap={8} style={{ position: 'absolute', left: 16, bottom: 16 }}>
+      <Button
+        size="sm"
+        onClick={() => {
+          show(stackMessages[next % stackMessages.length]);
+          setNext(next + 1);
+        }}
+      >
+        追加提示
+      </Button>
+      <Button size="sm" variant="text" onClick={clear}>
+        全部清除
+      </Button>
+    </Stack>
+  );
+}
+function SnackbarStackDemo() {
+  const stage = useRef<HTMLDivElement>(null);
+  return (
+    <SnackbarProvider placement="top" max={3} container={stage}>
+      <div
+        ref={stage}
+        style={{
+          position: 'relative',
+          height: 220,
+          overflow: 'hidden',
+          borderRadius: 'var(--r-md)',
+          background: 'var(--surface-lowest)',
+        }}
+      >
+        <SnackbarStackButtons />
+      </div>
+    </SnackbarProvider>
   );
 }
 function App() {
@@ -712,22 +794,59 @@ function App() {
               <DemoCard
                 title="轻量浮层"
                 name="Tooltip · Menu"
-                description="支持键盘聚焦、方向键导航与 Escape 关闭。"
+                description="支持键盘聚焦、方向键导航与 Escape 关闭；问号提示可点击固定，再次点击、外部点击或 Escape 收起。"
               >
                 <Stack>
                   <Tooltip content="保存当前方案，保留已有参数。">
                     <Button variant="outlined">悬停或聚焦查看</Button>
                   </Tooltip>
+                  <Tooltip
+                    pinnable
+                    side="bottom"
+                    content="曝光时长决定单帧进光量：过短胶线发暗，过长出现运动拖影。"
+                  >
+                    <IconButton aria-label="曝光时长说明">
+                      <Icon>
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.7M12 17v.01" />
+                      </Icon>
+                    </IconButton>
+                  </Tooltip>
                   <Menu
                     trigger={<Button trailingIcon={<Glyph name="dots" />}>更多操作</Button>}
                     items={[
                       { type: 'label', id: 'label', label: '项目操作' },
-                      { id: 'copy', label: '创建副本', onSelect: () => show('已创建项目副本') },
-                      { id: 'export', label: '导出配置', disabled: true },
+                      {
+                        id: 'copy',
+                        label: '创建副本',
+                        icon: (
+                          <Icon size={16}>
+                            <rect x="8" y="8" width="12" height="12" rx="2" />
+                            <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+                          </Icon>
+                        ),
+                        shortcut: 'Ctrl+D',
+                        onSelect: () => show('已创建项目副本'),
+                      },
+                      {
+                        id: 'export',
+                        label: '导出配置',
+                        icon: (
+                          <Icon size={16}>
+                            <path d="M12 4v11m-4-4 4 4 4-4M5 20h14" />
+                          </Icon>
+                        ),
+                        disabled: true,
+                      },
                       { type: 'separator', id: 'divider' },
                       {
                         id: 'delete',
                         label: '删除项目',
+                        icon: (
+                          <Icon size={16}>
+                            <path d="M4 7h16M10 11v6m4-6v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
+                          </Icon>
+                        ),
                         danger: true,
                         onSelect: () => setDialog(true),
                       },
@@ -800,6 +919,7 @@ function App() {
                       <Text muted>抽屉与页面共享主题变量，适合参数编辑和详情查看。</Text>
                     </Stack>
                   </Drawer>
+                  <ParameterDialogDemo />
                 </Stack>
               </DemoCard>
             </>,
@@ -818,8 +938,19 @@ function App() {
                   </Button>
                 )}
                 <Alert tone="warn">部分参数接近上限，请确认测量范围。</Alert>
-                <Alert tone="fault" title="设备未连接">
+                <Alert
+                  tone="fault"
+                  title="设备未连接"
+                  action={
+                    <Button size="sm" variant="text" onClick={() => show('正在重新连接示例设备')}>
+                      重新连接
+                    </Button>
+                  }
+                >
                   检查设备连接后重试。
+                </Alert>
+                <Alert tone="tertiary" title="候选配方调试">
+                  未发布，仅用于离线测试，不作为生产验收。
                 </Alert>
               </DemoCard>
               <DemoCard
@@ -858,6 +989,13 @@ function App() {
                     清除提示
                   </Button>
                 </Stack>
+              </DemoCard>
+              <DemoCard
+                title="堆叠与容器"
+                name="SnackbarProvider"
+                description="placement=top、max=3，提示挂在宿主容器内；超出上限时最早的一条离开。"
+              >
+                <SnackbarStackDemo />
               </DemoCard>
               <DemoCard title="进度" name="Progress">
                 <Stack justify="space-between">
