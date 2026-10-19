@@ -27,7 +27,9 @@
 
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--dur-medium); animation-timing-function: var(--ease-standard); }
 
-/* ---------- 按钮 ---------- */
+/* ---------- 按钮 ----------
+ * 按压只缩放（short / standard，可被打断），不改圆角、不回弹；悬停与按压的明暗由 ::after 状态层表达。
+ * 色调：.danger / .warn 为实心，.danger-tonal / .warn-tonal 为容器色；与 .outlined / .text / .icon 组合时只染文字与描边。 */
 .qs-btn {
   --btn-bg: var(--primary); --btn-fg: var(--on-primary);
   position: relative; overflow: hidden; isolation: isolate;
@@ -35,23 +37,49 @@
   background: var(--btn-bg); color: var(--btn-fg);
   font: 500 14px/1 var(--font-sans); display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
   white-space: nowrap; text-decoration: none;
-  transition: transform var(--dur-medium) var(--ease-spatial), border-radius var(--dur-medium) var(--ease-spatial);
+  transition: transform var(--dur-short) var(--ease-standard);
 }
-.qs-btn:active:not(:disabled) { transform: scale(.97); border-radius: var(--r-md); transition-duration: var(--dur-short); transition-timing-function: var(--ease-standard); }
+.qs-btn:active:not(:disabled, [aria-disabled="true"]) { transform: scale(.98); }
+.qs-btn > svg { flex: none; }
 .qs-btn .qs-ic { width: 16px; height: 16px; }
 .qs-btn.tonal { --btn-bg: var(--secondary-container); --btn-fg: var(--on-secondary-container); }
 .qs-btn.outlined { --btn-bg: transparent; --btn-fg: var(--primary); box-shadow: inset 0 0 0 1px var(--outline); }
 .qs-btn.text { --btn-bg: transparent; --btn-fg: var(--primary); padding: 0 12px; }
 .qs-btn.danger { --btn-bg: var(--ng); --btn-fg: var(--on-ng); }
 .qs-btn.danger-tonal { --btn-bg: var(--ng-container); --btn-fg: var(--on-ng-container); }
+.qs-btn.warn { --btn-bg: var(--warn); --btn-fg: var(--on-warn); }
+.qs-btn.warn-tonal { --btn-bg: var(--warn-container); --btn-fg: var(--on-warn-container); }
 .qs-btn.sm { height: var(--ctl-h-sm); padding: 0 14px; font-size: 13px; }
+/* 带图标一侧收窄 4 px，抵消图标自身留白，视觉左右对称 */
+.qs-btn.with-leading:not(.icon) { padding-left: 14px; }
+.qs-btn.with-trailing:not(.icon) { padding-right: 14px; }
+.qs-btn.sm.with-leading:not(.icon) { padding-left: 10px; }
+.qs-btn.sm.with-trailing:not(.icon) { padding-right: 10px; }
+.qs-btn.text.with-leading:not(.icon) { padding-left: 8px; }
+.qs-btn.text.with-trailing:not(.icon) { padding-right: 8px; }
 .qs-btn.icon { width: var(--ctl-h); padding: 0; justify-content: center; --btn-bg: transparent; --btn-fg: var(--on-surface-variant); }
+.qs-btn.icon.sm { width: var(--ctl-h-sm); }
+/* 紧凑图标按钮：24 px，放进卡片 / 面板标题行不撑高 */
+.qs-btn.icon.xs { width: 24px; height: 24px; }
+.qs-btn.icon.xs > svg, .qs-btn.icon.xs .qs-ic { max-width: 16px; max-height: 16px; }
+.qs-btn:is(.danger-tonal, .warn-tonal):is(.outlined, .text, .icon) { --btn-bg: transparent; }
+.qs-btn:is(.danger, .danger-tonal):is(.outlined, .text, .icon):not(:disabled, [aria-disabled="true"]) { --btn-fg: var(--ng); }
+.qs-btn:is(.warn, .warn-tonal):is(.outlined, .text, .icon):not(:disabled, [aria-disabled="true"]) { --btn-fg: var(--warn); }
+.qs-btn.danger-tonal.outlined:not(:disabled, [aria-disabled="true"]) { box-shadow: inset 0 0 0 1px var(--ng); }
+.qs-btn.warn-tonal.outlined:not(:disabled, [aria-disabled="true"]) { box-shadow: inset 0 0 0 1px var(--warn); }
 /* 禁用：填充类换成 disabled-container，描边 / 文字 / 图标类保持透明，文字统一 on-surface-disabled */
 .qs-btn:is(:disabled, [aria-disabled="true"]) { cursor: not-allowed; --btn-bg: var(--disabled-container); --btn-fg: var(--on-surface-disabled); }
 .qs-btn:is(.outlined, .text, .icon):is(:disabled, [aria-disabled="true"]) { --btn-bg: transparent; }
 .qs-btn.outlined:is(:disabled, [aria-disabled="true"]) { box-shadow: inset 0 0 0 1px var(--disabled-container); }
 .qs-btn:is(:disabled, [aria-disabled="true"])::after { display: none; }
 a.qs-btn[aria-disabled="true"] { pointer-events: none; }
+/* 触屏没有悬停：抬手后不残留悬停层 */
+@media (hover: none) {
+  :where(.qs-btn, .qs-chip.action):not(:active):hover::after { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.qs-btn, .qs-chip.action):active { transform: none !important; }
+}
 
 .qs-fab {
   position: relative; overflow: hidden; isolation: isolate;
@@ -71,12 +99,9 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
   background: var(--surface-high); color: var(--on-surface-variant); cursor: default; white-space: nowrap;
 }
 .qs-chip .qs-ic { width: 14px; height: 14px; }
-.qs-chip.action {
-  cursor: pointer;
-  transition: transform var(--dur-medium) var(--ease-spatial), border-radius var(--dur-medium) var(--ease-spatial),
-    background-color var(--dur-medium) var(--ease-standard), color var(--dur-medium) var(--ease-standard);
-}
-.qs-chip.action:active { transform: scale(.97); border-radius: var(--r-md); transition-duration: var(--dur-short); transition-timing-function: var(--ease-standard); }
+.qs-chip.action { cursor: pointer; transition: transform var(--dur-short) var(--ease-standard); }
+.qs-chip.action:active:not(:disabled) { transform: scale(.98); }
+.qs-chip.sm { height: 24px; padding: 0 10px; gap: 4px; font-size: 12px; }
 .qs-chip.outlined { background: transparent; box-shadow: inset 0 0 0 1px var(--outline-variant); }
 .qs-chip.selected { background: var(--primary-container); color: var(--on-primary-container); box-shadow: inset 0 0 0 1px var(--primary); }
 .qs-chip.frame { font-family: var(--font-mono); font-variant-numeric: tabular-nums; padding: 0 10px 0 8px; }
@@ -102,6 +127,9 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
 .qs-badge.warn .dot { background: var(--warn); }
 .qs-badge.fault .dot { background: var(--fault); }
 .qs-badge.off { background: var(--tertiary-container); color: var(--on-tertiary-container); }
+/* 中性：灯未亮、空闲、未开始。空心点与语义色的实心点区分 */
+.qs-badge.neutral { color: var(--on-surface-variant); }
+.qs-badge.neutral .dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--outline); }
 
 /* ---------- 分段按钮 ----------
  * 选中：button[aria-pressed="true"]。qs-motion.js 会插入 .ind 并加 .has-ind，选中底色随之滑动。 */
