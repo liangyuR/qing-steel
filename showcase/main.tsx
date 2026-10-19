@@ -43,6 +43,7 @@ import {
 import '../css/react.css';
 import './showcase.css';
 import { extendedSections, industrialSections } from './sections';
+import { FormsLab, SelectionLab } from './fields-lab';
 import { ButtonLinkExamples, CardRegionExamples, ChipKeyValueExamples } from './primitives';
 const ExtendedExamples = lazy(() =>
   import('./extended').then((module) => ({ default: module.ExtendedExamples })),
@@ -122,7 +123,7 @@ const sections = [
     id: 'forms',
     name: '输入与表单',
     icon: 'sliders',
-    tags: 'TextField TextArea NumberField FormField Select',
+    tags: 'TextField TextArea NumberField FormField Select FileInput',
   },
   {
     id: 'selection',
@@ -672,6 +673,7 @@ function App() {
                   </Button>
                 </Stack>
               </DemoCard>
+              <FormsLab />
             </>,
           )}
           {group(
@@ -724,6 +726,7 @@ function App() {
                   ]}
                 />
               </DemoCard>
+              <SelectionLab />
             </>,
           )}
           {group(

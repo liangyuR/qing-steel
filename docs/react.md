@@ -58,12 +58,13 @@ export function App() {
 | Button / IconButton            | `variant=filled / tonal / outlined / text`、`size=sm / md`、`tone=danger / warn`（`danger` 等同 `tone="danger"`）、`loading / disabled`；`href` 渲染为链接，`asChild` 合并到唯一子元素（如路由 Link）；图标按钮必须提供 `aria-label`，支持 `selected` 与 `size="xs"` |
 | FormField                      | `label / description / error / required / id`；自动关联内部输入控件；显式指定子控件 id 时应与 FormField id 相同                           |
 | TextField / TextArea           | 原生 input / textarea 属性，加 `label / description / error`；TextField 支持 `leading / trailing`                                         |
-| NumberField                    | `value / defaultValue` 为 number 或空字符串；`onValueChange`、`min / max / step / precision / unit`；失焦时校正范围和精度                 |
-| Select                         | 原生 select 属性、`options / placeholder / onValueChange`；options 支持 `{label, options}` 分组                                           |
-| Checkbox                       | 原生 checkbox 属性、`label / indeterminate / onCheckedChange`                                                                             |
+| NumberField                    | `value / defaultValue` 为 number 或空字符串；`onValueChange`、`min / max / step / precision / unit`；失焦时校正范围和精度；`clamp={false}` 保留越界输入并标记无效，`rangeError` 自定义提示，`step` 可为 `'any'` |
+| Select                         | 原生 select 属性、`options / placeholder / onValueChange`；options 支持 `{label, options}` 分组；选项 `label` 可为节点并带 `textValue / aria-label`；触发按钮带 `data-value`；跟随祖先 `<fieldset disabled>` |
+| Checkbox                       | 原生 checkbox 属性、`label / indeterminate / onCheckedChange`；自绘勾选框，原生 input 透明覆盖其上，键盘、表单与测试不变               |
 | Switch                         | 原生 checkbox 属性、`label / onCheckedChange`，使用 switch 语义                                                                           |
-| RadioGroup                     | `label / name / options / value / defaultValue / onValueChange / disabled / required / direction`                                         |
-| SegmentedControl               | `label / options / value / defaultValue / onValueChange / size / disabled`；`multiple` 时值为字符串数组，否则为字符串                     |
+| RadioGroup                     | `label / name / options / value / defaultValue / onValueChange / disabled / required / direction`；选项可带 `aria-label`              |
+| SegmentedControl               | `label / options / value / defaultValue / onValueChange / size / disabled`；`multiple` 时值为字符串数组，否则为字符串；选项 `label` 可为节点（如状态圆点），`aria-label` 提供独立名称 |
+| FileInput                      | 原生 file input 属性加 `label / description / error`；`onFilesChange`、受控 `files`、`dropzone`、`buttonLabel / placeholder`；显示已选文件名与大小 |
 | Chip                           | 无操作时为静态标签并透传 `title` 等原生属性；`onClick` 为操作；`selected` 为筛选；`onRemove / removeLabel` 添加独立移除按钮；`label` 与 children 组成「键 + 值」；`tone=ok / warn / ng / fault`、`size=sm / md` |
 | Badge / StatusBadge            | Badge 的 `count / max / label`；StatusBadge 的 `tone=info / ok / warn / ng / fault / off / neutral`，`neutral` 表示灯未亮、空闲、未开始 |
 | List / ListItem                | ListItem 的 `title / description / leading / trailing / selected / onClick / disabled`；尾部操作独立于行按钮                              |
@@ -107,9 +108,58 @@ import { Link } from 'react-router-dom';
 
 Select 的单选菜单使用 Radix Select，统一 Qing Steel 的深浅主题、圆角浮层、分组标题、选中勾选和禁用样式。支持方向键、Home / End、文字快速定位与 Escape 关闭；保留 `name / required / form`、原生 `onChange`、表单提交与重置。`multiple` 或 `size > 1` 仍为原生列表框。浮层挂载在 ThemeProvider 内，跟随局部主题。
 
+### 表单控件的测试、越界输入与文件
+
+Select 的可访问控件是触发按钮（`combobox`），它的可访问值就是按钮内的选项文字，读屏与 Playwright 的 ARIA 快照都能读到；触发按钮另带 `data-value`，值为当前选项的 `value`，未选择时为空字符串。旁边保留一个对辅助技术隐藏的 1 px 原生 `select`（类名 `qs-select-native`，与触发按钮同在 `.qs-select` 内），它是表单值的来源，测试可以直接按值操作它：
+
+```ts
+// Playwright：用触发按钮的可访问名称找到所在下拉，再操作其中的原生 select
+const trigger = page.getByRole('combobox', { name: '期望结论' });
+const field = page.locator('.qs-select').filter({ has: trigger });
+await field.locator('select').selectOption('ng');
+await expect(trigger).toHaveAttribute('data-value', 'ng');
+await expect(trigger).toHaveText('NG');
+
+// Testing Library：同样从触发按钮出发
+const trigger = screen.getByRole('combobox', { name: '期望结论' });
+await user.selectOptions(trigger.closest('.qs-select')!.querySelector('select')!, 'ng');
+```
+
+模拟用户操作时点开触发按钮再点选项：`getByRole('option', { name })`。选项浮层挂在 ThemeProvider 容器里，不在对话框内，应从 `page` / `screen` 而不是对话框定位。不要用 `getByLabel` 找 Select：带 `aria-label` 时原生 select 与触发按钮同名，会命中两个元素。
+
+选项 `label` 可以是节点（状态圆点、编号加名称等），此时用 `textValue` 提供键入定位和原生 `option` 的文字，用 `aria-label` 提供选项的可访问名称（覆盖默认按可见文字命名）。SegmentedControl 的选项同样接受节点 `label` 与 `aria-label`。
+
+```tsx
+<Select label="当前相机" value={cameraId} onValueChange={setCameraId}
+  options={cameras.map((c) => ({
+    value: c.id,
+    label: <><StatusDot tone={c.tone} />{c.id}</>,
+    textValue: c.id,
+    'aria-label': `${c.name} ${c.id}`,
+  }))} />
+```
+
+Select、TextField、NumberField、Checkbox、Switch、FileInput 都跟随祖先 `<fieldset disabled>`：外观换成禁用色，当前值仍可辨认。Chrome 会向禁用按钮派发 pointerdown，而 Radix 只看自身 `disabled`，因此 Select 在触发按钮处于禁用状态时拦截指针与键盘打开。
+
+NumberField 默认在失焦时把值夹回 `min / max`。需要“越界仍保留输入、提示后由宿主阻止保存”时设置 `clamp={false}`：值原样保留，失焦后输入框才 `aria-invalid`，带 `label` 或 `description` 时同时显示 `rangeError`（输入过程中的中间值不报错；已提示后回到范围内立即清除）（默认“应在 min–max 单位 之间”，也可传函数按范围生成）；原生 `min / max` 仍参与 constraint validation，`form.checkValidity()` 返回 false。宿主按同一 `min / max` 判断能否保存。放在外部 FormField 内且自身没有 `label` 时只标记无效，错误文字由外部 FormField 的 `error` 提供。`step="any"` 允许任意小数，不触发步长校验。
+
+```tsx
+<NumberField label="曝光时间" unit="μs" min={100} max={5000} step="any"
+  clamp={false} value={exposure} onValueChange={setExposure} />
+const canSave = exposure !== '' && exposure >= 100 && exposure <= 5000;
+```
+
+FileInput 保留原生 `<input type="file">`（透明覆盖在整个控件上），标签、`name / accept / multiple / required / form`、表单提交与重置、Playwright 的 `setInputFiles` 和 Testing Library 的 `user.upload` 都直接作用于它。`onFilesChange` 收到 `File[]`，表单重置时收到空数组。`dropzone` 显示拖放区与文件列表；两种外观都接受拖放，单选时只取第一个文件，禁用时忽略。`accept` 只是选择器提示，拖放不按它过滤，类型与大小须由宿主校验。受控时传 `files`：组件会把它同步回原生 input（含宿主过滤后的子集、拒绝本次选择而保持原值、传入空数组），被宿主丢弃的文件不会随表单提交，校验失败后用户可以重新选择同一个文件。
+
+```tsx
+<FileInput label={`k${k + 1} 原图`} accept=".png,.jpg,.bmp,.tif"
+  files={files[k] ? [files[k]] : []}
+  onFilesChange={([file]) => file && validateAndKeep(k, file)} />
+```
+
 ## 交互与视觉约定
 
-动效遵循现有短／中／长时长令牌；浮层支持退出反馈，分段、Tabs 与导航指示器可连续切换。高频读数自动取消重叠动效，优先显示最新值。性能场景与实测边界见 [动效与性能验证](performance.md)。表格和相机数据应采用不可变更新，未变化项尽量保留引用。
+动效遵循现有短／中／长时长令牌；浮层支持退出反馈，分段、Tabs 与导航指示器可连续切换。输入框悬停加深描边，聚焦为 2 px 主色环并让标签变为主色；错误时描边与焦点环为 NG 红，错误文字带图标并短时淡入。勾选、单选、开关与滑块手柄只做缩放和淡入淡出，退出比进入更短；下拉与建议列表在键盘导航时显示描边高亮，指针悬停只叠加状态层。高频读数自动取消重叠动效，优先显示最新值。性能场景与实测边界见 [动效与性能验证](performance.md)。表格和相机数据应采用不可变更新，未变化项尽量保留引用。
 
 - 默认深色，使用 Qing Steel 现有色彩、字号、圆角、控件高度和间距。
 - 数值使用等宽 tabular 数字；数字输入可附单位并右对齐。
