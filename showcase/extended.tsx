@@ -1,4 +1,13 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  forwardRef,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import {
   Accordion,
   AppBar,
@@ -33,6 +42,7 @@ import {
   type TableSort,
   type SelectOption,
   type NavigationItem,
+  type NavigationLinkProps,
 } from '../src';
 
 function Mark({ type = 'grid' }: { type?: 'grid' | 'plus' | 'file' | 'settings' | 'back' }) {
@@ -351,52 +361,138 @@ function DataDisplay() {
     </>
   );
 }
+const DemoRoute = createContext<{ path: string; navigate: (path: string) => void }>({
+  path: '',
+  navigate: () => {},
+});
+const DemoNavLink = forwardRef<HTMLAnchorElement, NavigationLinkProps>(function DemoNavLink(
+  { href, onClick, 'aria-current': _current, ...props },
+  ref,
+) {
+  const { path, navigate } = useContext(DemoRoute);
+  return (
+    <a
+      {...props}
+      ref={ref}
+      href={href}
+      aria-current={path === href ? 'page' : undefined}
+      onClick={(event) => {
+        onClick(event);
+        event.preventDefault();
+        navigate(href);
+      }}
+    />
+  );
+});
+const DemoLink = forwardRef<HTMLAnchorElement, NavigationLinkProps>(function DemoLink(
+  { onClick, ...props },
+  ref,
+) {
+  return (
+    <a
+      {...props}
+      ref={ref}
+      onClick={(event) => {
+        event.preventDefault();
+        onClick(event);
+      }}
+    />
+  );
+});
+const navigationItems: NavigationItem[] = [
+  { value: '/overview', href: '/overview', label: '工作概览', icon: <Mark />, group: '工作区' },
+  {
+    value: '/records',
+    href: '/records',
+    label: '检测记录',
+    icon: <Mark type="file" />,
+    badge: 8,
+    group: '工作区',
+  },
+  {
+    value: '/recipes',
+    href: '/recipes',
+    label: '参数设置',
+    icon: <Mark type="settings" />,
+    group: '管理',
+  },
+  {
+    value: '/access',
+    label: '权限管理',
+    icon: <Mark type="file" />,
+    disabled: true,
+    group: '管理',
+  },
+];
+const navigationFooterItems: NavigationItem[] = [
+  { value: '/system', href: '/system', label: '系统设置', icon: <Mark type="settings" /> },
+];
+const navigationLabels: Record<string, string> = {
+  '/overview': '工作概览',
+  '/records': '检测记录',
+  '/recipes': '参数设置',
+  '/system': '系统设置',
+};
+function NavigationBrand({ compact }: { compact?: boolean }) {
+  return (
+    <span className="navigation-demo-brand">
+      <span className="navigation-demo-mark" aria-hidden="true">
+        <Mark />
+      </span>
+      {!compact && <span className="qs-navigation-text">青钢工作区</span>}
+    </span>
+  );
+}
 function AppNavigation() {
   const { show } = useSnackbar();
-  const [active, setActive] = useState('overview');
+  const [path, navigate] = useState('/overview');
   const [collapsed, setCollapsed] = useState(false);
-  const items: NavigationItem[] = [
-    { value: 'overview', label: '工作概览', icon: <Mark />, group: '工作区' },
-    { value: 'records', label: '检测记录', icon: <Mark type="file" />, badge: 8, group: '工作区' },
-    { value: 'settings', label: '参数设置', icon: <Mark type="settings" />, group: '管理' },
-    {
-      value: 'locked',
-      label: '权限管理',
-      icon: <Mark type="file" />,
-      disabled: true,
-      group: '管理',
-    },
-  ];
+  const [labels, setLabels] = useState(false);
+  const content = useRef<HTMLDivElement>(null);
+  const route = useMemo(() => ({ path, navigate }), [path]);
   return (
-    <>
+    <DemoRoute.Provider value={route}>
       <Example
         title="导航栏与导航抽屉"
         name="NavigationRail · NavigationDrawer"
         wide
-        description="左侧展示紧凑导航，右侧支持展开收起；两者共享当前项。"
+        description="两者都通过 renderLink 交给宿主链接（示例模拟路由的 Link / NavLink）。左侧紧凑导航由 value 给出选中态并显示小字标签；右侧抽屉不传 value，选中态由链接自身的 aria-current 给出。两者共享当前路径，底部系统设置同样参与选中。"
       >
         <div className="navigation-demo">
           <NavigationRail
             label="紧凑导航示例"
-            items={items}
-            value={active}
-            onValueChange={setActive}
-            header={<Mark />}
+            items={navigationItems}
+            footerItems={navigationFooterItems}
+            value={path}
+            onValueChange={navigate}
+            renderLink={(props) => <DemoLink {...props} />}
+            collapsedLabels="visible"
+            header={<NavigationBrand compact />}
           />
           <NavigationDrawer
             label="展开导航示例"
-            items={items}
-            value={active}
-            onValueChange={setActive}
+            items={navigationItems}
+            footerItems={navigationFooterItems}
+            renderLink={(props) => <DemoNavLink {...props} />}
             collapsed={collapsed}
             onCollapsedChange={setCollapsed}
-            header={collapsed ? <Mark /> : <Text>青钢工作区</Text>}
+            collapsedLabels={labels ? 'visible' : 'tooltip'}
+            contentRef={content}
+            header={<NavigationBrand />}
+            footer={
+              <StatusBadge tone="ok">
+                <span className="qs-navigation-text">设备在线</span>
+              </StatusBadge>
+            }
           />
-          <div className="navigation-demo-content">
-            <StatusBadge tone="ok">工作区已连接</StatusBadge>
-            <Text as="p">{items.find((item) => item.value === active)?.label}</Text>
+          <div className="navigation-demo-content" ref={content}>
+            <Text variant="label" muted className="navigation-demo-path">
+              {path}
+            </Text>
+            <Text as="p">{navigationLabels[path]}</Text>
+            <Switch label="收起时显示小字标签" checked={labels} onCheckedChange={setLabels} />
             <Text variant="label" muted>
-              选择不同导航项，观察选中状态和展开布局。
+              收起展开时布局宽度只切换一次：文字先淡出，图标与右侧内容随底板平移，再淡入。
             </Text>
             <Skeleton variant="rectangular" height={56} />
           </div>
@@ -410,7 +506,7 @@ function AppNavigation() {
             <IconButton
               aria-label="返回工作概览"
               onClick={() => {
-                setActive('overview');
+                navigate('/overview');
                 show('已返回工作概览');
               }}
             >
@@ -426,6 +522,19 @@ function AppNavigation() {
             </>
           }
         />
+        <div className="appbar-scroll-demo" tabIndex={0} aria-label="吸顶顶栏示例">
+          <AppBar sticky title="检测记录" subtitle="滚动列表，顶栏吸顶后升一级表面并显示分隔线" />
+          <ol className="appbar-scroll-demo-list">
+            {Array.from({ length: 12 }, (_, index) => (
+              <li key={index}>
+                <Text variant="data">QS-{String(index + 1).padStart(3, '0')}</Text>
+                <Text variant="label" muted>
+                  A 线 · 顶部相机
+                </Text>
+              </li>
+            ))}
+          </ol>
+        </div>
         <Toolbar label="记录工具栏">
           <Button size="sm" leadingIcon={<Mark type="plus" />} onClick={() => show('已创建记录')}>
             新建记录
@@ -448,7 +557,7 @@ function AppNavigation() {
         <Breadcrumbs
           items={[
             { label: '工作区', onClick: () => show('已返回工作区') },
-            { label: '检测记录', onClick: () => setActive('records') },
+            { label: '检测记录', onClick: () => navigate('/records') },
             { label: 'QS-001' },
           ]}
         />
@@ -471,7 +580,7 @@ function AppNavigation() {
           <FAB icon={<Mark type="plus" />} aria-label="不可用操作" size="sm" disabled />
         </Stack>
       </Example>
-    </>
+    </DemoRoute.Provider>
   );
 }
 function ContentOverlays() {

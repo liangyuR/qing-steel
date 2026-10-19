@@ -68,11 +68,8 @@ test('第二批窄屏 → 表格局部滚动、导航收起和建议浮层不溢
   );
   await page.getByRole('button', { name: '收起导航' }).click();
   const nav = page.getByRole('navigation', { name: '展开导航示例' });
-  await nav.getByRole('button', { name: '检测记录' }).click();
-  await expect(nav.getByRole('button', { name: '检测记录' })).toHaveAttribute(
-    'aria-current',
-    'page',
-  );
+  await nav.getByRole('link', { name: '检测记录' }).click();
+  await expect(nav.getByRole('link', { name: '检测记录' })).toHaveAttribute('aria-current', 'page');
   await nav.getByRole('button', { name: '展开导航' }).click();
   await page
     .locator('#app-navigation')
