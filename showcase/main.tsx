@@ -176,6 +176,7 @@ function App() {
   const [name, setName] = useState('标准检测方案');
   const [attempted, setAttempted] = useState(false);
   const [chip, setChip] = useState(true);
+  const [compactTag, setCompactTag] = useState(true);
   const [filter, setFilter] = useState(false);
   const [dialog, setDialog] = useState(false);
   const [drawer, setDrawer] = useState(false);
@@ -477,9 +478,20 @@ function App() {
                     仅显示异常
                   </Chip>
                   {chip ? (
-                    <Chip onRemove={() => setChip(false)} removeLabel="移除标签 A">
-                      标签 A
-                    </Chip>
+                    <>
+                      <Chip onRemove={() => setChip(false)} removeLabel="移除标签 A">
+                        标签 A
+                      </Chip>
+                      <Chip
+                        size="sm"
+                        selected={compactTag}
+                        onClick={() => setCompactTag(!compactTag)}
+                        onRemove={() => setChip(false)}
+                        removeLabel="移除紧凑标签"
+                      >
+                        紧凑标签
+                      </Chip>
+                    </>
                   ) : (
                     <Button size="sm" variant="text" onClick={() => setChip(true)}>
                       恢复标签

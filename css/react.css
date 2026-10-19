@@ -91,9 +91,7 @@ h2.qs-heading {
 }
 .qs-card-title {
   margin: 0;
-  font: var(--text-body);
-  font-weight: inherit;
-  color: var(--on-surface);
+  font: inherit;
   overflow-wrap: anywhere;
 }
 .qs-card-title :where(h1, h2, h3, h4, h5, h6, p) {
@@ -194,6 +192,12 @@ h2.qs-heading {
   color: inherit;
   border-radius: var(--r-full);
   cursor: pointer;
+  position: relative;
+}
+.qs-chip-remove::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
 }
 .qs-chip-remove > svg {
   width: 14px;
@@ -212,6 +216,14 @@ h2.qs-heading {
   width: 20px;
   height: 20px;
   margin-right: 2px;
+}
+.qs-chip-wrap:has(> .qs-chip.sm) > .qs-chip-remove::before {
+  inset: -2px;
+}
+@media (pointer: coarse) {
+  .qs-chip-wrap:has(> .qs-chip.sm) > .qs-chip-remove::before {
+    inset: -6px -4px;
+  }
 }
 .qs-chip-key {
   font-weight: 400;

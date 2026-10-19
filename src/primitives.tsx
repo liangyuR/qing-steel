@@ -177,8 +177,8 @@ export function Card({
     !props['aria-labelledby'];
   return (
     <Surface
-      aria-labelledby={named ? titleId : undefined}
       {...props}
+      aria-labelledby={props['aria-labelledby'] || (named ? titleId : undefined)}
       className={cx('qs-react-card', className)}
     >
       {(hasTitle || present(description) || present(actions)) && (
@@ -251,6 +251,9 @@ function assignRef<T>(ref: Ref<T> | undefined, value: T | null) {
   if (typeof ref === 'function') ref(value);
   else if (ref) (ref as { current: T | null }).current = value;
 }
+function isRenderProp(value: unknown): value is (state: unknown) => unknown {
+  return typeof value === 'function';
+}
 function blockInactive(event: MouseEvent) {
   event.preventDefault();
   event.stopPropagation();
@@ -317,9 +320,18 @@ const ButtonImpl = forwardRef<HTMLElement, AnyButtonProps>(function Button(
           mine(...args);
         };
     }
-    merged.className = cx(classes, own.className as string | undefined);
-    if (props.style || own.style)
-      merged.style = { ...props.style, ...(own.style as CSSProperties | undefined) };
+    const ownClassName = own.className;
+    merged.className = isRenderProp(ownClassName)
+      ? (state: unknown) => cx(classes, ownClassName(state) as string | undefined)
+      : cx(classes, ownClassName as string | undefined);
+    const ownStyle = own.style;
+    if (isRenderProp(ownStyle))
+      merged.style = (state: unknown) => ({
+        ...props.style,
+        ...(ownStyle(state) as CSSProperties | undefined),
+      });
+    else if (props.style || ownStyle)
+      merged.style = { ...props.style, ...(ownStyle as CSSProperties | undefined) };
     if (loading) merged['aria-busy'] = true;
     if (inactive) {
       Object.assign(merged, {
@@ -331,7 +343,19 @@ const ButtonImpl = forwardRef<HTMLElement, AnyButtonProps>(function Button(
       if (child.type === 'button') merged.disabled = true;
     }
     merged.ref = composedRef;
-    return cloneElement(child, merged, lead, own.children as ReactNode, trailingIcon);
+    if (!present(lead) && !present(trailingIcon)) return cloneElement(child, merged);
+    const ownChildren = own.children;
+    if (isRenderProp(ownChildren)) {
+      merged.children = (state: unknown) => (
+        <>
+          {lead}
+          {ownChildren(state) as ReactNode}
+          {trailingIcon}
+        </>
+      );
+      return cloneElement(child, merged);
+    }
+    return cloneElement(child, merged, lead, ownChildren as ReactNode, trailingIcon);
   }
   if (props.href !== undefined) {
     const { href, onClick, onAuxClick, tabIndex, ...anchor } = props as ButtonLinkProps;

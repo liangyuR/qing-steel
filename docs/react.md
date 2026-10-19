@@ -99,11 +99,11 @@ import { Link } from 'react-router-dom';
 <StatusBadge tone="neutral">空闲</StatusBadge>
 ```
 
-- `asChild` 把按钮样式、`leadingIcon / trailingIcon` 与事件合并到唯一子元素：子元素自己的属性优先，`className` 与 `style` 合并，同名事件先执行子元素的再执行按钮的；`ref` 同时交给按钮调用方与子元素。子元素需转发 ref 与原生属性（react-router 的 `Link` / `NavLink` 满足）。
+- `asChild` 把按钮样式、`leadingIcon / trailingIcon` 与事件合并到唯一子元素：子元素自己的属性优先，`className` 与 `style` 合并，同名事件先执行子元素的再执行按钮的；`ref` 同时交给按钮调用方与子元素。子元素的 `className`、`style`、`children` 为状态函数时（如 `NavLink` 的 `({ isActive }) => ...`），按子元素给出的状态解析后再合并，图标插在解析出的内容两侧。子元素需转发 ref 与原生属性（react-router 的 `Link` / `NavLink` 满足）。
 - `disabled` 或 `loading` 的链接形态：`href` 模式去掉 `href` 并标 `role="link"`、`aria-disabled="true"`；`asChild` 模式标 `aria-disabled="true"`、移出 Tab 序列并阻止点击与中键打开，子元素自身的点击回调也不执行。链接形态没有 `aria-pressed`，`IconButton` 的 `selected` 只改变外观。
 - `tone="warn"` 用于需要留意但不危险的操作（检测图异常、强制复位等），与 `danger` 的 NG 红区分；在 `outlined / text` 与图标按钮上只染文字与描边。
 - `IconButton size="xs"` 为 24 px，放进卡片或面板标题行不撑高；`sm` 为 30 px 正圆。
-- Card 的标题槽位为 `.qs-card-title`（`headingLevel` 时渲染为对应标题元素），说明为 `.qs-card-description`，操作为右对齐的 `.qs-card-actions`；`as` 为 section / article / aside 或带 `role` 时，未显式命名则以标题命名，可用 `getByRole('region', { name })` 查询。
+- Card 的标题槽位为 `.qs-card-title`（`headingLevel` 时渲染为对应标题元素），标题继承 `.qs-card-heading` 的字号、字重与颜色，宿主可沿用 0.8.0 的方式覆写 `.qs-card-heading`；说明为 `.qs-card-description`，操作为右对齐的 `.qs-card-actions`；`as` 为 section / article / aside 或带 `role` 时，未显式命名则以标题命名，可用 `getByRole('region', { name })` 查询。
 
 Select 的单选菜单使用 Radix Select，统一 Qing Steel 的深浅主题、圆角浮层、分组标题、选中勾选和禁用样式。支持方向键、Home / End、文字快速定位与 Escape 关闭；保留 `name / required / form`、原生 `onChange`、表单提交与重置。`multiple` 或 `size > 1` 仍为原生列表框。浮层挂载在 ThemeProvider 内，跟随局部主题。
 

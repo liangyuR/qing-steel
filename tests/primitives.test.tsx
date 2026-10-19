@@ -1,8 +1,39 @@
-import { createRef, forwardRef, type AnchorHTMLAttributes } from 'react';
+import {
+  createRef,
+  forwardRef,
+  type AnchorHTMLAttributes,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Button, Card, Chip, IconButton } from '../src';
+
+type LinkState = { isActive: boolean };
+const StateLink = forwardRef<
+  HTMLAnchorElement,
+  Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'className' | 'style' | 'children'> & {
+    to: string;
+    active: boolean;
+    className?: string | ((state: LinkState) => string | undefined);
+    style?: CSSProperties | ((state: LinkState) => CSSProperties | undefined);
+    children?: ReactNode | ((state: LinkState) => ReactNode);
+  }
+>(function StateLink({ to, active, className, style, children, ...props }, ref) {
+  const state = { isActive: active };
+  return (
+    <a
+      {...props}
+      ref={ref}
+      href={to}
+      className={typeof className === 'function' ? className(state) : className}
+      style={typeof style === 'function' ? style(state) : style}
+    >
+      {typeof children === 'function' ? children(state) : children}
+    </a>
+  );
+});
 
 const RouterLink = forwardRef<
   HTMLAnchorElement,
@@ -56,6 +87,56 @@ describe('按钮的链接形态', () => {
     const link = screen.getByRole('link', { name: '返回历史列表' });
     expect(childRef.current).toBe(link);
     expect(hostRef.current).toBe(link);
+  });
+  it('asChild 子元素的 className 与 style 为状态函数 → 随状态解析并与按钮样式、宿主样式合并', () => {
+    const tree = (active: boolean) => (
+      <Button asChild style={{ minWidth: 80, opacity: 0.4 }}>
+        <StateLink
+          to="/inspect"
+          active={active}
+          className={({ isActive }) => (isActive ? 'step-active' : 'step-idle')}
+          style={({ isActive }) => ({ opacity: isActive ? 1 : 0.7 })}
+        >
+          检测
+        </StateLink>
+      </Button>
+    );
+    const { rerender } = render(tree(true));
+    const link = screen.getByRole('link', { name: '检测' });
+    expect(link).toHaveClass('qs-btn', 'step-active');
+    expect(link.className).not.toContain('=>');
+    expect(link).toHaveStyle({ minWidth: '80px', opacity: '1' });
+    rerender(tree(false));
+    expect(link).toHaveClass('qs-btn', 'step-idle');
+    expect(link).not.toHaveClass('step-active');
+    expect(link).toHaveStyle({ opacity: '0.7' });
+  });
+  it('asChild 子元素的 children 为状态函数 → 按状态渲染内容，图标插在内容两侧', () => {
+    render(
+      <Button
+        asChild
+        leadingIcon={<i data-testid="lead" />}
+        trailingIcon={<i data-testid="trail" />}
+      >
+        <StateLink to="/inspect" active>
+          {({ isActive }) => (isActive ? '当前步骤' : '其他步骤')}
+        </StateLink>
+      </Button>,
+    );
+    const link = screen.getByRole('link', { name: '当前步骤' });
+    expect(link.firstElementChild).toBe(screen.getByTestId('lead'));
+    expect(link.lastElementChild).toBe(screen.getByTestId('trail'));
+    expect(link).toHaveTextContent('当前步骤');
+  });
+  it('asChild 子元素的 children 为状态函数且没有图标 → 原样交给子元素解析', () => {
+    render(
+      <Button asChild>
+        <StateLink to="/inspect" active={false}>
+          {({ isActive }) => (isActive ? '当前步骤' : '其他步骤')}
+        </StateLink>
+      </Button>,
+    );
+    expect(screen.getByRole('link', { name: '其他步骤' })).toBeInTheDocument();
   });
   it.each(['href', 'asChild'] as const)(
     '禁用的链接形态按钮（%s）→ 点击不导航、不触发回调，键盘 Tab 跳过',
@@ -135,6 +216,15 @@ describe('卡片语义', () => {
     );
     const region = screen.getByRole('region', { name: '触发接线' });
     expect(within(region).getByRole('button', { name: '刷新接线状态' })).toBeInTheDocument();
+  });
+  it('包装组件透传值为 undefined 的 aria-labelledby → 仍以标题命名为区域', () => {
+    const labelledBy: string | undefined = undefined;
+    render(
+      <Card as="section" title="触发接线" aria-labelledby={labelledBy}>
+        内容
+      </Card>,
+    );
+    expect(screen.getByRole('region', { name: '触发接线' })).toBeInTheDocument();
   });
   it('默认 div 带标题 → 不暴露为区域，保持 0.8.0 的语义', () => {
     render(<Card title="触发接线">内容</Card>);

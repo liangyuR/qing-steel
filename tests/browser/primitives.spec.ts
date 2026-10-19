@@ -41,6 +41,54 @@ test('按钮渲染为 button 与链接 → 字重字号一致，Chip 静态与�
   );
 });
 
+test('可移除 Chip 的移除按钮 → 视觉圆形不变，点击区域 md 不小于 32 px、sm 不小于 24 px', async ({
+  page,
+}) => {
+  await page.goto('/showcase/');
+  const actions = page.locator('#actions');
+  for (const [name, side] of [
+    ['移除标签 A', 32],
+    ['移除紧凑标签', 24],
+  ] as const) {
+    const button = actions.getByRole('button', { name });
+    await button.scrollIntoViewIfNeeded();
+    const result = await button.evaluate((el, side) => {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.x + rect.width / 2;
+      const cy = rect.y + rect.height / 2;
+      const reach = side / 2 - 0.5;
+      const corners = [
+        [-reach, -reach],
+        [reach, -reach],
+        [-reach, reach],
+        [reach, reach],
+      ];
+      return {
+        visual: Math.round(rect.width),
+        hit: corners.every(([dx, dy]) => el.contains(document.elementFromPoint(cx + dx, cy + dy))),
+      };
+    }, side);
+    expect(result.hit).toBe(true);
+    expect(result.visual).toBe(side === 32 ? 24 : 20);
+  }
+});
+
+test('宿主覆写 .qs-card-heading 的字号与颜色 → 两种标题元素都随之变化', async ({ page }) => {
+  await page.goto('/showcase/');
+  await page.addStyleTag({
+    content: 'section.qs-react-card > .qs-card-heading { font-size: 20px; color: rgb(255, 0, 0); }',
+  });
+  for (const name of ['相机列表 3 / 8', '相机 2 · 触发接线']) {
+    const title = page.getByRole('region', { name }).locator('.qs-card-title');
+    expect(
+      await title.evaluate((el) => {
+        const s = getComputedStyle(el);
+        return `${s.fontSize} ${s.color}`;
+      }),
+    ).toBe('20px rgb(255, 0, 0)');
+  }
+});
+
 test('紧凑图标按钮放进卡片标题行 → 标题行保持 24 px，不被按钮撑高', async ({ page }) => {
   await page.goto('/showcase/');
   const region = page.getByRole('region', { name: '相机列表 3 / 8' });
