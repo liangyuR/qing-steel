@@ -151,6 +151,7 @@
 | 测量值更新 | 只有变化的字符位纵向滚动，未变的不动；相同值不触发 | medium / decel |
 | 主题切换 | View Transition 整页交叉淡入；不支持时直接切换 | medium / standard |
 | 对话框 / 抽屉出现 | 遮罩淡入；对话框自下方 8 px、.98 缩放淡入，抽屉自右侧 24 px 滑入 | 遮罩 medium / standard，对话框 medium / decel |
+| 全局提示出现 / 消失 | 自外侧 12 px、.98 缩放淡入；新提示替换旧提示，旧提示向外侧回退 6 px 并淡出；悬停或聚焦时暂停计时 | 进入 medium / decel，离开 short / standard |
 | 进度推进 | 进度条 scaleX 伸长，不改宽度 | medium / decel |
 | 当前阶段（持续） | 呼吸点 opacity 1 → .55；同屏唯一循环动画 | breath / standard |
 | `prefers-reduced-motion` | 时长 token 归零 + 全部过渡与动画关闭；导航折叠不分步，数值直接替换 | — |
@@ -179,6 +180,7 @@
 | 统计读数 | `.qs-stats` > `.qs-stat`（`ok` / `ng` / `warn` / `fault`），最小列宽 `--stat-min`（默认 128px） | 产量、良率等大号等宽读数；默认列宽放得下 6 个字符（`12 345`、`100.0%`），容器变窄时先换行，读数更长时调大 `--stat-min` |
 | 线性进度 | `.qs-progress` > `i`，条长写在 `--v`（0–1） | scaleX 过渡，不改宽度 |
 | 提示条 | `.qs-banner` + `info` / `ok` / `warn` / `ng` / `fault` / `tertiary` | 页面内的持续提示，出现时淡入 |
+| 全局提示 | `.qs-snackbars`（`top`）> `.qs-snackbar` + `ok` / `info` / `warn` / `ng` / `fault`，`.out` 离开 | 瞬时操作结果（已保存、已完成），浮层不占布局，数秒后消失；同一时刻一条。错误与需要处理的提示用页面内 `.qs-banner` |
 | 空状态 | `.qs-empty` > 图标 + `b` + `small` | 放在原内容位置，说明为什么空、下一步做什么 |
 | 对话框 | `.qs-scrim` > `.qs-dialog`（`.hd` / `.bd` / `.ft`）；`.qs-scrim.side` 右侧抽屉 | 遮罩取 `--scrim`，对话框取 `--shadow-3`；进入只动 transform 与 opacity |
 | 数值滚动 | `.qs-odo` | 由 `QingSteel.setOdo()` 生成字符位 |
@@ -195,7 +197,7 @@
 用版本标签固定到某一版（pnpm / npm 均支持 Git 依赖）：
 
 ```bash
-pnpm add github:liangyuR/qing-steel#v0.3.0
+pnpm add github:liangyuR/qing-steel#v0.4.0
 ```
 
 ```js
@@ -250,6 +252,7 @@ QingSteel.setTheme('light', { storageKey: 'my-app-theme' });  // '' / 'dark' / '
 | `bindNav(el)` / `navUpdate(el)` / `navToggleRail(el)` | 导航胶囊指示器、展开 ⇄ rail 分步切换，派发 `qs-change` |
 | `setOdo(el, text)` | 数值只滚变化的字符位 |
 | `swapVerdict(el, render, toNg)` | 判定卡淡出 → `render(el)` → 滑入，变 NG 时强调一次 |
+| `snackbar(text, opts)` / `dismissSnackbar(el)` | 全局提示：`opts.tone`、`opts.top`、`opts.host`、`opts.action = { label, onClick }`、`opts.close`、`opts.duration`；默认时长 `snackDuration(text)`（4–10 s，随文字变长） |
 | `setTheme(value, opts)` / `restoreTheme(key)` | 主题切换（View Transition）与恢复 |
 | `relayout(scope)` | 尺寸变化后重算指示器（字体加载与 resize 已自动调用） |
 

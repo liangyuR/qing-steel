@@ -388,6 +388,38 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
 .qs-banner.fault { background: var(--fault-container); color: var(--on-fault-container); }
 .qs-banner.tertiary { background: var(--tertiary-container); color: var(--on-tertiary-container); }
 
+/* ---------- 全局提示（snackbar） ----------
+ * 瞬时的操作结果（已保存、已完成）：浮在页面之上，不占布局、不推动内容，数秒后自动消失。错误与需要用户处理的提示仍用页面内的 .qs-banner。
+ * .qs-snackbars 是定位层：默认视口底部居中，.top 顶部居中；同一时刻只显示一条，新提示与正在离开的旧提示叠在同一格。
+ * .qs-snackbar 默认 inverse-surface；ok / info / warn / ng / fault 取对应 container 色。内容：可选图标、.msg、文字按钮（.qs-btn.text）、关闭按钮（.qs-btn.icon）。
+ * 进入自外侧 12px、.98 缩放淡入（medium / decel）；加 .out 后向外侧回退并淡出（short / standard），动画结束由脚本移除。只动 transform 与 opacity。 */
+.qs-snackbars {
+  --snack-from: 12px;
+  position: fixed; left: 0; right: 0; bottom: var(--space-24); z-index: 60;
+  display: grid; justify-items: center; padding: 0 var(--space-24); pointer-events: none;
+}
+.qs-snackbars.top { --snack-from: -12px; top: var(--space-16); bottom: auto; }
+.qs-snackbars > .qs-snackbar { grid-area: 1 / 1; pointer-events: auto; }
+.qs-snackbar {
+  display: flex; align-items: center; gap: 10px; min-width: 0; max-width: min(560px, 100%); min-height: 44px; padding: 6px 16px;
+  border-radius: var(--r-md); background: var(--inverse-surface); color: var(--inverse-on-surface); box-shadow: var(--shadow-2);
+  font: var(--text-body); overflow-wrap: anywhere;
+  animation: qs-snack-in var(--dur-medium) var(--ease-decel) both;
+}
+.qs-snackbar > .qs-ic, .qs-snackbar > svg { width: 18px; height: 18px; flex: none; }
+.qs-snackbar .msg { flex: 1; min-width: 0; padding: 4px 0; }
+.qs-snackbar > .qs-btn { --btn-fg: currentColor; flex: none; margin: -2px 0; }
+.qs-snackbar > .qs-btn.text { font-weight: 700; }
+.qs-snackbar > .qs-btn:last-child { margin-right: -8px; }
+.qs-snackbar.ok { background: var(--ok-container); color: var(--on-ok-container); }
+.qs-snackbar.info { background: var(--primary-container); color: var(--on-primary-container); }
+.qs-snackbar.warn { background: var(--warn-container); color: var(--on-warn-container); }
+.qs-snackbar.ng { background: var(--ng-container); color: var(--on-ng-container); }
+.qs-snackbar.fault { background: var(--fault-container); color: var(--on-fault-container); }
+.qs-snackbar.out { pointer-events: none; animation: qs-snack-out var(--dur-short) var(--ease-standard) both; }
+@keyframes qs-snack-in { from { opacity: 0; transform: translateY(var(--snack-from)) scale(.98); } }
+@keyframes qs-snack-out { to { opacity: 0; transform: translateY(calc(var(--snack-from) * .5)); } }
+
 /* ---------- 空状态 ----------
  * 图标 + 一句话说明 + 可选的下一步；居中放在原内容的位置，不另起卡片。 */
 .qs-empty { display: grid; justify-items: center; align-content: center; gap: 6px; min-height: 120px; padding: 24px 16px; text-align: center; color: var(--on-surface-variant); }
