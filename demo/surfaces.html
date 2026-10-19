@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>青钢 · 常驻表面与临时浮层</title>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: var(--page-pad); background: var(--surface); color: var(--on-surface); font: var(--text-body); }
+    h1 { font: var(--text-headline); } h2 { margin: 0; font: var(--text-title); }
+    header, .actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-12); margin-bottom: var(--space-20); }
+    main { display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr); gap: var(--panel-gap); align-items: stretch; }
+    nav.qs-nav { min-height: 420px; }
+    .content { display: grid; gap: var(--panel-gap); align-content: start; min-width: 0; }
+    .qs-popover[popover], .qs-tooltip[popover] { inset: 110px var(--space-24) auto auto; margin: 0; max-width: calc(100vw - var(--space-24) * 2); }
+    #surface-menu { display: none; gap: var(--space-8); min-width: 220px; }
+    #surface-menu:popover-open { display: grid; }
+    @media (max-width: 640px) { main { grid-template-columns: minmax(0, 1fr); } nav.qs-nav { width: 100%; min-height: 0; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>常驻表面与临时浮层</h1>
+    <button class="qs-btn tonal" id="surface-theme" type="button">切换深浅主题</button>
+    <a class="qs-btn text" href="index.html">返回组件样张</a>
+  </header>
+  <main>
+    <nav class="qs-nav" aria-label="表面角色示例">
+      <div class="brand"><b>QING / STEEL</b></div>
+      <div class="grp">常驻导航 · 无投影</div>
+      <a class="item" href="#surface-panel" aria-current="page"><span class="lbl">面板</span></a>
+      <a class="item" href="#surface-card"><span class="lbl">卡片</span></a>
+    </nav>
+    <div class="content">
+      <section class="qs-panel" id="surface-panel">
+        <header class="hd"><h2>常驻面板 · qs-panel</h2></header>
+        <p>28px 圆角。和导航一起通过 surface 色阶、圆角与间距分区，均不加投影。</p>
+        <section class="qs-card lv2" id="surface-card"><h2>嵌套卡片 · qs-card lv2</h2><p>lv2 / lv3 只代表色阶，嵌套不增加阴影。</p></section>
+      </section>
+      <section class="qs-card lv3">
+        <h2>临时覆盖当前内容时，选择浮层类</h2>
+        <p>应用负责位置和交互，视觉样式来自上游。</p>
+        <div class="actions">
+          <button class="qs-btn outlined" type="button" popovertarget="surface-menu">打开菜单</button>
+          <button class="qs-btn outlined" type="button" popovertarget="surface-tip">查看简短提示</button>
+          <button class="qs-btn" type="button" id="surface-open-dialog">打开对话框</button>
+        </div>
+      </section>
+      <div class="qs-banner info">常驻提示条也不加投影。输入焦点环和选中描边属于交互反馈。</div>
+    </div>
+  </main>
+  <div class="qs-popover" id="surface-menu" popover aria-label="示例菜单">
+    <strong>临时菜单 · shadow-2</strong>
+    <button class="qs-btn text" type="button" popovertarget="surface-menu" popovertargetaction="hide">关闭菜单</button>
+  </div>
+  <div class="qs-tooltip" id="surface-tip" popover role="tooltip">简短提示 · qs-tooltip · shadow-2</div>
+  <dialog class="qs-scrim" id="surface-dialog" aria-labelledby="surface-dialog-title">
+    <section class="qs-dialog">
+      <header class="hd"><h3 id="surface-dialog-title">临时对话框 · shadow-3</h3></header>
+      <div class="bd"><p>青钢提供表面、圆角、遮罩及投影；浏览器原生 dialog 提供模态行为。</p></div>
+      <form class="ft" method="dialog"><button class="qs-btn" type="submit">关闭</button></form>
+    </section>
+  </dialog>
+  <script>
+    document.querySelector('#surface-theme').addEventListener('click', () => {
+      document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+    });
+    document.querySelector('#surface-open-dialog').addEventListener('click', () => {
+      document.querySelector('#surface-dialog').showModal();
+    });
+  </script>
+</body>
+</html>

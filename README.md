@@ -14,7 +14,27 @@
 
 ---
 
-## 原生数据控件
+## 常驻表面与临时浮层
+
+常驻区域通过 surface 色阶、圆角和间距区分，**不添加投影**。导航 `.qs-nav`、顶栏 `.qs-top`、卡片 `.qs-card`、面板 `.qs-panel` 和页面内 `.qs-banner` 明确使用 `box-shadow: none`；卡片 `lv2` / `lv3` 只代表色阶，不代表悬浮高度。
+
+| 角色 | 上游类 | 视觉规则 |
+| --- | --- | --- |
+| 常驻卡片 | `.qs-card` | surface-low，16px 圆角，无投影；lv2 / lv3 递进色阶 |
+| 常驻面板 | `.qs-panel` | surface-low，28px 圆角，无投影；支持卡片相同的 hd 结构 |
+| 导航 | `.qs-nav` | 28px 圆角，无投影；展开 / rail 使用相同表面规则 |
+| 下拉、菜单、按需预览 | `.qs-popover` | surface-high，16px 圆角，`--shadow-2` |
+| 简短提示 | `.qs-tooltip` | surface-high，8px 圆角，标签字体，`--shadow-2` |
+| 对话框 / 临时抽屉 | `.qs-scrim` > `.qs-dialog` | `--shadow-3`，保留遮罩；支持原生 `dialog.qs-scrim` |
+| 瞬时通知 | `.qs-snackbar` | 按语义变色，`--shadow-2` |
+
+接入应用直接选择对应角色类，不在业务 CSS 中复制阴影、背景和圆角。应用保留位置、尺寸、外边距、滚动及键盘/焦点/打开关闭行为；上游不强制弹层 position 或 z-index。原生 `popover` 可以直接加 `qs-popover` / `qs-tooltip`，原生 `dialog` 可直接加 `qs-scrim`，不需要复刻浏览器盒模型修正。
+
+输入焦点环、选中描边、告警标记不属于表面投影。FAB 是浮动操作按钮、缩略图 hover 是瞬态交互反馈，保留原有 `--shadow-1`；不要把这些效果复制到常驻容器。
+
+浅/深主题与原生交互示例见 [`demo/surfaces.html`](demo/surfaces.html)。示例只有浏览器原生交互，不要求 React 或组件库。
+
+## 原生数据控件用法
 
 原生表格、树行与选择控件的浅深主题静态示例见 [`demo/native-data.html`](demo/native-data.html)。示例展示视觉状态；真实排序、树键盘与选择逻辑由接入应用提供。
 
@@ -71,7 +91,7 @@
 | `state-hover` / `state-pressed` | 8% / 12% `on-surface` | 8% / 12% `on-surface` | 半透明状态层，叠在任意底色上 |
 | `on-surface-disabled` / `disabled-container` | 38% / 12% `on-surface` | 38% / 12% `on-surface` | 禁用控件的文字 / 填充；描边、文字、图标类按钮只换文字色 |
 | `scrim` | 黑 60% | `on-surface` 40% | 对话框 / 抽屉遮罩 |
-| `shadow-1` / `shadow-2` / `shadow-3` | — | — | 抬起的卡片与 FAB / 浮层与提示气泡 / 对话框 |
+| `shadow-1` / `shadow-2` / `shadow-3` | — | — | FAB / 瞬态交互反馈；临时浮层与提示气泡；对话框。常驻容器不用投影 |
 
 ### 语义色（独立于主色）
 
@@ -181,6 +201,8 @@
 | 导航 | `.qs-nav`（`rail`），`.item[aria-current="page"]` | 展开 220 / rail 72；胶囊指示器；底部状态与折叠按钮 |
 | 顶栏 | `.qs-top` | 标题 + 面包屑 + 右侧徽章与操作 |
 | 卡片 | `.qs-card`（`lv2` / `lv3`） | 嵌套按 low → mid → high 递进，无边框 |
+| 面板 | `.qs-panel` | 28px 圆角，常驻无投影；布局由宿主管理 |
+| 临时浮层 | `.qs-popover` / `.qs-tooltip` | 下拉、菜单、按需预览 / 简短提示；视觉和阴影上游提供，宿主管理位置和行为 |
 | 状态徽章 | `.qs-badge` + `ok` / `ng` / `warn` / `fault` / `off` | 圆点 + 文字 + 等宽数值 |
 | cycle 阶段 | `.qs-cycle` > `.ph`（`done` / `cur` / `fault`）+ `.ln` | 当前阶段 primary 实色 + 呼吸点；故障与主链路脱开，进入时才染紫 |
 | 判定大卡 | `.qs-verdict` + `ok` / `ng` / `warn` / `fault` / `idle` / `run`，`.xl` | NG 实色最醒目；合格但需注意（如局部超差）用 `warn`，检测异常（如未测成）用 `fault`；`.xl` 判定字取 `--text-verdict`；`.pulse` 呼吸点；切换时序由脚本驱动 |

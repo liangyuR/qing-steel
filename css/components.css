@@ -240,8 +240,8 @@ label.qs-field > span:first-child:not(.qs-input) { font-size: 12px; color: var(-
  * 用于下拉、操作菜单、悬停/焦点预览。宿主只负责定位、尺寸、滚动、语义及开关/焦点行为。
  * 不默认设 position / z-index，以便用于 portal、原生 popover 或普通定位容器。
  */
-.qs-popover { min-width: 0; padding: var(--space-16); border-radius: var(--r-lg); background: var(--surface-high); color: var(--on-surface); box-shadow: var(--shadow-2); }
-.qs-tooltip { padding: var(--space-8) var(--space-12); border-radius: var(--r-sm); background: var(--surface-high); color: var(--on-surface); box-shadow: var(--shadow-2); font: var(--text-label); }
+.qs-popover { min-width: 0; padding: var(--space-16); border: 0; border-radius: var(--r-lg); background: var(--surface-high); color: var(--on-surface); box-shadow: var(--shadow-2); }
+.qs-tooltip { padding: var(--space-8) var(--space-12); border: 0; border-radius: var(--r-sm); background: var(--surface-high); color: var(--on-surface); box-shadow: var(--shadow-2); font: var(--text-label); }
 
 /* ---------- cycle 阶段 ----------
  * .ph.done 已完成 / .ph.cur 当前（带呼吸点）/ .ph.fault 与主链路脱开，只有进入时 .cur 才染紫；.ln.done 连接线填满。
@@ -444,6 +444,10 @@ label.qs-field > span:first-child:not(.qs-input) { font-size: 12px; color: var(-
  * .qs-scrim > .qs-dialog（.hd / .bd / .ft）。遮罩淡入，对话框自下方 8px、.98 缩放淡入；只动 transform 与 opacity。
  * .qs-scrim.side：右侧抽屉，.qs-dialog 贴右并整高，自右侧滑入。 */
 .qs-scrim { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: var(--space-24); background: var(--scrim); animation: qs-fade-in var(--dur-medium) var(--ease-standard) both; }
+/* Native dialog keeps top-layer/inert/focus behavior; only normalize its browser box. */
+dialog.qs-scrim { margin: 0; border: 0; width: 100%; height: 100%; max-width: none; max-height: none; }
+dialog.qs-scrim:not([open]) { display: none; }
+dialog.qs-scrim::backdrop { background: transparent; }
 .qs-dialog {
   width: min(520px, 100%); max-height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
   background: var(--surface-high); color: var(--on-surface); border-radius: var(--r-xl); box-shadow: var(--shadow-3);
