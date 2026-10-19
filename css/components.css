@@ -2,6 +2,7 @@
  * 青钢 QING / STEEL · components
  * 依赖 tokens.css。所有颜色、圆角、时长都取自 token，不出现单主题字面色。
  * 带位移指示器 / 数值滚动的组件需要 js/qs-motion.js；不引入脚本时退化为静态选中态。
+ * 常驻容器用 surface 色阶分层，不加投影；临时覆盖内容使用 qs-popover / qs-tooltip / qs-dialog。
  */
 
 /* ---------- 基础 ---------- */
@@ -128,7 +129,8 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
 
 /* ---------- 输入框 ---------- */
 .qs-field { display: grid; gap: 6px; min-width: 0; }
-.qs-field label { font-size: 12px; color: var(--on-surface-variant); }
+.qs-field label,
+label.qs-field > span:first-child:not(.qs-input) { font-size: 12px; color: var(--on-surface-variant); }
 .qs-input {
   height: var(--ctl-h); border-radius: var(--r-md); border: 1px solid var(--outline-variant);
   background: var(--surface-lowest); color: var(--on-surface); padding: 0 12px;
@@ -145,7 +147,7 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
 /* ---------- 导航：展开 220 / rail 72 ----------
  * 选中：.item[aria-current="page"]。qs-motion.js 驱动 .ind 胶囊在项之间滑动、折叠时文字先淡出。 */
 .qs-nav {
-  width: var(--sidebar-w); background: var(--surface-low); display: flex; flex-direction: column;
+  width: var(--sidebar-w); background: var(--surface-low); border-radius: var(--r-xl); box-shadow: none; display: flex; flex-direction: column;
   padding: 12px; gap: 4px; flex: none; min-height: 100%; position: relative;
   overflow-x: hidden; overflow-y: auto; scrollbar-width: none;
   transition: width var(--dur-medium) var(--ease-standard), padding var(--dur-medium) var(--ease-standard);
@@ -216,20 +218,30 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
 .qs-nav.rail .collapse .qs-ic { transform: rotate(180deg); }
 
 /* ---------- 顶栏 ---------- */
-.qs-top { height: var(--header-h); display: flex; align-items: center; gap: 12px; padding: 0 var(--page-pad); background: var(--surface); flex: none; }
+.qs-top { height: var(--header-h); display: flex; align-items: center; gap: 12px; padding: 0 var(--page-pad); background: var(--surface); box-shadow: none; flex: none; }
 .qs-top h1 { margin: 0; font-size: 18px; font-weight: 700; }
 .qs-top .crumb { color: var(--on-surface-variant); font-size: 13px; display: flex; align-items: center; gap: 6px; }
 .qs-top .crumb .qs-ic { width: 14px; height: 14px; }
 .qs-top .spacer { flex: 1; }
 
-/* ---------- 卡片：surface 分层代替边框 ---------- */
-.qs-card { background: var(--surface-low); border-radius: var(--r-lg); padding: 16px; min-width: 0; }
+/* ---------- 常驻卡片 / 面板：surface 分层，不用投影 ----------
+ * lv2 / lv3 仅代表色阶；不要把嵌套层级当作悬浮高度。
+ */
+.qs-card, .qs-panel { background: var(--surface-low); border-radius: var(--r-lg); padding: var(--space-16); min-width: 0; box-shadow: none; }
+.qs-panel { border-radius: var(--r-xl); }
 .qs-card.lv2 { background: var(--surface-mid); }
 .qs-card.lv3 { background: var(--surface-high); }
-.qs-card .hd { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.qs-card .hd h3 { margin: 0; font-size: 14px; font-weight: 700; }
-.qs-card .hd .sp { flex: 1; }
-.qs-card .hd .meta { color: var(--on-surface-variant); font-size: 12px; }
+:is(.qs-card, .qs-panel) .hd { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+:is(.qs-card, .qs-panel) .hd h3 { margin: 0; font-size: 14px; font-weight: 700; }
+:is(.qs-card, .qs-panel) .hd .sp { flex: 1; }
+:is(.qs-card, .qs-panel) .hd .meta { color: var(--on-surface-variant); font-size: 12px; }
+
+/* ---------- 临时浮层 ----------
+ * 用于下拉、操作菜单、悬停/焦点预览。宿主只负责定位、尺寸、滚动、语义及开关/焦点行为。
+ * 不默认设 position / z-index，以便用于 portal、原生 popover 或普通定位容器。
+ */
+.qs-popover { min-width: 0; padding: var(--space-16); border: 0; border-radius: var(--r-lg); background: var(--surface-high); color: var(--on-surface); box-shadow: var(--shadow-2); }
+.qs-tooltip { padding: var(--space-8) var(--space-12); border: 0; border-radius: var(--r-sm); background: var(--surface-high); color: var(--on-surface); box-shadow: var(--shadow-2); font: var(--text-label); }
 
 /* ---------- cycle 阶段 ----------
  * .ph.done 已完成 / .ph.cur 当前（带呼吸点）/ .ph.fault 与主链路脱开，只有进入时 .cur 才染紫；.ln.done 连接线填满。
@@ -375,7 +387,7 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
  * 页面内的持续提示：info / ok / warn / ng / fault / tertiary（离线、候选等非常规模式）。出现时淡入，不做位移。 */
 .qs-banner {
   display: flex; align-items: flex-start; gap: 10px; min-width: 0; padding: 10px 14px; border-radius: var(--r-md);
-  background: var(--surface-high); color: var(--on-surface); font: 400 13px/1.5 var(--font-sans); overflow-wrap: anywhere;
+  background: var(--surface-high); color: var(--on-surface); box-shadow: none; font: 400 13px/1.5 var(--font-sans); overflow-wrap: anywhere;
   animation: qs-fade-in var(--dur-short) var(--ease-standard);
 }
 .qs-banner > .qs-ic, .qs-banner > svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
@@ -432,6 +444,10 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
  * .qs-scrim > .qs-dialog（.hd / .bd / .ft）。遮罩淡入，对话框自下方 8px、.98 缩放淡入；只动 transform 与 opacity。
  * .qs-scrim.side：右侧抽屉，.qs-dialog 贴右并整高，自右侧滑入。 */
 .qs-scrim { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: var(--space-24); background: var(--scrim); animation: qs-fade-in var(--dur-medium) var(--ease-standard) both; }
+/* Native dialog keeps top-layer/inert/focus behavior; only normalize its browser box. */
+dialog.qs-scrim { margin: 0; border: 0; width: 100%; height: 100%; max-width: none; max-height: none; }
+dialog.qs-scrim:not([open]) { display: none; }
+dialog.qs-scrim::backdrop { background: transparent; }
 .qs-dialog {
   width: min(520px, 100%); max-height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
   background: var(--surface-high); color: var(--on-surface); border-radius: var(--r-xl); box-shadow: var(--shadow-3);
@@ -447,6 +463,47 @@ a.qs-btn[aria-disabled="true"] { pointer-events: none; }
 @keyframes qs-fade-in { from { opacity: 0; } }
 @keyframes qs-dialog-in { from { opacity: 0; transform: translateY(8px) scale(.98); } }
 @keyframes qs-sheet-in { from { opacity: 0; transform: translateX(24px); } }
+
+/* ---------- 原生表单选择控件 ----------
+ * 浏览器负责 checkbox/radio 的键盘、焦点和禁用行为；不隐藏 input，不另造开关皮肤。
+ * .qs-check 直接放在原生 input 上，也支持 qs-field 内的原生选择控件。
+ */
+.qs-check,
+.qs-field input:is([type="checkbox"], [type="radio"]) { accent-color: var(--primary); cursor: pointer; }
+.qs-check:disabled,
+.qs-field input:is([type="checkbox"], [type="radio"]):disabled { cursor: not-allowed; }
+.qs-input:has(input:disabled, select:disabled) { color: var(--on-surface-disabled); background: var(--disabled-container); }
+.qs-input:has([aria-invalid="true"]) { border-color: var(--ng); }
+
+/* ---------- 原生数据表 ----------
+ * 语义和行为保留在 table / th / button 中；排序、分页、列宽、虚拟行由宿主管理。
+ * 外层滚动区域由业务布局提供，sticky 表头自然跟随最近的滚动区域。
+ */
+.qs-table { width: 100%; border-collapse: separate; border-spacing: 0; color: var(--on-surface); font: var(--text-body); }
+.qs-table :is(th, td) { padding: var(--space-12) var(--space-16); border-bottom: 1px solid var(--outline-variant); text-align: left; vertical-align: middle; }
+.qs-table thead th { position: sticky; top: 0; z-index: 1; background: var(--surface-high); color: var(--on-surface-variant); font: var(--text-label); white-space: nowrap; }
+.qs-table th > button { display: inline-flex; align-items: center; gap: var(--space-8); padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.qs-table th > button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.qs-table tbody tr { background: var(--surface-low); }
+.qs-table tbody tr:hover { background: var(--surface-mid); }
+.qs-table tbody tr[aria-selected="true"] { background: var(--primary-container); color: var(--on-primary-container); }
+.qs-table td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.qs-table td:is([data-tone="ok"], [data-tone="pass"]) { color: var(--ok); }
+.qs-table td:is([data-tone="ng"], [data-tone="fail"]) { color: var(--ng); }
+.qs-table td[data-tone="warn"] { color: var(--warn); }
+.qs-table td[data-tone="fault"] { color: var(--fault); }
+
+/* ---------- 原生树行 ----------
+ * 宿主提供 tree/treeitem/group 语义与键盘行为、缩进及展开按钮；这里仅定义同一设计语言。
+ */
+.qs-tree { min-width: 0; color: var(--on-surface); font: var(--text-body); }
+.qs-tree .item { display: flex; align-items: center; gap: var(--space-8); min-height: var(--ctl-h); padding: var(--space-4) var(--space-8); border: 0; border-radius: var(--r-md); background: transparent; color: var(--on-surface-variant); font: inherit; text-align: left; cursor: pointer; }
+.qs-tree .item:hover { background: var(--state-hover); color: var(--on-surface); }
+.qs-tree .item[aria-selected="true"],
+.qs-tree [role="treeitem"][aria-selected="true"] > .item { background: var(--primary-container); color: var(--on-primary-container); }
+.qs-tree .item:focus-visible,
+.qs-tree [role="treeitem"]:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.qs-tree .item .qs-ic { width: var(--space-16); height: var(--space-16); }
 
 /* ---------- 减少动态效果：兜底关闭全部过渡与动画 ---------- */
 @media (prefers-reduced-motion: reduce) {

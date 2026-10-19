@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>青钢 · 原生数据控件</title>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: var(--page-pad); background: var(--surface); color: var(--on-surface); font: var(--text-body); }
+    main { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: var(--panel-gap); }
+    section { padding: var(--space-24); background: var(--surface-low); color: var(--on-surface); border-radius: var(--r-xl); }
+    h1 { font: var(--text-headline); }
+    h2 { font: var(--text-title); }
+    .fields { display: grid; gap: var(--space-16); margin-block: var(--space-24); }
+    .qs-tree .item { width: 100%; }
+  </style>
+</head>
+<body>
+<h1>原生控件 · 浅深主题</h1>
+<main>
+  <section class="qs-scheme-dark" aria-label="深色示例">
+    <h2>深色</h2>
+    <div class="fields">
+      <label class="qs-field">测点别名<span class="qs-input"><input value="左前门间隙"></span></label>
+      <label class="qs-field">只读设备<span class="qs-input"><input value="device_0" disabled></span></label>
+      <label><input class="qs-check" type="checkbox" checked> 采集原始轮廓</label>
+    </div>
+    <table class="qs-table"><caption>测量结果</caption><thead><tr><th scope="col" aria-sort="ascending"><button type="button">测点 ↑</button></th><th scope="col">读数/mm</th></tr></thead><tbody><tr aria-selected="true"><th scope="row">NN1</th><td class="num" data-tone="ok">3.29</td></tr><tr><th scope="row">NN2</th><td class="num" data-tone="ng">5.18</td></tr></tbody></table>
+    <div class="qs-tree" role="tree" aria-label="车型"><div class="item" role="treeitem" aria-expanded="true" tabindex="0">▾ N10</div><div role="group"><div class="item" role="treeitem" aria-selected="true" tabindex="-1">　NN1</div><div class="item" role="treeitem" tabindex="-1">　NN2</div></div></div>
+  </section>
+  <section class="qs-scheme-light" aria-label="浅色示例">
+    <h2>浅色</h2>
+    <div class="fields">
+      <label class="qs-field">测点别名<span class="qs-input"><input value="左前门间隙"></span></label>
+      <label class="qs-field">只读设备<span class="qs-input"><input value="device_0" disabled></span></label>
+      <label><input class="qs-check" type="checkbox" checked> 采集原始轮廓</label>
+    </div>
+    <table class="qs-table"><caption>测量结果</caption><thead><tr><th scope="col" aria-sort="ascending"><button type="button">测点 ↑</button></th><th scope="col">读数/mm</th></tr></thead><tbody><tr aria-selected="true"><th scope="row">NN1</th><td class="num" data-tone="ok">3.29</td></tr><tr><th scope="row">NN2</th><td class="num" data-tone="ng">5.18</td></tr></tbody></table>
+    <div class="qs-tree" role="tree" aria-label="车型"><div class="item" role="treeitem" aria-expanded="true" tabindex="0">▾ N10</div><div role="group"><div class="item" role="treeitem" aria-selected="true" tabindex="-1">　NN1</div><div class="item" role="treeitem" tabindex="-1">　NN2</div></div></div>
+  </section>
+</main>
+</body>
+</html>
