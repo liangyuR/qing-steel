@@ -1,6 +1,6 @@
 {
   "name": "qing-steel",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "青钢 QING / STEEL：面向工业视觉软件的 Material 3 风格设计语言（tokens + 组件样式 + 动效脚本）",
   "private": true,
   "type": "module",
