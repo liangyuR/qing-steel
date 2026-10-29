@@ -346,3 +346,16 @@ CHANGELOG.md            版本记录
 ## 说明
 
 演示页中的工件 SN、配方名（如 `ROBOT-DEMO`）、IP 地址、时间、测量值和工作流均为**示例数据**，不对应任何真实产线或设备。
+
+### Steps 路由步骤导航
+
+`Steps` 用于跨页面工作流，保留 `nav`、有序列表与真实链接语义。传入 `currentValue` 对应当前路由，当前链接标记 `aria-current="step"`；`status` 与 `tone` 由应用业务提供，不依据完成状态阻止访问。`number` 可替换默认的顺序编号，`optional` 显示可选标记，`optionalLabel` 可自定义文案。点击、键盘焦点与按压沿用 Button。
+
+```tsx
+<Steps label="配置步骤" currentValue={pathname} items={[
+  { value: '/capture', href: '/capture', label: '采集', status: '完成', tone: 'ok' },
+  { value: '/review', href: '/review', label: '复核', optional: true },
+]} renderLink={({ href, ...props }) => <Link to={href} {...props} />} />
+```
+
+`renderLink` 必须透传提供的 children、ARIA 和原生属性，并接受 Button asChild 的属性合并。普通网页可以省略它，直接使用 `<a href>`。Steps 不管理路由、完成条件或校验。
