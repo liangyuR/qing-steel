@@ -1623,3 +1623,30 @@ h2.qs-heading {
 .qs-root .qs-navigation {
   transition: none;
 }
+
+.qs-steps > ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.qs-steps .qs-step {
+  height: auto;
+  min-height: var(--ctl-h);
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  text-decoration: none;
+}
+.qs-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: var(--r-full);
+  background: var(--surface-mid);
+  font-variant-numeric: tabular-nums;
+}
+.qs-step-optional { color: var(--on-surface-variant); }
