@@ -22,6 +22,7 @@
 | 角色 | 上游类 | 视觉规则 |
 | --- | --- | --- |
 | 常驻卡片 | `.qs-card` | surface-low，16px 圆角，无投影；lv2 / lv3 递进色阶 |
+| 可选卡片悬停 | `.qs-card.qs-card-hover` / `<Card hoverEffect>` | 上浮 4px、放大 1.02 倍与状态层，无投影；默认关闭 |
 | 常驻面板 | `.qs-panel` | surface-low，28px 圆角，无投影；支持卡片相同的 hd 结构 |
 | 导航 | `.qs-nav` | 28px 圆角，无投影；展开 / rail 使用相同表面规则 |
 | 下拉、菜单、按需预览 | `.qs-popover` | surface-high，16px 圆角，`--shadow-2` |
@@ -178,6 +179,7 @@
 | cycle 阶段推进 | 连接线从左向右填满 → 新阶段底色过渡、宽度微增 → 上一阶段 ✓ 缩放出现 | medium / decel、medium / standard、short / spatial |
 | 整件判定变化 | 文字上滑淡出 → 底色交叉过渡 → 新文字从下方依次滑入；变为 NG 时整卡 1.02 回落一次 | short → medium → medium / decel；强调 long / spatial，不循环 |
 | 列表某段变 NG / 恢复 | 行底色过渡；缺陷描述 `grid-template-rows: 0fr → 1fr` 展开，文字稍后淡入 | medium / standard |
+| 可选卡片悬停 | 细指针上浮 4px、放大 1.02 倍；键盘焦点只显示状态层；减少动态效果时无位移与缩放 | medium / spatial；状态层 short / standard |
 | 帧缩略图选择 | 描边过渡；总览图选框平移伸缩到新帧；hover 抬起 2px | medium / standard、medium / spatial；hover short |
 | 测量值更新 | 只有变化的字符位纵向滚动，未变的不动；相同值不触发 | medium / decel |
 | 主题切换 | View Transition 整页交叉淡入；不支持时直接切换 | medium / standard |

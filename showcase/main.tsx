@@ -44,7 +44,12 @@ import '../css/react.css';
 import './showcase.css';
 import { extendedSections, industrialSections } from './sections';
 import { FormsLab, SelectionLab } from './fields-lab';
-import { ButtonLinkExamples, CardRegionExamples, ChipKeyValueExamples } from './primitives';
+import {
+  ButtonLinkExamples,
+  CardRegionExamples,
+  CardHoverExamples,
+  ChipKeyValueExamples,
+} from './primitives';
 const ExtendedExamples = lazy(() =>
   import('./extended').then((module) => ({ default: module.ExtendedExamples })),
 );
@@ -487,6 +492,14 @@ function App() {
                 wide
               >
                 <CardRegionExamples />
+              </DemoCard>
+              <DemoCard
+                title="卡片悬停反馈"
+                name="Card · hoverEffect"
+                description="可选的轻微放大与状态层；不改变卡片语义，不添加投影。"
+                wide
+              >
+                <CardHoverExamples />
               </DemoCard>
             </>,
           )}

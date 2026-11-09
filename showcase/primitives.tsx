@@ -6,6 +6,7 @@ import {
   Grid,
   Icon,
   IconButton,
+  Menu,
   Stack,
   StatusBadge,
   Text,
@@ -188,5 +189,39 @@ export function ChipKeyValueExamples() {
         ))}
       </Stack>
     </>
+  );
+}
+
+export function CardHoverExamples() {
+  const [message, setMessage] = useState('等待操作');
+  return (
+    <Grid minWidth={260} gap={16}>
+      <Card as="section" title="普通配方卡片" level="mid">
+        <Text>默认不响应悬停，适合静态信息。</Text>
+      </Card>
+      <Card
+        as="section"
+        title="悬停配方卡片"
+        level="mid"
+        hoverEffect
+        actions={
+          <Menu
+            label="配方操作"
+            trigger={
+              <IconButton aria-label="更多配方操作">
+                <MoreIcon />
+              </IconButton>
+            }
+            items={[{ id: 'copy', label: '复制配方', onSelect: () => setMessage('配方已复制') }]}
+          />
+        }
+      >
+        <Stack direction="column" align="flex-start" gap={12}>
+          <Text>悬停放大，按钮与菜单保留各自的操作。</Text>
+          <Button onClick={() => setMessage('配方已打开')}>打开配方</Button>
+          <Text role="status">{message}</Text>
+        </Stack>
+      </Card>
+    </Grid>
   );
 }
