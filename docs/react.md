@@ -53,7 +53,7 @@ export function App() {
 | Text / Heading                 | `variant=body / label / data / data-lg`、`mono`、`muted`；Heading 的 `level=1…6`                                                          |
 | Icon                           | SVG 内容作为 children；`size`、`label`；装饰图标默认不向辅助技术暴露                                                                      |
 | Stack / Grid                   | Stack 的 `direction / gap / align / justify / wrap`；Grid 的 `minWidth / gap`                                                             |
-| Surface / Card                 | `level=lowest / low / mid / high / highest`、`as=div / section / article / aside`；Card 支持 `title / description / actions / headingLevel`，非 div 或带 `role` 时以标题命名 |
+| Surface / Card                 | `level=lowest / low / mid / high / highest`、`as=div / section / article / aside`；Card 支持 `title / description / actions / headingLevel / hoverEffect`，非 div 或带 `role` 时以标题命名 |
 | Divider                        | `vertical` 切换方向                                                                                                                       |
 | Button / IconButton            | `variant=filled / tonal / outlined / text`、`size=sm / md`、`tone=danger / warn`（`danger` 等同 `tone="danger"`）、`loading / disabled`；`href` 渲染为链接，`asChild` 合并到唯一子元素（如路由 Link）；图标按钮必须提供 `aria-label`，支持 `selected` 与 `size="xs"` |
 | FormField                      | `label / description / error / required / id`；自动关联内部输入控件；显式指定子控件 id 时应与 FormField id 相同                           |
@@ -156,6 +156,15 @@ FileInput 保留原生 `<input type="file">`（透明覆盖在整个控件上）
   files={files[k] ? [files[k]] : []}
   onFilesChange={([file]) => file && validateAndKeep(k, file)} />
 ```
+
+### 卡片悬停反馈
+
+`<Card hoverEffect>` 显式启用悬停反馈，默认关闭；原生卡片使用 `class="qs-card qs-card-hover"`。细指针悬停时上浮 4px、放大至 1.02 倍，过渡使用 `--dur-medium` / `--ease-spatial`，叠加 8% `--on-surface` 状态层，不添加投影或常驻描边。卡片仍是内容容器，不自动添加按钮角色、焦点或点击行为；操作使用内部按钮、链接和菜单。
+
+键盘焦点进入卡片时只显示状态层；触摸设备不启用悬停变换。开启减少动态效果时禁用位移、缩放与过渡，保留状态反馈。内部带 `aria-haspopup` 的控件展开时保持悬停位置，避免移向 portal 菜单时锚点回落；关闭后正常恢复。
+
+宿主为卡片周围留出缩放空间，避免祖先 `overflow: hidden` 裁剪；该效果占用卡片 `transform` 与 `::before`，不要再叠加业务侧的卡片悬停变换。示例见 `/showcase/` 的“卡片悬停反馈”。
+
 
 ## 交互与视觉约定
 

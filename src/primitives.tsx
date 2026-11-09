@@ -153,12 +153,14 @@ export function Surface({
   );
 }
 export interface CardProps extends Omit<SurfaceProps, 'title'> {
+  hoverEffect?: boolean;
   title?: ReactNode;
   description?: ReactNode;
   actions?: ReactNode;
   headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
 }
 export function Card({
+  hoverEffect = false,
   title,
   description,
   actions,
@@ -179,7 +181,7 @@ export function Card({
     <Surface
       {...props}
       aria-labelledby={props['aria-labelledby'] || (named ? titleId : undefined)}
-      className={cx('qs-react-card', className)}
+      className={cx('qs-react-card', hoverEffect && 'qs-card-hover', className)}
     >
       {(hasTitle || present(description) || present(actions)) && (
         <div className="qs-card-heading">
