@@ -1,5 +1,6 @@
 import {
   createRef,
+  useState,
   forwardRef,
   type AnchorHTMLAttributes,
   type CSSProperties,
@@ -231,4 +232,24 @@ describe('卡片语义', () => {
     expect(screen.queryByRole('region')).not.toBeInTheDocument();
     expect(screen.getByText('触发接线').closest('[aria-labelledby]')).toBeNull();
   });
+});
+
+it('asChild 增加鼠标识别 → 宿主与路由子元素的指针反馈都保留', async () => {
+  function Example() {
+    const [host, setHost] = useState(false);
+    const [child, setChild] = useState(false);
+    return (
+      <>
+        <Button asChild onPointerEnter={() => setHost(true)}>
+          <StateLink to="/recipe" active onPointerEnter={() => setChild(true)}>
+            {({ isActive }) => (isActive ? '当前配方' : '其他配方')}
+          </StateLink>
+        </Button>
+        <output>{host && child ? '宿主与路由均已响应' : '等待鼠标'}</output>
+      </>
+    );
+  }
+  render(<Example />);
+  await userEvent.hover(screen.getByRole('link', { name: '当前配方' }));
+  expect(screen.getByRole('status')).toHaveTextContent('宿主与路由均已响应');
 });

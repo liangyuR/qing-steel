@@ -157,6 +157,12 @@ FileInput 保留原生 `<input type="file">`（透明覆盖在整个控件上）
   onFilesChange={([file]) => file && validateAndKeep(k, file)} />
 ```
 
+### 鼠标与触摸状态层
+
+Button（含 IconButton、href 与 asChild 链接）和可点 Chip 使用真实 PointerEvent 判断鼠标悬停，补偿部分 WebView / 远程输入环境将 `hover` 媒体查询报告为 `none` 的情况，不依赖 ThemeProvider。触摸输入清除悬停状态层，禁用控件不显示状态层；减少动态效果设置仍保留静态反馈并禁止按压缩放。宿主和 asChild 子元素的指针回调保持执行。
+
+原生 CSS 控件仍按媒体查询处理；需要上述输入兼容行为时使用 React 组件。导航、表格、缩略图和 Slider 的悬停样式直接响应 `:hover`，Popover / Tooltip 使用实际指针事件，不受此媒体查询误报影响。
+
 ### 卡片悬停反馈
 
 `<Card hoverEffect>` 显式启用悬停反馈，默认关闭；原生卡片使用 `class="qs-card qs-card-hover"`。细指针悬停时上浮 4px、放大至 1.02 倍，过渡使用 `--dur-medium` / `--ease-spatial`，叠加 8% `--on-surface` 状态层，不添加投影或常驻描边。卡片仍是内容容器，不自动添加按钮角色、焦点或点击行为；操作使用内部按钮、链接和菜单。
