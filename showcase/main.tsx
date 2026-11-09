@@ -570,6 +570,9 @@ function App() {
               <DemoCard title="操作与筛选标签" name="Chip" wide>
                 <Stack>
                   <Chip onClick={() => show('已应用推荐参数')}>应用推荐参数</Chip>
+                  <Chip selected={false} disabled>
+                    不可操作标签
+                  </Chip>
                   <Chip selected={filter} onClick={() => setFilter(!filter)}>
                     仅显示异常
                   </Chip>

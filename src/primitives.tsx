@@ -4,13 +4,11 @@ import {
   forwardRef,
   useId,
   useMemo,
-  useState,
   type AnchorHTMLAttributes,
   type ButtonHTMLAttributes,
   type CSSProperties,
   type HTMLAttributes,
   type MouseEvent,
-  type PointerEvent,
   type ReactElement,
   type ReactNode,
   type Ref,
@@ -18,6 +16,7 @@ import {
   type SVGProps,
 } from 'react';
 import { cx, type Size, type Tone } from './core';
+import { useHoverPointer } from './internal/useHoverPointer';
 
 export interface TextProps extends HTMLAttributes<HTMLElement> {
   as?: 'span' | 'p' | 'div' | 'small';
@@ -174,10 +173,11 @@ export function Card({
   className,
   ...props
 }: CardProps) {
-  const [hoverPointer, setHoverPointer] = useState<'mouse' | 'touch'>();
-  const trackPointer = (event: PointerEvent<HTMLDivElement>) => {
-    if (hoverEffect) setHoverPointer(event.pointerType === 'mouse' ? 'mouse' : 'touch');
-  };
+  const pointer = useHoverPointer<HTMLDivElement>(hoverEffect, {
+    onPointerEnter,
+    onPointerMove,
+    onPointerDown,
+  });
   const titleId = `${useId()}-title`;
   const hasTitle = present(title);
   const Title = headingLevel ? (`h${headingLevel}` as 'h2') : 'div';
@@ -191,19 +191,7 @@ export function Card({
       {...props}
       aria-labelledby={props['aria-labelledby'] || (named ? titleId : undefined)}
       className={cx('qs-react-card', hoverEffect && 'qs-card-hover', className)}
-      data-qs-hover-pointer={hoverEffect ? hoverPointer : undefined}
-      onPointerEnter={(event) => {
-        trackPointer(event);
-        onPointerEnter?.(event);
-      }}
-      onPointerMove={(event) => {
-        trackPointer(event);
-        onPointerMove?.(event);
-      }}
-      onPointerDown={(event) => {
-        trackPointer(event);
-        onPointerDown?.(event);
-      }}
+      {...pointer}
     >
       {(hasTitle || present(description) || present(actions)) && (
         <div className="qs-card-heading">
@@ -295,11 +283,13 @@ const ButtonImpl = forwardRef<HTMLElement, AnyButtonProps>(function Button(
     className,
     children,
     disabled,
-    ...props
+    ...rest
   },
   ref,
 ) {
   const inactive = !!(disabled || loading);
+  const pointer = useHoverPointer<HTMLElement>(!inactive, rest);
+  const props = { ...rest, ...pointer };
   const tint = tone ?? (danger ? 'danger' : undefined);
   const lead = loading ? (
     <span className="qs-loading-dot" aria-hidden="true">
@@ -477,6 +467,10 @@ export function Chip({
   formTarget,
   ...props
 }: ChipProps) {
+  const pointer = useHoverPointer<HTMLButtonElement>(
+    !disabled && (!!onClick || selected !== undefined),
+    props,
+  );
   const classes = cx('qs-chip', size === 'sm' && 'sm', tone, className);
   const content = present(label) ? (
     <>
@@ -500,6 +494,7 @@ export function Chip({
           formNoValidate={formNoValidate}
           formTarget={formTarget}
           {...props}
+          {...pointer}
           disabled={disabled}
           onClick={onClick}
           aria-pressed={selected}
