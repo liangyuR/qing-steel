@@ -55,3 +55,26 @@ test('触摸设备操作卡片 → 按钮生效且不残留悬停缩放', async 
     await context.close();
   }
 });
+
+test('悬停媒体误报为不可悬停但收到真实鼠标 → 仍放大，切回触摸后取消', async ({ browser }) => {
+  const context = await browser.newContext({ hasTouch: true, isMobile: true });
+  try {
+    const page = await context.newPage();
+    await page.goto('/showcase/');
+    expect(
+      await page.evaluate(() => matchMedia('(hover: hover) and (pointer: fine)').matches),
+    ).toBe(false);
+    const card = page.locator('.qs-card-hover');
+    await card.hover();
+    await expect.poll(() => transform(card)).toBe('matrix(1.02, 0, 0, 1.02, 0, -4)');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    expect(await transform(card)).toBe('none');
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await expect.poll(() => transform(card)).toBe('matrix(1.02, 0, 0, 1.02, 0, -4)');
+    await card.getByRole('button', { name: '打开配方' }).tap();
+    await expect.poll(() => transform(card)).toBe('none');
+    await expect(card.getByRole('status')).toHaveText('配方已打开');
+  } finally {
+    await context.close();
+  }
+});

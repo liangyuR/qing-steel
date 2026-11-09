@@ -161,7 +161,7 @@ FileInput 保留原生 `<input type="file">`（透明覆盖在整个控件上）
 
 `<Card hoverEffect>` 显式启用悬停反馈，默认关闭；原生卡片使用 `class="qs-card qs-card-hover"`。细指针悬停时上浮 4px、放大至 1.02 倍，过渡使用 `--dur-medium` / `--ease-spatial`，叠加 8% `--on-surface` 状态层，不添加投影或常驻描边。卡片仍是内容容器，不自动添加按钮角色、焦点或点击行为；操作使用内部按钮、链接和菜单。
 
-键盘焦点进入卡片时只显示状态层；触摸设备不启用悬停变换。开启减少动态效果时禁用位移、缩放与过渡，保留状态反馈。内部带 `aria-haspopup` 的控件展开时保持悬停位置，避免移向 portal 菜单时锚点回落；关闭后正常恢复。
+键盘焦点进入卡片时只显示状态层；触摸操作不启用悬停变换。React Card 同时识别真实 PointerEvent：即使嵌入式 WebView 将 hover/pointer 媒体查询误报为不可悬停，鼠标进入、移动或按下仍可启用悬停；触摸或笔输入立即清除鼠标标识。原生 CSS 卡片仍按媒体查询启用，不具备该事件补偿。传入的 onPointerEnter、onPointerMove、onPointerDown 会继续收到原事件。开启减少动态效果时禁用位移、缩放与过渡，保留状态反馈。内部带 `aria-haspopup` 的控件展开时保持悬停位置，避免移向 portal 菜单时锚点回落；关闭后正常恢复。
 
 宿主为卡片周围留出缩放空间，避免祖先 `overflow: hidden` 裁剪；该效果占用卡片 `transform` 与 `::before`，不要再叠加业务侧的卡片悬停变换。示例见 `/showcase/` 的“卡片悬停反馈”。
 
