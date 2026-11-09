@@ -263,9 +263,11 @@ label.qs-field > span:first-child:not(.qs-input) { font-size: 12px; color: var(-
 .qs-card-hover::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--on-surface); opacity: 0; pointer-events: none; z-index: -1; transition: opacity var(--dur-short) var(--ease-standard); }
 .qs-card-hover:focus-within::before { opacity: .08; }
 @media (hover: hover) and (pointer: fine) {
-  .qs-card-hover:is(:hover, :has([aria-haspopup][aria-expanded="true"])) { transform: translateY(-4px) scale(1.02); z-index: 1; }
-  .qs-card-hover:is(:hover, :has([aria-haspopup][aria-expanded="true"]))::before { opacity: .08; }
+  .qs-card-hover:where(:not([data-qs-hover-pointer="touch"])):is(:hover, :has([aria-haspopup][aria-expanded="true"])) { transform: translateY(-4px) scale(1.02); z-index: 1; }
+  .qs-card-hover:where(:not([data-qs-hover-pointer="touch"])):is(:hover, :has([aria-haspopup][aria-expanded="true"]))::before { opacity: .08; }
 }
+.qs-card-hover:where([data-qs-hover-pointer="mouse"]):is(:hover, :has([aria-haspopup][aria-expanded="true"])) { transform: translateY(-4px) scale(1.02); z-index: 1; }
+.qs-card-hover:where([data-qs-hover-pointer="mouse"]):is(:hover, :has([aria-haspopup][aria-expanded="true"]))::before { opacity: .08; }
 @media (prefers-reduced-motion: reduce) {
   .qs-card-hover { transition: none; }
   .qs-card-hover:is(:hover, :has([aria-haspopup][aria-expanded="true"])) { transform: none; }
